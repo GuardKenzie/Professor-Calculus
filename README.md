@@ -27,3 +27,10 @@ events
   
 event [event id]
   - get more details about an event
+```
+
+## To do:
+
+Add a help message
+Eyebleach
+Lofi
