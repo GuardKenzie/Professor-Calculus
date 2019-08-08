@@ -9,4 +9,4 @@ update
 attend
 leave
 events
-event```
+event
