@@ -173,13 +173,14 @@ async def on_guild_join(guild):
 
 @fenrir.command()
 async def setup(ctx):
-    await ctx.channel.purge(limit=1)
-    if isinstance(ctx.channel, discord.abc.GuildChannel):
-        cat = await ctx.guild.create_category("Fenrir")
-        channel = await ctx.guild.create_text_channel("events", category=cat)
-        await channel.send(content="Hello! I'm Fenrisúlfur or Fenrir for short. Nice to meet you :D\nThis is my events channel. Here I will post notifications for upcoming FC events!\nPlease type `"+prefix+"help` in chat to see what I'm capable of.")
-        await ctx.guild.create_role(name="Scheduler")
-        await channel.send(content="Assign the newly created role `Scheduler` to people you want to be able to schedule events.")
+    if ctx.author == ctx.guild.owner:
+        await ctx.channel.purge(limit=1)
+        if isinstance(ctx.channel, discord.abc.GuildChannel):
+            cat = await ctx.guild.create_category("Fenrir")
+            channel = await ctx.guild.create_text_channel("events", category=cat)
+            await channel.send(content="Hello! I'm Fenrisúlfur or Fenrir for short. Nice to meet you :D\nThis is my events channel. Here I will post notifications for upcoming FC events!\nPlease type `"+prefix+"help` in chat to see what I'm capable of.")
+            await ctx.guild.create_role(name="Scheduler")
+            await channel.send(content="Assign the newly created role `Scheduler` to people you want to be able to schedule events.")
 
 
 @fenrir.command()
