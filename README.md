@@ -8,6 +8,7 @@ The bot will, on joining a server, automatically create it's own channel to use 
 [Invite to your server!](https://discordapp.com/api/oauth2/authorize?client_id=608760669181050885&permissions=305327120&scope=bot)
 
 ## Commands:
+Command prefix is `f?`
 ```
 schedule [event date (DD/MM/YYY)] [event time (hh:mm)] [event name]
   - create an event
