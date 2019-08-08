@@ -33,3 +33,5 @@ event [event id]
 
 - Eyebleach
 - Lofi
+
+[Invite](https://discordapp.com/api/oauth2/authorize?client_id=608760669181050885&permissions=305327120&scope=bot)
