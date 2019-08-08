@@ -338,7 +338,6 @@ async def update(ctx, numer, what, *, instead):
 
 @fenrir.command()
 async def help(ctx, *, cmd="none"):
-    await ctx.channel.purge(limit=1)
     if cmd == "none":
         msg = discord.Embed(title="Available commands:", description="Use `help [command]` for more information")
         msg.add_field(name="schedule", value="Schedules a new event", inline=False)
