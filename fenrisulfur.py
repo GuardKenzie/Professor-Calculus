@@ -173,6 +173,7 @@ async def on_guild_join(guild):
 
 @fenrir.command()
 async def setup(ctx):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         cat = await ctx.guild.create_category("Fenrir")
         channel = await ctx.guild.create_text_channel("events", category=cat)
@@ -183,6 +184,7 @@ async def setup(ctx):
 
 @fenrir.command()
 async def events(ctx):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         msg = discord.Embed(title="Scheduled events:", colour=discord.Colour.purple())
         c.execute("SELECT * FROM events WHERE server_hash='{0}'".format(hash(ctx.guild)))
@@ -206,6 +208,7 @@ async def events(ctx):
 
 @fenrir.command()
 async def schedule(ctx, date, time, *, name):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel) and 'Scheduler' in [y.name for y in ctx.author.roles]:
         if dcheck(date + " " + time):
             c.execute("SELECT id FROM events WHERE server_hash={0}".format(hash(ctx.guild)))
@@ -226,6 +229,7 @@ async def schedule(ctx, date, time, *, name):
 
 @fenrir.command()
 async def remove(ctx, *, numer):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel) and 'Scheduler' in [y.name for y in ctx.author.roles]:
         print("5")
         print(numer)
@@ -246,6 +250,7 @@ async def remove(ctx, *, numer):
 
 @fenrir.command()
 async def attend(ctx, *, numer):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         try:
             numer = int(numer)
@@ -274,6 +279,7 @@ async def attend(ctx, *, numer):
 
 @fenrir.command()
 async def leave(ctx, *, numer):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         try:
             numer = int(numer)
@@ -300,6 +306,7 @@ async def leave(ctx, *, numer):
 
 @fenrir.command()
 async def event(ctx, *, numer):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         try:
             numer = int(numer)
@@ -328,6 +335,7 @@ async def event(ctx, *, numer):
 
 @fenrir.command()
 async def update(ctx, numer, what, *, instead):
+    await ctx.channel.purge(limit=1)
     if isinstance(ctx.channel, discord.abc.GuildChannel) and 'Scheduler' in [y.name for y in ctx.author.roles]:
         try:
             numer = int(numer)
@@ -349,6 +357,7 @@ async def update(ctx, numer, what, *, instead):
 
 @fenrir.command()
 async def help(ctx, *, cmd="none"):
+    await ctx.channel.purge(limit=1)
     if cmd == "none":
         msg = discord.Embed(title="Available commands:", description="Use `help [command]` for more information")
         msg.add_field(name="schedule", value="Schedules a new event", inline=False)
@@ -402,6 +411,7 @@ async def help(ctx, *, cmd="none"):
 async def on_command_error(ctx, error):
     print(error)
     print(ctx)
+    await ctx.channel.purge(limit=1)
     if ctx.command.name == "schedule":
         await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY)] [event time (hh:mm)] [event name]`")
     if ctx.command.name == "remove":
