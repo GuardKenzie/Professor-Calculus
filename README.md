@@ -31,6 +31,6 @@ event [event id]
 
 ## To do:
 
-Add a help message
-Eyebleach
-Lofi
+- Add a help message
+- Eyebleach
+- Lofi
