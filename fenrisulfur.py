@@ -403,7 +403,7 @@ async def eyebleach(ctx):
             success = True
         except urllib.error.HTTPError:
             success = False
-    a = a.read()
+    a = json.loads(a.read())
     ind = random.randint(0,len(a["data"]["children"]))
     link = a["data"]["children"][ind]["data"]["url"]
     await ctx.channel.send(content=link)
