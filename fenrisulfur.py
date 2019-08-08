@@ -107,6 +107,7 @@ async def checkIfNotification():
 
                     for channel in guild.text_channels:
                         if channel.name == "events" and channel.category.name == "Fenrir":
+                            ev = guild.default_role.mention
                             print("sss")
                             attendees = ""
                             for person in people:
@@ -114,11 +115,11 @@ async def checkIfNotification():
                             if attendees == "":
                                 attendees = "Empty :("
                             msg = discord.Embed(title=name, description=description, colour=discord.Colour.orange())
-                            msg.add_field(name="When?", value=date)
+                            msg.add_field(name="When?", value=date + " GMT")
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
                             # await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
-                            await channel.send(content="**Event starting in 1 hour:**", embed=msg)
+                            await channel.send(content=ev + " **Event starting in 1 hour:**", embed=msg)
             #starting
             c.execute("SELECT * FROM events WHERE server_hash='{0}' AND date='{1}'".format(hash(guild), time))
             res = c.fetchall()
@@ -135,6 +136,7 @@ async def checkIfNotification():
 
                     for channel in guild.text_channels:
                         if channel.name == "events" and channel.category.name == "Fenrir":
+                            ev = guild.default_role.mention
                             print("sss")
                             attendees = ""
                             for person in people:
@@ -142,10 +144,10 @@ async def checkIfNotification():
                             if attendees == "":
                                 attendees = "Empty :("
                             msg = discord.Embed(title=name, description=description, colour=discord.Colour.red())
-                            msg.add_field(name="When?", value=date)
+                            msg.add_field(name="When?", value=date + " GMT")
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
-                            await channel.send(content="**Event starting now:**", embed=msg)
+                            await channel.send(content=ev + " **Event starting now:**", embed=msg)
                             # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
@@ -189,7 +191,7 @@ async def events(ctx):
             time = i[2].split(" ")[1]
             date = i[2].split(" ")[0]
             attendants = json.loads(i[5])
-            msg.add_field(name=name, value=date)
+            msg.add_field(name=name, value=date + " GMT")
             msg.add_field(name="Id:", value=str(numer), inline=True)
 
             # msg += "{0}. {1} on {2} at {3}:\n".format(numer, name, date, time)
@@ -216,7 +218,7 @@ async def schedule(ctx, date, time, *, name):
                 i += 1
             c.execute("INSERT INTO events VALUES ('{0}', {1}, '{2}', '{3}', '', '[]')".format(hash(ctx.guild), i, pad(date + " " + time), name))
             conn.commit()
-            await ctx.channel.send(content="Event `{0}` at `{1}` created with id `{2}`.".format(name, time + "` on `" + date, i))
+            await ctx.channel.send(content="Event `{0}` at `{1}` created with id `{2}`.".format(name, time + "` on `" + date + " GMT", i))
         else:
             await ctx.channel.send(content="Please enter a valid date in the format `D/M/Y hour:minute`")
         print("2")
@@ -308,7 +310,7 @@ async def event(ctx, *, numer):
                 if attendees == "":
                     attendees = "Empty :("
                 msg = discord.Embed(title=res[3], description=res[4], colour=discord.Colour.purple())
-                msg.add_field(name="When?", value=res[2], inline=False)
+                msg.add_field(name="When?", value=res[2] + " GMT", inline=False)
                 msg.add_field(name="Party:", value=attendees)
 
                 # await ctx.channel.send(content=">>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(res[3],res[2],res[4],attendees))
