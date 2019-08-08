@@ -154,6 +154,8 @@ async def checkIfNotification():
 @fenrir.event
 async def on_ready():
     print('Logged on as {0}!'.format(fenrir.user))
+    act = discord.Game(name="with some adventurers in Snowcloak")
+    await fenrir.change_presence(activity=act)
 
 @fenrir.event
 async def on_guild_join(guild):
