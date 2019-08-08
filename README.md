@@ -29,6 +29,9 @@ events
   
 event [event id]
   - get more details about an event
+  
+help [command]
+  - get help for a specific command
 ```
 
 ## To do:
