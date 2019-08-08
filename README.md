@@ -33,5 +33,3 @@ event [event id]
 
 - Eyebleach
 - Lofi
-- Only allow help in dm
-- Only allow scheduler rank to schedule
