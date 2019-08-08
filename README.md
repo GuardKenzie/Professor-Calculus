@@ -31,6 +31,7 @@ event [event id]
 
 ## To do:
 
+- Pad user input for datetime
 - Add a help message
 - Eyebleach
 - Lofi
