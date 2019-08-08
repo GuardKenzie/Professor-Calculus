@@ -354,6 +354,7 @@ async def help(ctx, *, cmd="none"):
         msg.add_field(name="event", value="Get more information about an event", inline=False)
         msg.add_field(name="events", value="List all scheduled events", inline=False)
         msg.add_field(name="update", value="Updates a scheduled event", inline=False)
+        msg.add_field(name="eyebleach", value="Produces some eyebleach", inline=False)
         await ctx.author.send(embed=msg)
     else:
         if cmd == "schedule":
@@ -409,6 +410,12 @@ async def eyebleach(ctx):
     link = a["data"]["children"][ind]["data"]["url"]
     await ctx.channel.send(content=link, delete_after=180.0)
 
+@fenrir.command()
+async def new_feature(ctx, cmd, *, description):
+    if ctx.author.id == 197471216594976768:
+        msg = discord.Embed(title="New feature: {0}".format(cmd))
+        msg.add_field(name="What does it do?", value=description)
+        await ctx.channel.send(embed=msg)
 
 @fenrir.event
 async def on_command_error(ctx, error):
