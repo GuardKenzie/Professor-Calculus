@@ -403,10 +403,11 @@ async def eyebleach(ctx):
             success = True
         except urllib.error.HTTPError:
             success = False
+        await asyncio.sleep(1)
     a = json.loads(a.read())
     ind = random.randint(0,len(a["data"]["children"]))
     link = a["data"]["children"][ind]["data"]["url"]
-    await ctx.channel.send(content=link)
+    await ctx.channel.send(content=link, delete_after=180.0)
 
 
 @fenrir.event
