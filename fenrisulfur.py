@@ -5,6 +5,9 @@ import json
 from datetime import datetime
 from datetime import timedelta
 import asyncio
+from urllib import request
+import urllib
+import random
 
 conn = sqlite3.connect("events.db")
 c = conn.cursor()
@@ -390,6 +393,21 @@ async def help(ctx, *, cmd="none"):
 # @fenrir.command()
 # async def nei(ctx):
 #     await fenrir.logout()
+
+@fenrir.command()
+async def eyebleach(ctx):
+    success = False
+    while not success:
+        try:
+            a = request.urlopen("https://www.reddit.com/r/Eyebleach/top/.json?t=day")
+            success = True
+        except urllib.error.HTTPError:
+            success = False
+    a = a.read()
+    ind = random.randint(0,len(a["data"]["children"]))
+    link = a["data"]["children"][ind]["data"]["url"]
+    await ctx.channel.send(content=link)
+
 
 @fenrir.event
 async def on_command_error(ctx, error):
