@@ -35,3 +35,4 @@ event [event id]
 - Add a help message
 - Eyebleach
 - Lofi
+- Athuga embed
