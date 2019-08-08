@@ -14,14 +14,10 @@ key = keyFile.read()
 print(key)
 keyFile.close()
 
-prefix = ".f "
+prefix = "f? "
 
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
-
-# TODO
-# Lofi
-# leyfa bara help í dm og schedule sem scheduler rank
 
 def dcheck(x):
     _30 = [4,6,9,10]
@@ -158,9 +154,6 @@ async def checkIfNotification():
 @fenrir.event
 async def on_ready():
     print('Logged on as {0}!'.format(fenrir.user))
-    # TODO:
-    # Activity
-    # Athuga events
 
 @fenrir.event
 async def on_guild_join(guild):
@@ -243,8 +236,6 @@ async def remove(ctx, *, numer):
                 await ctx.channel.send(content="That event does not exist!")
         except TypeError:
             await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
-    # TODO:
-    # Fjarlægir event af dagskránni
 
 @fenrir.command()
 async def attend(ctx, *, numer):
@@ -271,8 +262,6 @@ async def attend(ctx, *, numer):
         except TypeError:
              await ctx.author.send(content="Usage: `attend [event id]` where `[event id]` is a number")
         print("3")
-        # TODO:
-        # Bætir þér á listann af fólki sem mætir í event med id sem er gefið
 
 @fenrir.command()
 async def leave(ctx, *, numer):
@@ -325,8 +314,6 @@ async def event(ctx, *, numer):
         except TypeError:
             await ctx.author.send(content="Usage: `event [event id]` where `[event id]` is a number")
         print("4")
-        # TODO:
-        # Öfugt við attend
 
 @fenrir.command()
 async def update(ctx, numer, what, *, instead):
