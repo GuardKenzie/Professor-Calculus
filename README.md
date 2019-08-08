@@ -31,8 +31,7 @@ event [event id]
 
 ## To do:
 
-- Pad user input for datetime
-- Add a help message
 - Eyebleach
 - Lofi
-- Athuga embed
+- Only allow help in dm
+- Only allow scheduler rank to schedule

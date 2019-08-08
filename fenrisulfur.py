@@ -17,17 +17,20 @@ keyFile.close()
 prefix = ".f "
 
 fenrir = commands.Bot(command_prefix = prefix)
+fenrir.remove_command("help")
 
 # TODO
 # Lofi
-# Sýna sketch
-# Help
+# leyfa bara help í dm og schedule sem scheduler rank
 
 def dcheck(x):
     _30 = [4,6,9,10]
 
     ok = True
     x = x.split(" ")
+
+    if len(x) != 2:
+        return False
 
     d = x[0]
     t = x[1]
@@ -57,6 +60,27 @@ def dcheck(x):
     if M not in range(1,13):
         return False
     return True
+
+def add0(x):
+    if len(x)<2:
+        return "0" + x
+    else:
+        return x
+
+def pad(x):
+    x = x.split(" ")
+    a = x[0]
+    b = x[1]
+
+    a = a.split("/")
+    b = b.split(":")
+
+    a = list(map(add0,a))
+    b = list(map(add0,b))
+
+    return "/".join(a) + " " + ":".join(b)
+
+
 
 def allIds(c,h):
     c.execute("SELECT id FROM events WHERE server_hash='{0}'".format(h))
@@ -90,8 +114,15 @@ async def checkIfNotification():
                             print("sss")
                             attendees = ""
                             for person in people:
-                                attendees += "\n   " + person
-                            await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
+                                attendees += "\n" + person
+                            if attendees == "":
+                                attendees = "Empty :("
+                            msg = discord.Embed(title=name, description=description, colour=discord.Colour.orange())
+                            msg.add_field(name="When?", value=date)
+                            msg.add_field(name="Id:", value=str(numer))
+                            msg.add_field(name="Party:", value=attendees, inline=False)
+                            # await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
+                            await channel.send(content="**Event starting in 1 hour:**", embed=msg)
             #starting
             c.execute("SELECT * FROM events WHERE server_hash='{0}' AND date='{1}'".format(hash(guild), time))
             res = c.fetchall()
@@ -111,8 +142,15 @@ async def checkIfNotification():
                             print("sss")
                             attendees = ""
                             for person in people:
-                                attendees += "\n   " + person
-                            await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
+                                attendees += "\n" + person
+                            if attendees == "":
+                                attendees = "Empty :("
+                            msg = discord.Embed(title=name, description=description, colour=discord.Colour.red())
+                            msg.add_field(name="When?", value=date)
+                            msg.add_field(name="Id:", value=str(numer))
+                            msg.add_field(name="Party:", value=attendees, inline=False)
+                            await channel.send(content="**Event starting now:**", embed=msg)
+                            # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
 
@@ -132,7 +170,7 @@ async def on_guild_join(guild):
 
 @fenrir.command()
 async def events(ctx):
-    msg = ""
+    msg = discord.Embed(title="Scheduled events:", colour=discord.Colour.purple())
     c.execute("SELECT * FROM events WHERE server_hash='{0}'".format(hash(ctx.guild)))
     for i in c.fetchall():
         numer = i[1]
@@ -140,11 +178,16 @@ async def events(ctx):
         time = i[2].split(" ")[1]
         date = i[2].split(" ")[0]
         attendants = json.loads(i[5])
+        msg.add_field(name=name, value=date)
+        msg.add_field(name="Id:", value=str(numer), inline=True)
 
-        msg += "{0}. {1} on {2} at {3}:\n".format(numer, name, date, time)
+        # msg += "{0}. {1} on {2} at {3}:\n".format(numer, name, date, time)
+        attendees = 0
         for name in attendants:
-            msg += "    " + name + "\n"
-    await ctx.channel.send(content="Scheduled events and attendees:\n>>> "+msg)
+            attendees += 1
+        msg.add_field(name="Party", value=str(attendees), inline=True)
+    await ctx.channel.send(embed=msg)
+    # await ctx.channel.send(content="Scheduled events and attendees:\n>>> "+msg)
     print("1")
 
 @fenrir.command()
@@ -159,7 +202,7 @@ async def schedule(ctx, date, time, *, name):
         print(used)
         while i in used:
             i += 1
-        c.execute("INSERT INTO events VALUES ('{0}', {1}, '{2}', '{3}', '', '[]')".format(hash(ctx.guild), i, date + " " + time, name))
+        c.execute("INSERT INTO events VALUES ('{0}', {1}, '{2}', '{3}', '', '[]')".format(hash(ctx.guild), i, pad(date + " " + time), name))
         conn.commit()
         await ctx.channel.send(content="Event `{0}` at `{1}` created with id `{2}`.".format(name, time + "` on `" + date, i))
     else:
@@ -181,7 +224,7 @@ async def remove(ctx, *, numer):
         else:
             await ctx.channel.send(content="That event does not exist!")
     except TypeError:
-        await ctx.channel.send(content="Usage: `remove [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
     # TODO:
     # Fjarlægir event af dagskránni
 
@@ -207,7 +250,7 @@ async def attend(ctx, *, numer):
             else:
                 await ctx.channel.send(content="You are already attending that event!")
     except TypeError:
-         await ctx.channel.send(content="Usage: `attend [event id]` where `[event id]` is a number")
+         await ctx.author.send(content="Usage: `attend [event id]` where `[event id]` is a number")
     print("3")
     # TODO:
     # Bætir þér á listann af fólki sem mætir í event med id sem er gefið
@@ -234,7 +277,7 @@ async def leave(ctx, *, numer):
             else:
                 await ctx.channel.send(content="You are not attending that event!")
     except TypeError:
-        await ctx.channel.send(content="Usage: `leave [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `leave [event id]` where `[event id]` is a number")
     print("6")
 
 @fenrir.command()
@@ -249,11 +292,17 @@ async def event(ctx, *, numer):
         else:
             attendees = ""
             for name in json.loads(res[5]):
-                attendees += "\n   " + name
+                attendees += "\n" + name
+            if attendees == "":
+                attendees = "Empty :("
+            msg = discord.Embed(title=res[3], description=res[4], colour=discord.Colour.purple())
+            msg.add_field(name="When?", value=res[2], inline=False)
+            msg.add_field(name="Party:", value=attendees)
 
-            await ctx.channel.send(content=">>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(res[3],res[2],res[4],attendees))
+            # await ctx.channel.send(content=">>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(res[3],res[2],res[4],attendees))
+            await ctx.channel.send(embed=msg)
     except TypeError:
-        await ctx.channel.send(content="Usage: `event [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `event [event id]` where `[event id]` is a number")
     print("4")
     # TODO:
     # Öfugt við attend
@@ -266,6 +315,8 @@ async def update(ctx, numer, what, *, instead):
             valid = ["name", "date", "description", "people"]
             if what in valid:
                 if (what == "date" and dcheck(instead)) or what != "date":
+                    if what == "date":
+                        what = pad(what)
                     c.execute("UPDATE events SET {0}='{1}' WHERE server_hash='{2}' AND id={3}".format(what,instead,hash(ctx.guild),numer))
                     conn.commit()
                     await ctx.channel.send(content="Event `{0}`'s `{1}` updated to `{2}`".format(numer, what, instead))
@@ -274,29 +325,83 @@ async def update(ctx, numer, what, *, instead):
         else:
             await ctx.channel.send(content="That event does not exist!")
     except TypeError:
-        await ctx.channel.send(content="Usage: `Update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
+        await ctx.author.send(content="Usage: `Update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
 
+@fenrir.command()
+async def help(ctx, *, cmd="none"):
+    if cmd == "none":
+        msg = discord.Embed(title="Available commands:", description="Use `help [command]` for more information")
+        msg.add_field(name="schedule", value="Schedules a new event", inline=False)
+        msg.add_field(name="remove", value="Removes an event from the schedule", inline=False)
+        msg.add_field(name="attend", value="Join an event", inline=False)
+        msg.add_field(name="leave", value="Leave an event", inline=False)
+        msg.add_field(name="event", value="Get more information about an event", inline=False)
+        msg.add_field(name="events", value="List all scheduled events", inline=False)
+        msg.add_field(name="update", value="Updates a scheduled event", inline=False)
+        await ctx.author.send(embed=msg)
+    else:
+        if cmd == "schedule":
+            msg = discord.Embed(title="schedule [event date(DD/MM/YYYY)] [event time (hh:mm)] [event name]")
+            msg.add_field(name="[event date]", value="The day the event is to take place, for example 31/02/2019", inline = False)
+            msg.add_field(name="[event time]", value="The time the event is to take place, for example 20:31", inline=False)
+            msg.add_field(name="[event name]", value="The name of the event", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "remove":
+            msg = discord.Embed(title="remove [event id]")
+            msg.add_field(name="[event id]", value="The id of the event to be removed", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "attend":
+            msg = discord.Embed(title="attend [event id]")
+            msg.add_field(name="[event id]", value="The id of the event you would like to attend", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "leave":
+            msg = discord.Embed(title="leave [event id]")
+            msg.add_field(name="[event id]", value="The id of the event you would like to leave", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "event":
+            msg = discord.Embed(title="event [event id]")
+            msg.add_field(name="[event id]", value="The id of the event you would like more information on", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "events":
+            msg = discord.Embed(title="lists all available events")
+            await ctx.author.send(embed=msg)
+        elif cmd == "update":
+            msg = discord.Embed(title="update [event id] [update catagory] [new value]")
+            msg.add_field(name="[event id]", value="The id of the event to update", inline=False)
+            msg.add_field(name="[update catagory]", value="Available update catagories are:\nname\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\"", inline=False)
+            msg.add_field(name="[new value]", value="The new value for the catagory", inline=False)
+            await ctx.author.send(embed=msg)
+        else:
+            await ctx.author.send(content="Unrecognised command")
 
 @fenrir.command()
 async def nei(ctx):
     await fenrir.logout()
+
+@fenrir.command()
+async def aaaa(ctx):
+    msg = discord.Embed(title="Title", description="test test test", colour=discord.Colour.purple())
+    msg.add_field(name="test1", value="jskofs", inline=False)
+    msg.add_field(name="test2", value="jskofs", inline=True)
+    msg.add_field(name="test3", value="jskofs", inline=True)
+    await ctx.channel.send(embed=msg)
 
 @fenrir.event
 async def on_command_error(ctx, error):
     print(error)
     print(ctx)
     if ctx.command.name == "schedule":
-        await ctx.channel.send(content="Usage: schedule [event date (DD/MM/YYY)] [event time (hh:mm)] [event name]")
+        await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY)] [event time (hh:mm)] [event name]`")
     if ctx.command.name == "remove":
-        await ctx.channel.send(content="Usage: `remove [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
     if ctx.command.name == "attend":
-        await ctx.channel.send(content="Usage: `attend [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `attend [event id]` where `[event id]` is a number")
     if ctx.command.name == "leave":
-        await ctx.channel.send(content="Usage: `leave [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `leave [event id]` where `[event id]` is a number")
     if ctx.command.name == "event":
-        await ctx.channel.send(content="Usage: `attend [event id]` where `[event id]` is a number")
+        await ctx.author.send(content="Usage: `event [event id]` where `[event id]` is a number")
     if ctx.command.name == "update":
-        await ctx.channel.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
+        await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
 
 fenrir.loop.create_task(checkIfNotification())
 fenrir.run(key)
