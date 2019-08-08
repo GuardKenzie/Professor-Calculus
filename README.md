@@ -5,6 +5,8 @@ A discord bot token needs to be placed in a file titled `key` in the root direct
 
 The bot will, on joining a server, automatically create it's own channel to use for notifications. It notifies users an hour before an event starts and again when it starts.
 
+[Invite to your server!](https://discordapp.com/api/oauth2/authorize?client_id=608760669181050885&permissions=305327120&scope=bot)
+
 ## Commands:
 ```
 schedule [event date (DD/MM/YYY)] [event time (hh:mm)] [event name]
@@ -27,6 +29,9 @@ events
   
 event [event id]
   - get more details about an event
+  
+help [command]
+  - get help for a specific command
 ```
 
 ## To do:
