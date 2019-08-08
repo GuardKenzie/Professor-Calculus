@@ -9,15 +9,21 @@ The bot will, on joining a server, automatically create it's own channel to use 
 ```
 schedule [event date (DD/MM/YYY)] [event time (hh:mm)] [event name]
   - create an event
+  
 remove [event id]
   - delete an event
+  
 update [event id] [update catagory (name, date, description, people)] [new value]
   - update event details
+  
 attend [event id]
   - sign up for an event
+  
 leave [event id]
   - leave an event
+  
 events 
   -list all events and attendees
+  
 event [event id]
   - get more details about an event
