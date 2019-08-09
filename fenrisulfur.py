@@ -441,22 +441,22 @@ async def new_feature(ctx, cmd, *, description):
                     print("yee")
                     await channel.send(embed=msg)
 
-@fenrir.event
-async def on_command_error(ctx, error):
-    print(error)
-    print(ctx)
-    if ctx.command.name == "schedule":
-        await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY or TBD)] [event time (hh:mm)] [event name]`")
-    if ctx.command.name == "remove":
-        await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
-    if ctx.command.name == "attend":
-        await ctx.author.send(content="Usage: `attend [event id]` where `[event id]` is a number")
-    if ctx.command.name == "leave":
-        await ctx.author.send(content="Usage: `leave [event id]` where `[event id]` is a number")
-    if ctx.command.name == "event":
-        await ctx.author.send(content="Usage: `event [event id]` where `[event id]` is a number")
-    if ctx.command.name == "update":
-        await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
+# @fenrir.event
+# async def on_command_error(ctx, error):
+#     print(error)
+#     print(ctx)
+#     if ctx.command.name == "schedule":
+#         await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY or TBD)] [event time (hh:mm)] [event name]`")
+#     if ctx.command.name == "remove":
+#         await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
+#     if ctx.command.name == "attend":
+#         await ctx.author.send(content="Usage: `attend [event id]` where `[event id]` is a number")
+#     if ctx.command.name == "leave":
+#         await ctx.author.send(content="Usage: `leave [event id]` where `[event id]` is a number")
+#     if ctx.command.name == "event":
+#         await ctx.author.send(content="Usage: `event [event id]` where `[event id]` is a number")
+#     if ctx.command.name == "update":
+#         await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
 
 fenrir.loop.create_task(checkIfNotification())
 fenrir.run(key)
