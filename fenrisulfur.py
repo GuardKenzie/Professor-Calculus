@@ -445,7 +445,6 @@ async def new_feature(ctx, cmd, *, description):
 async def on_command_error(ctx, error):
     print(error)
     print(ctx)
-    await ctx.channel.purge(limit=1)
     if ctx.command.name == "schedule":
         await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY or TBD)] [event time (hh:mm)] [event name]`")
     if ctx.command.name == "remove":
