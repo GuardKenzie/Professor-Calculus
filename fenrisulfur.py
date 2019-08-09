@@ -23,6 +23,8 @@ fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
 
 def dcheck(x):
+    if x == "TBD TBD":
+        return True
     _30 = [4,6,9,10]
 
     ok = True
@@ -356,7 +358,7 @@ async def help(ctx, *, cmd="none"):
         await ctx.author.send(embed=msg)
     else:
         if cmd == "schedule":
-            msg = discord.Embed(title="schedule [event date(DD/MM/YYYY)] [event time (hh:mm)] [event name]")
+            msg = discord.Embed(title="schedule [event date(DD/MM/YYYY or TBD)] [event time (hh:mm TBD)] [event name]")
             msg.add_field(name="[event date]", value="The day the event is to take place, for example 31/02/2019", inline = False)
             msg.add_field(name="[event time]", value="The time the event is to take place, for example 20:31", inline=False)
             msg.add_field(name="[event name]", value="The name of the event", inline=False)
@@ -425,7 +427,7 @@ async def on_command_error(ctx, error):
     print(ctx)
     await ctx.channel.purge(limit=1)
     if ctx.command.name == "schedule":
-        await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY)] [event time (hh:mm)] [event name]`")
+        await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY or TBD)] [event time (hh:mm or TBD)] [event name]`")
     if ctx.command.name == "remove":
         await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
     if ctx.command.name == "attend":
