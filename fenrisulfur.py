@@ -202,10 +202,9 @@ async def events(ctx):
         for i in c.fetchall():
             numer = i[1]
             name = i[3]
-            time = i[2].split(" ")[1]
-            date = i[2].split(" ")[0]
+            date = i[2]
             attendants = json.loads(i[5])
-            msg.add_field(name=name, value=gmt(date + " " + time))
+            msg.add_field(name=name, value=gmt(date))
             msg.add_field(name="Id:", value=str(numer), inline=True)
 
             # msg += "{0}. {1} on {2} at {3}:\n".format(numer, name, date, time)
