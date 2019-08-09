@@ -69,22 +69,24 @@ def add0(x):
         return x
 
 def pad(x):
-    if "TBD" in x:
+    print(x)
+    if x == "TBD":
         return x
-    x = x.split(" ")
-    a = x[0]
-    b = x[1]
+    else:
+        x = x.split(" ")
+        a = x[0]
+        b = x[1]
 
-    a = a.split("/")
-    b = b.split(":")
+        a = a.split("/")
+        b = b.split(":")
 
-    a = list(map(add0,a))
-    b = list(map(add0,b))
+        a = list(map(add0,a))
+        b = list(map(add0,b))
 
-    out = "/".join(a) + " " + ":".join(b)
-    print(out)
+        out = "/".join(a) + " " + ":".join(b)
+        print(out)
 
-    return out
+        return out
 
 def gmt(x):
     if x == "TBD":
