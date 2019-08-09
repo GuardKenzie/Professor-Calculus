@@ -81,7 +81,10 @@ def pad(x):
     a = list(map(add0,a))
     b = list(map(add0,b))
 
-    return "/".join(a) + " " + ":".join(b)
+    out = "/".join(a) + " " + ":".join(b)
+    print(out)
+
+    return out
 
 def gmt(x):
     if x == "TBD":
