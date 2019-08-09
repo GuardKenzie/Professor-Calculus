@@ -281,6 +281,8 @@ async def attend(ctx, *, numer):
 
                 if author not in l:
                     l.append(author)
+                    print(l)
+                    print(json.dumps(l))
                     c.execute("UPDATE events SET people=\"{0}\" WHERE server_hash=\"{1}\" AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
                     conn.commit()
                     await ctx.channel.send(content="{0} is now attending `{1}`".format(author, res[3]))
