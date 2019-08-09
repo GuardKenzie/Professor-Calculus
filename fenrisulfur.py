@@ -269,7 +269,7 @@ async def attend(ctx, *, numer):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         try:
             numer = int(numer)
-            author = ctx.message.author.display_name
+            author = ctx.message.author.id
 
             c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND id={1}".format(hash(ctx.guild), numer))
 
@@ -282,7 +282,7 @@ async def attend(ctx, *, numer):
                 if author not in l:
                     l.append(author)
                     print(l)
-                    print(json.dumps(l))
+                    json.dumps(l)
                     c.execute("UPDATE events SET people=\"{0}\" WHERE server_hash=\"{1}\" AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
                     conn.commit()
                     await ctx.channel.send(content="{0} is now attending `{1}`".format(author, res[3]))
@@ -297,7 +297,7 @@ async def leave(ctx, *, numer):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         try:
             numer = int(numer)
-            author = ctx.message.author.display_name
+            author = ctx.message.author.id
 
             c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND id={1}".format(hash(ctx.guild), numer))
 
@@ -330,8 +330,10 @@ async def event(ctx, *, numer):
                 await ctx.channel.send(content="That event does not exist!")
             else:
                 attendees = ""
-                for name in json.loads(res[5]):
-                    attendees += "\n" + name
+                allMemberIds = json.loads(res[5])
+                for member in ctx.guild.members:
+                    if member.id in allMemberIds
+                        attendees += "\n" + member.display_name
                 if attendees == "":
                     attendees = "Empty :("
                 msg = discord.Embed(title=res[3], description=res[4], colour=discord.Colour.purple())
@@ -350,7 +352,7 @@ async def update(ctx, numer, what, *, instead):
         try:
             numer = int(numer)
             if numer in allIds(c, hash(ctx.guild)):
-                valid = ["name", "date", "description", "people"]
+                valid = ["name", "date", "description"]
                 if what in valid:
                     if (what == "date" and dcheck(instead)) or what != "date":
                         if what == "date":
@@ -363,7 +365,7 @@ async def update(ctx, numer, what, *, instead):
             else:
                 await ctx.channel.send(content="That event does not exist!")
         except TypeError:
-            await ctx.author.send(content="Usage: `Update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
+            await ctx.author.send(content="Usage: `Update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription```")
 
 @fenrir.command()
 async def help(ctx, *, cmd="none"):
@@ -407,7 +409,7 @@ async def help(ctx, *, cmd="none"):
         elif cmd == "update":
             msg = discord.Embed(title="update [event id] [update catagory] [new value]")
             msg.add_field(name="[event id]", value="The id of the event to update", inline=False)
-            msg.add_field(name="[update catagory]", value="Available update catagories are:\nname\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\"", inline=False)
+            msg.add_field(name="[update catagory]", value="Available update catagories are:\nname\ndate\ndescription", inline=False)
             msg.add_field(name="[new value]", value="The new value for the catagory", inline=False)
             await ctx.author.send(embed=msg)
         else:
