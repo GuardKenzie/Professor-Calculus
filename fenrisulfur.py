@@ -96,7 +96,7 @@ def gmt(x):
 
 
 def allIds(c,h):
-    c.execute("SELECT id FROM events WHERE server_hash='{0}'".format(h))
+    c.execute("SELECT id FROM events WHERE server_hash=\"{0}\"".format(h))
     a = c.fetchall()
     out = []
     for i in a:
@@ -111,7 +111,7 @@ async def checkIfNotification():
         for guild in fenrir.guilds:
 
             #notify
-            c.execute("SELECT * FROM events WHERE server_hash='{0}' AND date='{1}'".format(hash(guild), timetocheck))
+            c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND date=\"{1}\"".format(hash(guild), timetocheck))
             res = c.fetchall()
             if res != None:
                 for i in res:
@@ -137,7 +137,7 @@ async def checkIfNotification():
                             # await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
                             await channel.send(content="**Event starting in 1 hour:**", embed=msg)
             #starting
-            c.execute("SELECT * FROM events WHERE server_hash='{0}' AND date='{1}'".format(hash(guild), time))
+            c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND date=\"{1}\"".format(hash(guild), time))
             res = c.fetchall()
             if res != None:
                 for i in res:
@@ -147,7 +147,7 @@ async def checkIfNotification():
                     name = i[3]
                     description = i[4]
                     people = json.loads(i[5])
-                    c.execute("DELETE FROM events WHERE id={0} AND server_hash='{1}'".format(numer,h))
+                    c.execute("DELETE FROM events WHERE id={0} AND server_hash=\"{1}\"".format(numer,h))
                     conn.commit()
 
                     for channel in guild.text_channels:
@@ -199,7 +199,7 @@ async def setup(ctx):
 async def events(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         msg = discord.Embed(title="Scheduled events:", colour=discord.Colour.purple())
-        c.execute("SELECT * FROM events WHERE server_hash='{0}'".format(hash(ctx.guild)))
+        c.execute("SELECT * FROM events WHERE server_hash=\"{0}\"".format(hash(ctx.guild)))
         for i in c.fetchall():
             numer = i[1]
             name = i[3]
@@ -230,7 +230,7 @@ async def schedule(ctx, *arg):
             name = " ".join(arg[2:])
             print("2 " + date)
         if dcheck(date):
-            c.execute("SELECT id FROM events WHERE server_hash={0}".format(hash(ctx.guild)))
+            c.execute("SELECT id FROM events WHERE server_hash=\"{0}\"".format(hash(ctx.guild)))
             i = 1
             a = c.fetchall()
             used = []
@@ -239,7 +239,7 @@ async def schedule(ctx, *arg):
             print(used)
             while i in used:
                 i += 1
-            c.execute("INSERT INTO events VALUES ('{0}', {1}, '{2}', '{3}', '', '[]')".format(hash(ctx.guild), i, pad(date), name))
+            c.execute("INSERT INTO events VALUES (\"{0}\", {1}, \"{2}\", \"{3}\", '', '[]')".format(hash(ctx.guild), i, pad(date), name))
             conn.commit()
             await ctx.channel.send(content="Event `{0}` at `{1}` created with id `{2}`.".format(name, gmt(date), i))
         else:
@@ -256,7 +256,7 @@ async def remove(ctx, *, numer):
 
             if numer in allIds(c, hash(ctx.guild)):
                 i = ctx.args[0]
-                c.execute("DELETE FROM events WHERE id={0} AND server_hash='{1}';".format(int(numer), hash(ctx.guild)))
+                c.execute("DELETE FROM events WHERE id={0} AND server_hash=\"{1}\";".format(int(numer), hash(ctx.guild)))
                 conn.commit()
                 await ctx.channel.send(content="Event with id `{0}` successfully deleted!".format(numer))
             else:
@@ -271,7 +271,7 @@ async def attend(ctx, *, numer):
             numer = int(numer)
             author = ctx.message.author.display_name
 
-            c.execute("SELECT * FROM events WHERE server_hash='{0}' AND id={1}".format(hash(ctx.guild), numer))
+            c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND id={1}".format(hash(ctx.guild), numer))
 
             res = c.fetchone()
             if res == None:
@@ -281,7 +281,7 @@ async def attend(ctx, *, numer):
 
                 if author not in l:
                     l.append(author)
-                    c.execute("UPDATE events SET people='{0}' WHERE server_hash='{1}' AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
+                    c.execute("UPDATE events SET people=\"{0}\" WHERE server_hash=\"{1}\" AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
                     conn.commit()
                     await ctx.channel.send(content="{0} is now attending `{1}`".format(author, res[3]))
                 else:
@@ -297,7 +297,7 @@ async def leave(ctx, *, numer):
             numer = int(numer)
             author = ctx.message.author.display_name
 
-            c.execute("SELECT * FROM events WHERE server_hash='{0}' AND id={1}".format(hash(ctx.guild), numer))
+            c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND id={1}".format(hash(ctx.guild), numer))
 
             res = c.fetchone()
 
@@ -307,7 +307,7 @@ async def leave(ctx, *, numer):
                 l = json.loads(res[5])
                 if author in l:
                     l.remove(author)
-                    c.execute("UPDATE events SET people='{0}' WHERE server_hash='{1}' AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
+                    c.execute("UPDATE events SET people=\"{0}\" WHERE server_hash=\"{1}\" AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
                     conn.commit()
                     await ctx.channel.send(content="{0} is no longer attending `{1}`".format(author, res[3]))
                 else:
@@ -321,7 +321,7 @@ async def event(ctx, *, numer):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         try:
             numer = int(numer)
-            c.execute("SELECT * FROM events WHERE server_hash='{0}' AND id={1}".format(hash(ctx.guild), numer))
+            c.execute("SELECT * FROM events WHERE server_hash=\"{0}\" AND id={1}".format(hash(ctx.guild), numer))
             res = c.fetchone()
             print(res)
             if res == None:
@@ -353,7 +353,7 @@ async def update(ctx, numer, what, *, instead):
                     if (what == "date" and dcheck(instead)) or what != "date":
                         if what == "date":
                             instead = pad(instead)
-                        c.execute("UPDATE events SET {0}='{1}' WHERE server_hash='{2}' AND id={3}".format(what,instead,hash(ctx.guild),numer))
+                        c.execute("UPDATE events SET {0}=\"{1}\" WHERE server_hash=\"{2}\" AND id={3}".format(what,instead,hash(ctx.guild),numer))
                         conn.commit()
                         await ctx.channel.send(content="Event `{0}`'s `{1}` updated to `{2}`".format(numer, what, instead))
                     else:
