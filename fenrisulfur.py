@@ -332,7 +332,7 @@ async def event(ctx, *, numer):
                 attendees = ""
                 allMemberIds = json.loads(res[5])
                 for member in ctx.guild.members:
-                    if member.id in allMemberIds
+                    if member.id in allMemberIds:
                         attendees += "\n" + member.display_name
                 if attendees == "":
                     attendees = "Empty :("
