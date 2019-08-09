@@ -69,6 +69,8 @@ def add0(x):
         return x
 
 def pad(x):
+    if x == "TBD":
+        return x
     x = x.split(" ")
     a = x[0]
     b = x[1]
@@ -80,6 +82,12 @@ def pad(x):
     b = list(map(add0,b))
 
     return "/".join(a) + " " + ":".join(b)
+
+def gmt(x):
+    if x == "TBD":
+        return x
+    else:
+        return x + " GMT"
 
 
 
@@ -119,7 +127,7 @@ async def checkIfNotification():
                             if attendees == "":
                                 attendees = "Empty :("
                             msg = discord.Embed(title=name, description=description, colour=discord.Colour.orange())
-                            msg.add_field(name="When?", value=date + " GMT")
+                            msg.add_field(name="When?", value=gmt(date))
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
                             # await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
@@ -147,7 +155,7 @@ async def checkIfNotification():
                             if attendees == "":
                                 attendees = "Empty :("
                             msg = discord.Embed(title=name, description=description, colour=discord.Colour.red())
-                            msg.add_field(name="When?", value=date + " GMT")
+                            msg.add_field(name="When?", value=gmt(date))
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
                             await channel.send(content="**Event starting now:**", embed=msg)
@@ -194,7 +202,7 @@ async def events(ctx):
             time = i[2].split(" ")[1]
             date = i[2].split(" ")[0]
             attendants = json.loads(i[5])
-            msg.add_field(name=name, value=date + " GMT")
+            msg.add_field(name=name, value=gmt(date))
             msg.add_field(name="Id:", value=str(numer), inline=True)
 
             # msg += "{0}. {1} on {2} at {3}:\n".format(numer, name, date, time)
@@ -207,9 +215,15 @@ async def events(ctx):
         print("1")
 
 @fenrir.command()
-async def schedule(ctx, date, time, *, name):
+async def schedule(ctx, *args):
     if isinstance(ctx.channel, discord.abc.GuildChannel) and 'Scheduler' in [y.name for y in ctx.author.roles]:
-        if dcheck(date + " " + time):
+        if arg[0] == "TBD":
+            date = arg[0]
+            name = arg[1]
+        else:
+            date = arg[0] + " " + arg[1]
+            name = arg[2]
+        if dcheck(date):
             c.execute("SELECT id FROM events WHERE server_hash={0}".format(hash(ctx.guild)))
             i = 1
             a = c.fetchall()
@@ -219,9 +233,9 @@ async def schedule(ctx, date, time, *, name):
             print(used)
             while i in used:
                 i += 1
-            c.execute("INSERT INTO events VALUES ('{0}', {1}, '{2}', '{3}', '', '[]')".format(hash(ctx.guild), i, pad(date + " " + time), name))
+            c.execute("INSERT INTO events VALUES ('{0}', {1}, '{2}', '{3}', '', '[]')".format(hash(ctx.guild), i, pad(date), name))
             conn.commit()
-            await ctx.channel.send(content="Event `{0}` at `{1}` created with id `{2}`.".format(name, time + "` on `" + date + " GMT", i))
+            await ctx.channel.send(content="Event `{0}` at `{1}` created with id `{2}`.".format(name, gmt(date), i))
         else:
             await ctx.channel.send(content="Please enter a valid date in the format `D/M/Y hour:minute`")
         print("2")
@@ -313,7 +327,7 @@ async def event(ctx, *, numer):
                 if attendees == "":
                     attendees = "Empty :("
                 msg = discord.Embed(title=res[3], description=res[4], colour=discord.Colour.purple())
-                msg.add_field(name="When?", value=res[2] + " GMT", inline=False)
+                msg.add_field(name="When?", value=gmt(res[2]), inline=False)
                 msg.add_field(name="Party:", value=attendees)
 
                 # await ctx.channel.send(content=">>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(res[3],res[2],res[4],attendees))
@@ -358,7 +372,7 @@ async def help(ctx, *, cmd="none"):
         await ctx.author.send(embed=msg)
     else:
         if cmd == "schedule":
-            msg = discord.Embed(title="schedule [event date(DD/MM/YYYY or TBD)] [event time (hh:mm TBD)] [event name]")
+            msg = discord.Embed(title="schedule [event date(DD/MM/YYYY or TBD)] [event time (hh:mm)] [event name]")
             msg.add_field(name="[event date]", value="The day the event is to take place, for example 31/02/2019", inline = False)
             msg.add_field(name="[event time]", value="The time the event is to take place, for example 20:31", inline=False)
             msg.add_field(name="[event name]", value="The name of the event", inline=False)
@@ -427,7 +441,7 @@ async def on_command_error(ctx, error):
     print(ctx)
     await ctx.channel.purge(limit=1)
     if ctx.command.name == "schedule":
-        await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY or TBD)] [event time (hh:mm or TBD)] [event name]`")
+        await ctx.author.send(content="Usage: `schedule [event date (DD/MM/YYYY or TBD)] [event time (hh:mm)] [event name]`")
     if ctx.command.name == "remove":
         await ctx.author.send(content="Usage: `remove [event id]` where `[event id]` is a number")
     if ctx.command.name == "attend":
