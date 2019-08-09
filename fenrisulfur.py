@@ -150,7 +150,7 @@ async def checkIfNotification():
                             msg.add_field(name="When?", value=date + " GMT")
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
-                            await channel.send(content=ev + "{} **Event starting now:**".format(ev), embed=msg)
+                            await channel.send(content="{} **Event starting now:**".format(ev), embed=msg)
                             # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
