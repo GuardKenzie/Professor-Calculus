@@ -69,7 +69,7 @@ def add0(x):
         return x
 
 def pad(x):
-    if x == "TBD":
+    if "TBD" in x:
         return x
     x = x.split(" ")
     a = x[0]
