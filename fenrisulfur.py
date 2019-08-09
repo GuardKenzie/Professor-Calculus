@@ -416,11 +416,10 @@ async def new_feature(ctx, cmd, *, description):
         msg = discord.Embed(title="New feature: {0}".format(cmd))
         msg.add_field(name="What does it do?", value=description)
         for guild in fenrir.guilds:
-            if guild.id == 608749143824793647:
-                for channel in guild.text_channels:
-                    if channel.name == "events" and channel.category.name == "Fenrir":
-                        print("yee")
-                        await channel.send(embed=msg)
+            for channel in guild.text_channels:
+                if channel.name == "events" and channel.category.name == "Fenrir":
+                    print("yee")
+                    await channel.send(embed=msg)
 
 @fenrir.event
 async def on_command_error(ctx, error):
