@@ -110,7 +110,6 @@ async def checkIfNotification():
 
                     for channel in guild.text_channels:
                         if channel.name == "events" and channel.category.name == "Fenrir":
-                            ev = guild.default_role.mention
                             print("sss")
                             attendees = ""
                             for person in people:
@@ -122,7 +121,7 @@ async def checkIfNotification():
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
                             # await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
-                            await channel.send(content="{} **Event starting in 1 hour:**".format(ev), embed=msg)
+                            await channel.send(content="**Event starting in 1 hour:**", embed=msg)
             #starting
             c.execute("SELECT * FROM events WHERE server_hash='{0}' AND date='{1}'".format(hash(guild), time))
             res = c.fetchall()
@@ -139,7 +138,6 @@ async def checkIfNotification():
 
                     for channel in guild.text_channels:
                         if channel.name == "events" and channel.category.name == "Fenrir":
-                            ev = guild.default_role.mention
                             print("sss")
                             attendees = ""
                             for person in people:
@@ -150,7 +148,7 @@ async def checkIfNotification():
                             msg.add_field(name="When?", value=date + " GMT")
                             msg.add_field(name="Id:", value=str(numer))
                             msg.add_field(name="Party:", value=attendees, inline=False)
-                            await channel.send(content="{} **Event starting now:**".format(ev), embed=msg)
+                            await channel.send(content="**Event starting now:**", embed=msg)
                             # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
