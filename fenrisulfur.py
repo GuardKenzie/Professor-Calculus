@@ -285,7 +285,7 @@ async def attend(ctx, *, numer):
                     json.dumps(l)
                     c.execute("UPDATE events SET people=\"{0}\" WHERE server_hash=\"{1}\" AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
                     conn.commit()
-                    await ctx.channel.send(content="{0} is now attending `{1}`".format(author, res[3]))
+                    await ctx.channel.send(content="{0} is now attending `{1}`".format(ctx.message.author.display_name, res[3]))
                 else:
                     await ctx.channel.send(content="You are already attending that event!")
         except TypeError:
@@ -311,7 +311,7 @@ async def leave(ctx, *, numer):
                     l.remove(author)
                     c.execute("UPDATE events SET people=\"{0}\" WHERE server_hash=\"{1}\" AND id={2}".format(json.dumps(l), hash(ctx.guild), numer))
                     conn.commit()
-                    await ctx.channel.send(content="{0} is no longer attending `{1}`".format(author, res[3]))
+                    await ctx.channel.send(content="{0} is no longer attending `{1}`".format(ctx.message.author.display_name, res[3]))
                 else:
                     await ctx.channel.send(content="You are not attending that event!")
         except TypeError:
@@ -352,7 +352,7 @@ async def update(ctx, numer, what, *, instead):
         try:
             numer = int(numer)
             if numer in allIds(c, hash(ctx.guild)):
-                valid = ["name", "date", "description"]
+                valid = ["name", "date", "description", "people"]
                 if what in valid:
                     if (what == "date" and dcheck(instead)) or what != "date":
                         if what == "date":
