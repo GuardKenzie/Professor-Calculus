@@ -353,7 +353,7 @@ async def update(ctx, numer, what, *, instead):
                 if what in valid:
                     if (what == "date" and dcheck(instead)) or what != "date":
                         if what == "date":
-                            what = pad(what)
+                            instead = pad(instead)
                         c.execute("UPDATE events SET {0}='{1}' WHERE server_hash='{2}' AND id={3}".format(what,instead,hash(ctx.guild),numer))
                         conn.commit()
                         await ctx.channel.send(content="Event `{0}`'s `{1}` updated to `{2}`".format(numer, what, instead))
