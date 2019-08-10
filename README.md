@@ -10,7 +10,7 @@ The bot will, on joining a server, automatically create it's own channel to use 
 ## Commands:
 Command prefix is `f?`
 ```
-schedule [event date (DD/MM/YYY)] [event time (hh:mm)] [event name]
+schedule [event date (DD/MM/YYY hh:mm) or (TBD)] [event name]
   - create an event
   
 remove [event id]
@@ -33,9 +33,11 @@ event [event id]
   
 help [command]
   - get help for a specific command
+eyebleach
+  - finds some eyebleach
 ```
 
 ## To do:
 
-- Eyebleach
 - Lofi
+- pinned message for all scheduled events
