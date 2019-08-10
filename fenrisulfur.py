@@ -23,7 +23,7 @@ fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
 
 def dcheck(x):
-    if x == "TBD":
+    if "TBD" in x:
         return True
     _30 = [4,6,9,10]
 
@@ -258,11 +258,13 @@ async def schedule(ctx, *arg):
             date = arg[0]
             name = " ".join(arg[1:])
             argnum = 2
+            print(1)
         else:
             date = arg[0] + " " + arg[1]
             name = " ".join(arg[2:])
             argnum = 3
-        if dcheck(date) and len(arg) == argnum:
+            print(2)
+        if dcheck(date) and len(arg) >= argnum:
             c.execute("SELECT id FROM events WHERE server_hash=?", (str(hash(ctx.guild)),))
             i = 1
             a = c.fetchall()
