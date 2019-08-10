@@ -166,6 +166,23 @@ async def checkIfNotification():
                             # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
+def eventsList(c, guild):
+        msg = discord.Embed(title="Scheduled events:", colour=discord.Colour.purple())
+        c.execute("SELECT * FROM events WHERE server_hash=?", (str(hash(guild)),))
+        for i in c.fetchall():
+            numer = i[1]
+            name = i[3]
+            date = i[2]
+            attendants = json.loads(i[5])
+            msg.add_field(name=name, value=gmt(date))
+            msg.add_field(name="Id:", value=str(numer), inline=True)
+
+            # msg += "{0}. {1} on {2} at {3}:\n".format(numer, name, date, time)
+            attendees = 0
+            for name in attendants:
+                attendees += 1
+            msg.add_field(name="Party", value=str(attendees), inline=True)
+        return msg
 
 
 @fenrir.event
@@ -173,6 +190,24 @@ async def on_ready():
     print('Logged on as {0}!'.format(fenrir.user))
     act = discord.Game(name="with some adventurers in Snowcloak")
     await fenrir.change_presence(activity=act)
+
+@fenrir.event
+async def on_command_completion(ctx):
+    if isinstance(ctx.channel, discord.abc.GuildChannel):
+        myMessage = ""
+        myChannel = ""
+        for t in ctx.guild.text_channels:
+            if t.name == "events" and t.category.name == "Fenrir":
+                myChannel = t
+                for pin in t.pins():
+                    if pin.author.id == 608760669181050885:
+                        myMessage = pin
+        if myMessage == "":
+            myMessage = await myChannel.send(content="Pinned event list:", embed=eventsList(c,ctx.guild))
+            await myMessage.pin()
+        else:
+            await myMessage.edit(content="Pinned event list:" embed=eventList(c,ctx.guild))
+
 
 @fenrir.event
 async def on_guild_join(guild):
