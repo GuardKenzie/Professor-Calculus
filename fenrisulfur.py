@@ -109,7 +109,7 @@ def eventsList(c, guild):
             name = i[3]
             date = i[2]
             attendants = json.loads(i[5])
-            msg.add_field(name=name, value=str(len(attendants))+ " going, "+gmt(date), inline=False)
+            msg.add_field(name=name + " (ID: {})".format(str(numer)), value=str(len(attendants))+ " going, "+gmt(date), inline=False)
 
             attendees = 0
             for name in attendants:
