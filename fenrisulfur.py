@@ -254,7 +254,7 @@ async def events(ctx):
 @fenrir.command()
 async def schedule(ctx, *arg):
     if isinstance(ctx.channel, discord.abc.GuildChannel) and 'Scheduler' in [y.name for y in ctx.author.roles] and len(arg) > 1:
-        if arg[0] == "TBD":
+        if "TBD" in arg:
             date = arg[0]
             name = " ".join(arg[1:])
             argnum = 2
