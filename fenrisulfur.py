@@ -124,7 +124,7 @@ async def updatePinned(guild):
             myChannel = t
             pins = await t.pins()
             for pin in pins:
-                if pin.author.id == 608760669181050885:
+                if pin.author.id == 608760669181050885 and pin.content == "Pinned event list:":
                     myMessage = pin
     if myMessage == "":
         myMessage = await myChannel.send(content="Pinned event list:", embed=eventsList(c,guild))
