@@ -12,6 +12,7 @@ Command prefix is `f?`
 ```
 setup
   - initial setup
+ 
 schedule [event date (DD/MM/YYY hh:mm) or (TBD)] [event name]
   - create an event
   
@@ -29,6 +30,7 @@ leave [event id]
   
 help [command]
   - get help for a specific command
+  
 eyebleach
   - finds some eyebleach
 ```
