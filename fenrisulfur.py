@@ -255,21 +255,21 @@ async def on_message(message):
         if message.author.id != fenrir.user.id:
             await message.delete()
 
-@fenrir.command()
-async def _2(ctx):
-    if ctx.author.id == 197471216594976768:
-        for guild in fenrir.guilds:
-            for cat in guild.categories:
-                for channel in cat.text_channels:
-                    if channel.name == "events" and cat.name == "Fenrir":
-                        messages = len(await channel.history().flatten())
-                        await channel.purge(limit=messages - 2)
-                        await updatePinned(guild)
+# @fenrir.command()
+# async def _2(ctx):
+#     if ctx.author.id == 197471216594976768:
+#         for guild in fenrir.guilds:
+#             for cat in guild.categories:
+#                 for channel in cat.text_channels:
+#                     if channel.name == "events" and cat.name == "Fenrir":
+#                         messages = len(await channel.history().flatten())
+#                         await channel.purge(limit=messages - 2)
+#                         await updatePinned(guild)
 
-                        msg = discord.Embed(title="Update 2.0!", description="I have been updated to version 2.0.\n\n- The events channel should now be cleaner and has a permanent list of all the events scheduled.\n\n- All messages sent to the events channel will be automatically deleted, however, commands do still function.\n\n- As a result of the permanent calendar, the `f? events` and `f? event` commands have been removed since they are no longer required.\n\n- A new channel has been created for all bot related help and discussion.")
-                        await channel.send(embed=msg,delete_after=172800)
-                if cat.name == "Fenrir":
-                    await guild.create_text_channel("bot-help-and-discussion", category=cat)
+#                         msg = discord.Embed(title="Update 2.0!", description="I have been updated to version 2.0.\n\n- The events channel should now be cleaner and has a permanent list of all the events scheduled.\n\n- All messages sent to the events channel will be automatically deleted, however, commands do still function.\n\n- As a result of the permanent calendar, the `f? events` and `f? event` commands have been removed since they are no longer required.\n\n- A new channel has been created for all bot related help and discussion.")
+#                         await channel.send(embed=msg,delete_after=172800)
+#                 if cat.name == "Fenrir":
+#                     await guild.create_text_channel("bot-help-and-discussion", category=cat)
 
 
 @fenrir.command()
