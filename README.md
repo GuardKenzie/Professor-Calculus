@@ -36,4 +36,3 @@ eyebleach
 ## To do:
 
 - Lofi
-- pinned message for all scheduled events
