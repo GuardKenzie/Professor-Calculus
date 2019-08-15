@@ -106,21 +106,28 @@ def allIds(c,h):
         out.append(i[0])
     return out
 
-async def getCurrentPage(guild):
+async def getEventList(guild):
     myMessage = ""
-
     for t in guild.text_channels:
         if t.name == "events" and t.category.name == "Fenrir":
-            pins = await t.pins()
-            for pin in pins:
-                if pin.author.id == fenrir.user.id and pin.content == "Pinned event list:":
-                   myMessage = pin
+            myChannel = t
+            async for message in t.history(oldest_first=True):
+                if message.author.id == fenrir.user.id and message.content == "Pinned event list:":
+                    myMessage = message
+                    break
+            if myMessage != "":
+                break
+    return [myChannel,myMessage]
+
+async def getCurrentPage(guild):
+    myMessage = await getEventList(guild)
+    myMessage = myMessage[1]
+
     if myMessage == "":
-        return 1
+        return [1,1]
     txt = myMessage.embeds[0].title
     pagelist = re.findall("[0-9]+",txt)
     return list(map(int, pagelist))
-
 
 
 def eventsList(c, guild, page):
@@ -171,16 +178,11 @@ def eventsList(c, guild, page):
         return msg
 
 async def updatePinned(guild,page, myMessage="",myChannel=""):
+    eventlist = await getEventList(guild)
     if myMessage == "":
-        for t in guild.text_channels:
-            if t.name == "events" and t.category.name == "Fenrir":
-                myChannel = t
-                pins = await t.pins()
-                for pin in pins:
-                    if pin.author.id == fenrir.user.id and pin.content == "Pinned event list:":
-                        myMessage = pin
+        myMessage = eventlist[1]
     if myMessage == "":
-        myMessage = await myChannel.send(content="Pinned event list:", embed=eventsList(c,guild,1))
+        myMessage = await eventlist[0].send(content="Pinned event list:", embed=eventsList(c,guild,1))
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
         await myMessage.pin()
@@ -193,13 +195,13 @@ async def pageUpdate(react, user):
         lastpage = page[1]
         page = page[0]
 
-        print(react.emoji)
-
-        if react.emoji == leftarrow and page != 1:
-            print(page-1)
+        if react.emoji == leftarrow:
+            if page == 1:
+                page = lastpage+1
             await updatePinned(react.message.guild, page-1, react.message)
-        elif react.emoji == rightarrow and page != lastpage:
-            print(page+1)
+        elif react.emoji == rightarrow:
+            if page == lastpage:
+                page = 0
             await updatePinned(react.message.guild,page+1, react.message)
         await react.remove(user)
 
