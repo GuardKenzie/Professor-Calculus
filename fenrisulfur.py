@@ -8,6 +8,11 @@ import asyncio
 from urllib import request
 import urllib
 import random
+import re
+import math
+
+leftarrow = "\u2B05"
+rightarrow = "\u27A1"
 
 conn = sqlite3.connect("events.db")
 c = conn.cursor()
@@ -101,11 +106,44 @@ def allIds(c,h):
         out.append(i[0])
     return out
 
-def eventsList(c, guild):
-        msg = discord.Embed(title="Scheduled events:", colour=discord.Colour.purple())
+async def getCurrentPage(guild):
+    myMessage = ""
+
+    for t in guild.text_channels:
+        if t.name == "events" and t.category.name == "Fenrir":
+            pins = await t.pins()
+            for pin in pins:
+                if pin.author.id == fenrir.user.id and pin.content == "Pinned event list:":
+                   myMessage = pin
+    if myMessage == "":
+        return 1
+    txt = myMessage.embeds[0].title
+    pagelist = re.findall("[0-9]+",txt)
+    return list(map(int, pagelist))
+
+
+
+def eventsList(c, guild, page):
         c.execute("SELECT * FROM events WHERE server_hash=?", (str(hash(guild)),))
 
         eList = c.fetchall()
+
+        pages = math.ceil(len(eList)/5)
+        lastPage = len(eList)%5
+
+        if page > pages:
+            page = pages
+
+        if page != pages:
+            begin = (page-1)*5
+            end = page*5
+        else:
+            begin = (page-1)*5
+            end = len(eList)
+
+        msg = discord.Embed(title="Scheduled events: (Page {}/{})".format(page,pages), colour=discord.Colour.purple())
+
+        eList = eList[begin:end]
 
         for i in eList:
             numer = i[1]
@@ -132,21 +170,40 @@ def eventsList(c, guild):
 
         return msg
 
-async def updatePinned(guild):
-    myMessage = ""
-    myChannel = ""
-    for t in guild.text_channels:
-        if t.name == "events" and t.category.name == "Fenrir":
-            myChannel = t
-            pins = await t.pins()
-            for pin in pins:
-                if pin.author.id == fenrir.user.id and pin.content == "Pinned event list:":
-                    myMessage = pin
+async def updatePinned(guild,page, myMessage="",myChannel=""):
     if myMessage == "":
-        myMessage = await myChannel.send(content="Pinned event list:", embed=eventsList(c,guild))
+        for t in guild.text_channels:
+            if t.name == "events" and t.category.name == "Fenrir":
+                myChannel = t
+                pins = await t.pins()
+                for pin in pins:
+                    if pin.author.id == fenrir.user.id and pin.content == "Pinned event list:":
+                        myMessage = pin
+    if myMessage == "":
+        myMessage = await myChannel.send(content="Pinned event list:", embed=eventsList(c,guild,1))
+        await myMessage.add_reaction(leftarrow)
+        await myMessage.add_reaction(rightarrow)
         await myMessage.pin()
     else:
-        await myMessage.edit(content="Pinned event list:", embed=eventsList(c,guild))
+        await myMessage.edit(content="Pinned event list:".format(), embed=eventsList(c,guild,page))
+
+async def pageUpdate(react, user):
+    if react.me and user != fenrir.user:
+        page = await getCurrentPage(react.message.guild)
+        lastpage = page[1]
+        page = page[0]
+
+        print(react.emoji)
+
+        if react.emoji == leftarrow and page != 1:
+            print(page-1)
+            await updatePinned(react.message.guild, page-1, react.message)
+        elif react.emoji == rightarrow and page != lastpage:
+            print(page+1)
+            await updatePinned(react.message.guild,page+1, react.message)
+        await react.remove(user)
+
+
 
 
 async def checkIfNotification():
@@ -211,7 +268,10 @@ async def checkIfNotification():
                     c.execute("DELETE FROM events WHERE id=? AND server_hash=?", (numer,h))
                     conn.commit()
 
-                    await updatePinned(guild)
+                    page = await getCurrentPage(ctx.guild)
+                    page = page[0]
+
+                    await updatePinned(guild, page)
 
                     for channel in guild.text_channels:
                         if channel.name == "events" and channel.category.name == "Fenrir":
@@ -223,7 +283,6 @@ async def checkIfNotification():
                             # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
-
 @fenrir.event
 async def on_ready():
     print('Logged on as {0}!'.format(fenrir.user))
@@ -233,7 +292,9 @@ async def on_ready():
 @fenrir.event
 async def on_command_completion(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
-        await updatePinned(ctx.guild)
+        page = await getCurrentPage(ctx.guild)
+        page = page[0]
+        await updatePinned(ctx.guild,page)
 
 @fenrir.event
 async def on_guild_join(guild):
@@ -255,22 +316,9 @@ async def on_message(message):
         if message.author.id != fenrir.user.id:
             await message.delete()
 
-# @fenrir.command()
-# async def _2(ctx):
-#     if ctx.author.id == 197471216594976768:
-#         for guild in fenrir.guilds:
-#             for cat in guild.categories:
-#                 for channel in cat.text_channels:
-#                     if channel.name == "events" and cat.name == "Fenrir":
-#                         messages = len(await channel.history().flatten())
-#                         await channel.purge(limit=messages - 2)
-#                         await updatePinned(guild)
-
-#                         msg = discord.Embed(title="Update 2.0!", description="I have been updated to version 2.0.\n\n- The events channel should now be cleaner and has a permanent list of all the events scheduled.\n\n- All messages sent to the events channel will be automatically deleted, however, commands do still function.\n\n- As a result of the permanent calendar, the `f? events` and `f? event` commands have been removed since they are no longer required.\n\n- A new channel has been created for all bot related help and discussion.")
-#                         await channel.send(embed=msg,delete_after=172800)
-#                 if cat.name == "Fenrir":
-#                     await guild.create_text_channel("bot-help-and-discussion", category=cat)
-
+@fenrir.event
+async def on_reaction_add(re, user):
+    await pageUpdate(re,user)
 
 @fenrir.command()
 async def setup(ctx):
@@ -289,6 +337,7 @@ async def purge(ctx):
     if ctx.channel.name == "events" and ctx.channel.category.name == "Fenrir" and 'Scheduler' in [y.name for y in ctx.author.roles]:
         messages = len(await ctx.channel.history().flatten())
         await ctx.channel.purge(limit=messages-2)
+        await updatePinned(ctx.guild,1)
 
 
 @fenrir.command()
