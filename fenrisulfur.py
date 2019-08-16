@@ -291,6 +291,14 @@ async def on_ready():
     act = discord.Game(name="with some adventurers in Snowcloak")
     await fenrir.change_presence(activity=act)
 
+    for guild in fenrir.guilds:
+        listi = await getEventList(guild)
+
+        messages = len(await listi[0].history().flatten())
+        await listi[0].purge(limit=messages-2)
+
+        await updatePinned(guild,1)
+
 @fenrir.event
 async def on_command_completion(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
