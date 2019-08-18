@@ -270,7 +270,7 @@ async def checkIfNotification():
                     c.execute("DELETE FROM events WHERE id=? AND server_hash=?", (numer,h))
                     conn.commit()
 
-                    page = await getCurrentPage(ctx.guild)
+                    page = await getCurrentPage(guild)
                     page = page[0]
 
                     await updatePinned(guild, page)
