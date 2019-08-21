@@ -525,6 +525,23 @@ async def eyebleach(ctx):
     await ctx.channel.send(content=link, delete_after=180.0)
 
 @fenrir.command()
+async def cringe(ctx):
+    subs = ["trashy","cringe","cringepics","choosingbeggars","comedycemetery","awfuleverything","wholesomecringe"]
+    success = False
+    subreddit = random.randint(0,len(subs)-1)
+    while not success:
+        try:
+            a = request.urlopen("https://www.reddit.com/r/{}/top/.json?t=day".format(subs[subreddit]))
+            success = True
+        except urllib.error.HTTPError:
+            success = False
+        await asyncio.sleep(1)
+    a = json.loads(a.read())
+    ind = random.randint(0,len(a["data"]["children"]))
+    link = a["data"]["children"][ind]["data"]["url"]
+    await ctx.channel.send(content="From /r/{}: {}".format(subs[subreddit],link), delete_after=180.0)
+
+@fenrir.command()
 async def new_feature(ctx, cmd, *, description):
     if ctx.author.id == 197471216594976768:
         msg = discord.Embed(title="New feature: {0}".format(cmd))
