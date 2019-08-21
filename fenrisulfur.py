@@ -472,6 +472,7 @@ async def help(ctx, *, cmd="none"):
         msg.add_field(name="leave", value="Leave an event", inline=False)
         msg.add_field(name="update", value="Updates a scheduled event", inline=False)
         msg.add_field(name="eyebleach", value="Produces some eyebleach", inline=False)
+        msg.add_field(name="cringe", value="Produces some cringe", inline=False)
         await ctx.author.send(embed=msg)
     else:
         if cmd == "schedule":
