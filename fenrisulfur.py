@@ -178,8 +178,8 @@ def eventsList(c, guild, page):
         return msg
 
 async def updatePinned(guild,page, myMessage="",myChannel=""):
-    eventlist = await getEventList(guild)
     if myMessage == "":
+        eventlist = await getEventList(guild)
         myMessage = eventlist[1]
     if myMessage == "":
         myMessage = await eventlist[0].send(content="Pinned event list:", embed=eventsList(c,guild,1))
