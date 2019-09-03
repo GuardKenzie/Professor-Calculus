@@ -18,6 +18,7 @@ conn = sqlite3.connect("events.db")
 c = conn.cursor()
 
 keyFile = open("key", "r")
+
 key = keyFile.read()
 print(key)
 keyFile.close()
