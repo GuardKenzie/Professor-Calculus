@@ -319,7 +319,9 @@ async def on_guild_join(guild):
 @fenrir.event
 async def on_message(message):
     if isinstance(message.channel, discord.abc.GuildChannel):
-        if (message.channel.name == "events" and message.channel.category.name == "Fenrir") or message.content == prefix + "setup":
+        if (message.channel.name == "events" and message.channel.category.name == "Fenrir") \
+            or message.content == prefix + "setup"\
+            or message.content == prefix + "eyebleach":
             await fenrir.process_commands(message)
     else:
         await fenrir.process_commands(message)
