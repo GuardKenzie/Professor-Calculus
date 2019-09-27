@@ -29,7 +29,7 @@ keyFile.close()
 
 prefix = "f? "
 
-annad = [prefix + "eyebleach", prefix + "drinkbleach", prefix + "chill",prefix + "stress",prefix + "cringe"]
+annad = [prefix + "eyebleach", prefix + "drinkbleach", prefix + "chill",prefix + "stress",prefix + "cringe", prefix + "chill", prefix + "stress", prefix + "volume", prefix + "help"]
 
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
@@ -75,12 +75,19 @@ async def on_guild_join(guild):
 
 @fenrir.event
 async def on_message(message):
+
+    content = re.findall("f\? [a-z]*",message.content)
+    if len(content) < 1:
+        content =message.content
+    else:
+        content = content[0]
+
     if message.author.id == 619220397195264031 \
             and len(message.embeds) == 1:
         await fashion_reply(message)
     if isinstance(message.channel, discord.abc.GuildChannel):
         if (message.channel.name == "events" and message.channel.category.name == "Fenrir") \
-                or message.content in annad:
+                or content in annad:
             await fenrir.process_commands(message)
     else:
         await fenrir.process_commands(message)
@@ -236,6 +243,10 @@ async def help(ctx, *, cmd="none"):
         msg.add_field(name="update", value="Updates a scheduled event", inline=False)
         msg.add_field(name="eyebleach", value="Produces some eyebleach", inline=False)
         msg.add_field(name="cringe", value="Produces some cringe", inline=False)
+        msg.add_field(name="drinkbleach", value="You die.", inline=False)
+        msg.add_field(name="chill", value="Joins voice and plays some Lo-Fi", inline=False)
+        msg.add_field(name="stress", value="Stops playing music.", inline=False)
+        msg.add_field(name="volume", value="Sets lofi volume.", inline=False)
         await ctx.author.send(embed=msg)
     else:
         if cmd == "schedule":
@@ -266,8 +277,33 @@ async def help(ctx, *, cmd="none"):
             msg.add_field(name="[new value]", value="The new value for the catagory", inline=False)
             msg.add_field(name="Example", value=prefix+"update 1 date 03/02/2000 12:22")
             await ctx.author.send(embed=msg)
+        elif cmd == "eyebleach":
+            msg = discord.Embed(title="eyebleach")
+            msg.add_field(name="\u200b", value="Produces some eyebleach", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "cringe":
+            msg = discord.Embed(title="cringe")
+            msg.add_field(name="\u200b", value="Produces some cringe (thanks Elath'a)", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "drinkbleach":
+            msg = discord.Embed(title="drinkbleach")
+            msg.add_field(name="\u200b", value="Kills you.", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "chill":
+            msg = discord.Embed(title="chill")
+            msg.add_field(name="\u200b", value="The bot joins your voice channel and starts playing some chill tunes.", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "stress":
+            msg = discord.Embed(title="stress")
+            msg.add_field(name="\u200b", value="Bot stops playing music and leaves voice.", inline=False)
+            await ctx.author.send(embed=msg)
+        elif cmd == "volume":
+            msg = discord.Embed(title="volume [volume]")
+            msg.add_field(name="[volume]", value="a number from 0-100", inline=False)
+            await ctx.author.send(embed=msg)
         else:
             await ctx.author.send(content="Unrecognised command")
+    await ctx.message.delete()
 
 # @fenrir.command()
 # async def nei(ctx):
@@ -317,6 +353,7 @@ async def new_feature(ctx, cmd, *, description):
 
 @fenrir.command()
 async def drinkbleach(ctx):
+    await ctx.message.delete()
     user = ctx.message.author.display_name
     await ctx.channel.send("{} has drunk some bleach and is now dead.".format(user))
 
@@ -331,7 +368,7 @@ async def on_voice_state_update(member,before,after):
 
 @fenrir.command()
 async def chill(ctx):
-    await ctx.channel.purge(limit=1)
+    await ctx.message.delete()
     vc = ctx.message.author.voice.channel
     s = await vc.connect()
 
@@ -344,7 +381,7 @@ async def chill(ctx):
 
 @fenrir.command()
 async def stress(ctx):
-    await ctx.channel.purge(limit=1)
+    await ctx.message.delete()
     authorvc = ctx.message.author.voice.channel
     for i in fenrir.voice_clients:
         if i.channel == authorvc:
@@ -354,7 +391,7 @@ async def stress(ctx):
 
 @fenrir.command()
 async def volume(ctx, v):
-    await ctx.channel.purge(limit=1)
+    await ctx.message.delete()
     try:
         v = int(v)/100
         if v >= 0 and v <= 1:
