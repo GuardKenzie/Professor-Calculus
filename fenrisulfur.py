@@ -289,7 +289,10 @@ async def checkIfNotification():
 
 async def fashion_reply(message):
     m = "Good bot. /pat"
-    await message.channel.send(content=m)
+    if "Fashion Report" in message.embeds[0].title \
+            and "Full Details" in message.embeds[0].title:
+        await asyncio.sleep(3)
+        await message.channel.send(content=m)
 
 @fenrir.event
 async def on_ready():
@@ -323,7 +326,8 @@ async def on_guild_join(guild):
 
 @fenrir.event
 async def on_message(message):
-    if message.author.id == "619220397195264031":
+    if message.author.id == 619220397195264031 \
+            and len(message.embeds) == 1:
         await fashion_reply(message)
     if isinstance(message.channel, discord.abc.GuildChannel):
         if (message.channel.name == "events" and message.channel.category.name == "Fenrir") \
