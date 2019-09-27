@@ -12,8 +12,11 @@ import re
 import math
 import string
 
-leftarrow = "\u2B05"
-rightarrow = "\u27A1"
+#custom libs
+from extra.dateformat import *
+from extra.eventsDatabase import *
+
+#commands
 
 conn = sqlite3.connect("events.db")
 c = conn.cursor()
@@ -26,267 +29,12 @@ keyFile.close()
 
 prefix = "f? "
 
+annad = [prefix + "eyebleach", prefix + "drinkbleach", prefix + "chill",prefix + "stress",prefix + "cringe"]
+
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
 
-def dcheck(x):
-    if "TBD" in x:
-        return True
-    _30 = [4,6,9,10]
-
-    ok = True
-    x = x.split(" ")
-
-    if len(x) != 2:
-        return False
-
-    d = x[0]
-    t = x[1]
-
-    t = t.split(":")
-    h = int(t[0])
-    m = int(t[1])
-
-    d = d.split("/")
-
-    D = int(d[0])
-    M = int(d[1])
-    Y = int(d[2])
-
-    if h not in range(0,24):
-        return False
-    if m not in range(0,61):
-        return False
-    if D not in range(1,32):
-        return False
-    if D not in range(1,31) and M in _30:
-        return False
-    if D not in range(1,29) and M == 2 and Y%4 != 0:
-        return False
-    if D not in range(1,30) and M == 2 and Y%4 == 0:
-        return False
-    if M not in range(1,13):
-        return False
-    return True
-
-def add0(x):
-    if len(x)<2:
-        return "0" + x
-    else:
-        return x
-
-def pad(x):
-    if x == "TBD":
-        return x
-    x = x.split(" ")
-    a = x[0]
-    b = x[1]
-
-    a = a.split("/")
-    b = b.split(":")
-
-    a = list(map(add0,a))
-    b = list(map(add0,b))
-
-    out = "/".join(a) + " " + ":".join(b)
-
-    return out
-
-def gmt(x):
-    if x == "TBD":
-        return x
-    else:
-        return x + " GMT"
-
-
-
-def allIds(c,h):
-    c.execute("SELECT id FROM events WHERE server_hash=?", (h,))
-    a = c.fetchall()
-    out = []
-    for i in a:
-        out.append(i[0])
-    return out
-
-async def getEventList(guild):
-    myMessage = ""
-    for t in guild.text_channels:
-        if t.name == "events" and t.category.name == "Fenrir":
-            myChannel = t
-            async for message in t.history(oldest_first=True):
-                if message.author.id == fenrir.user.id and message.content == "Pinned event list:":
-                    myMessage = message
-                    break
-            if myMessage != "":
-                break
-    return [myChannel,myMessage]
-
-async def getCurrentPage(guild):
-    myMessage = await getEventList(guild)
-    myMessage = myMessage[1]
-
-    if myMessage == "":
-        return [1,1]
-    txt = myMessage.embeds[0].title
-    pagelist = re.findall("[0-9]+",txt)
-    return list(map(int, pagelist))
-
-
-def eventsList(c, guild, page):
-        c.execute("SELECT * FROM events WHERE server_hash=?", (str(hash(guild)),))
-
-        eList = c.fetchall()
-
-        pages = math.ceil(len(eList)/5)
-        lastPage = len(eList)%5
-
-        if page > pages:
-            page = pages
-
-        if page != pages:
-            begin = (page-1)*5
-            end = page*5
-        else:
-            begin = (page-1)*5
-            end = len(eList)
-
-        msg = discord.Embed(title="Scheduled events: (Page {}/{})".format(page,pages), colour=discord.Colour.purple())
-
-        eList = eList[begin:end]
-
-        for i in eList:
-            numer = i[1]
-            name = i[3]
-            date = i[2]
-            desc = i[4]
-            attendantsIds = json.loads(i[5])
-            attendants = []
-
-            for member in guild.members:
-                if member.id in attendantsIds:
-                    attendants.append(member.display_name)
-
-            if len(attendants) == 0:
-                attendants = ["Nobody :("]
-            if desc == "":
-                desc = "No description yet."
-
-            name = "{}. {} ({})".format(str(numer), name,date)
-            msg.add_field(name=name, value=desc,inline = True)
-            msg.add_field(name="Party", value="\n".join(attendants))
-            if i != eList[-1]:
-                msg.add_field(name="\u200b", value="\u200b", inline=False)
-
-        return msg
-
-async def updatePinned(guild,page, myMessage="",myChannel=""):
-    if myMessage == "":
-        eventlist = await getEventList(guild)
-        myMessage = eventlist[1]
-    if myMessage == "":
-        myMessage = await eventlist[0].send(content="Pinned event list:", embed=eventsList(c,guild,1))
-        await myMessage.add_reaction(leftarrow)
-        await myMessage.add_reaction(rightarrow)
-        await myMessage.pin()
-    else:
-        await myMessage.edit(content="Pinned event list:".format(), embed=eventsList(c,guild,page))
-
-async def pageUpdate(react, user):
-    if react.me and user != fenrir.user:
-        page = await getCurrentPage(react.message.guild)
-        lastpage = page[1]
-        page = page[0]
-
-        if react.emoji == leftarrow:
-            if page == 1:
-                page = lastpage+1
-            await updatePinned(react.message.guild, page-1, react.message)
-        elif react.emoji == rightarrow:
-            if page == lastpage:
-                page = 0
-            await updatePinned(react.message.guild,page+1, react.message)
-        await react.remove(user)
-
-
-
-
-async def checkIfNotification():
-    await fenrir.wait_until_ready()
-    while True:
-        timetocheck = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
-        time = datetime.now().strftime("%d/%m/%Y %H:%M")
-        for guild in fenrir.guilds:
-
-            #notify
-            c.execute("SELECT * FROM events WHERE server_hash=? AND date=?", (str(hash(guild)), timetocheck))
-            res = c.fetchall()
-            if res != None:
-                for i in res:
-                    h = i[0]
-                    numer = i[1]
-                    date = i[2]
-                    name = i[3]
-                    description = i[4]
-
-                    attendantsIds = json.loads(i[5])
-                    attendants = []
-
-                    for member in guild.members:
-                        if member.id in attendantsIds:
-                            attendants.append(member.display_name)
-
-                    if len(attendants) == 0:
-                        attendants = ["Nobody :("]
-
-                    for channel in guild.text_channels:
-                        if channel.name == "events" and channel.category.name == "Fenrir":
-
-                            msg = discord.Embed(title=name, description=description, colour=discord.Colour.orange())
-                            msg.add_field(name="When?", value=gmt(date))
-                            msg.add_field(name="Id:", value=str(numer))
-                            msg.add_field(name="Party:", value="\n".join(attendants), inline=False)
-                            # await channel.send(content="**Event starting in 1 hour:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
-                            await channel.send(content="**Event starting in 1 hour:**", embed=msg, delete_after=3600)
-            #starting
-            c.execute("SELECT * FROM events WHERE server_hash=? AND date=?", (str(hash(guild)), time))
-            res = c.fetchall()
-            if res != None:
-                for i in res:
-                    h = i[0]
-                    numer = i[1]
-                    date = i[2]
-                    name = i[3]
-                    description = i[4]
-                    people = json.loads(i[5])
-
-                    attendantsIds = json.loads(i[5])
-                    attendants = []
-
-                    for member in guild.members:
-                        if member.id in attendantsIds:
-                            attendants.append(member.display_name)
-
-                    if len(attendants) == 0:
-                        attendants = ["Nobody :("]
-
-                    c.execute("DELETE FROM events WHERE id=? AND server_hash=?", (numer,h))
-                    conn.commit()
-
-                    page = await getCurrentPage(guild)
-                    page = page[0]
-
-                    await updatePinned(guild, page)
-
-                    for channel in guild.text_channels:
-                        if channel.name == "events" and channel.category.name == "Fenrir":
-                            msg = discord.Embed(title=name, description=description, colour=discord.Colour.red(), delete_after=1800)
-                            msg.add_field(name="When?", value=gmt(date))
-                            msg.add_field(name="Id:", value=str(numer))
-                            msg.add_field(name="Party:", value="\n".join(attendants), inline=False)
-                            await channel.send(content="**Event starting now:**", embed=msg)
-                            # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
-        await asyncio.sleep(60)
-
+# Functions
 async def fashion_reply(message):
     m = "Good bot. /pat"
     if "Fashion Report" in message.embeds[0].title \
@@ -294,6 +42,7 @@ async def fashion_reply(message):
         await asyncio.sleep(3)
         await message.channel.send(content=m)
 
+# Events
 @fenrir.event
 async def on_ready():
     print('Logged on as {0}!'.format(fenrir.user))
@@ -301,19 +50,19 @@ async def on_ready():
     await fenrir.change_presence(activity=act)
 
     for guild in fenrir.guilds:
-        listi = await getEventList(guild)
+        listi = await getEventList(guild,fenrir)
 
         messages = len(await listi[0].history().flatten())
         await listi[0].purge(limit=messages-2)
 
-        await updatePinned(guild,1)
+        await updatePinned(guild,1,fenrir,c)
 
 @fenrir.event
 async def on_command_completion(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
-        page = await getCurrentPage(ctx.guild)
+        page = await getCurrentPage(ctx.guild,fenrir)
         page = page[0]
-        await updatePinned(ctx.guild,page)
+        await updatePinned(ctx.guild,page,fenrir,c)
 
 @fenrir.event
 async def on_guild_join(guild):
@@ -331,8 +80,7 @@ async def on_message(message):
         await fashion_reply(message)
     if isinstance(message.channel, discord.abc.GuildChannel):
         if (message.channel.name == "events" and message.channel.category.name == "Fenrir") \
-            or message.content == prefix + "setup"\
-            or message.content == prefix + "eyebleach":
+                or message.content in annad:
             await fenrir.process_commands(message)
     else:
         await fenrir.process_commands(message)
@@ -342,8 +90,9 @@ async def on_message(message):
 
 @fenrir.event
 async def on_reaction_add(re, user):
-    await pageUpdate(re,user)
+    await pageUpdate(re,user,fenrir)
 
+# Commands
 @fenrir.command()
 async def setup(ctx):
     if ctx.author == ctx.guild.owner:
@@ -361,7 +110,7 @@ async def purge(ctx):
     if ctx.channel.name == "events" and ctx.channel.category.name == "Fenrir" and 'Scheduler' in [y.name for y in ctx.author.roles]:
         messages = len(await ctx.channel.history().flatten())
         await ctx.channel.purge(limit=messages-2)
-        await updatePinned(ctx.guild,1)
+        await updatePinned(ctx.guild,1,fenrir,c)
 
 
 @fenrir.command()
@@ -566,6 +315,59 @@ async def new_feature(ctx, cmd, *, description):
                 if channel.name == "events" and channel.category.name == "Fenrir":
                     await channel.send(embed=msg,delete_after=86400)
 
+@fenrir.command()
+async def drinkbleach(ctx):
+    user = ctx.message.author.display_name
+    await ctx.channel.send("{} has drunk some bleach and is now dead.".format(user))
+
+# Lofi
+@fenrir.event
+async def on_voice_state_update(member,before,after):
+    for i in fenrir.voice_clients:
+        if i.channel == before.channel and len(before.channel.members) == 1:
+            i.stop()
+            await i.disconnect()
+            break
+
+@fenrir.command()
+async def chill(ctx):
+    await ctx.channel.purge(limit=1)
+    vc = ctx.message.author.voice.channel
+    s = await vc.connect()
+
+    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
+    s.play(source)
+    source.volume = 0.1
+    print(source.volume)
+
+
+
+@fenrir.command()
+async def stress(ctx):
+    await ctx.channel.purge(limit=1)
+    authorvc = ctx.message.author.voice.channel
+    for i in fenrir.voice_clients:
+        if i.channel == authorvc:
+            i.stop()
+            await i.disconnect()
+            break
+
+@fenrir.command()
+async def volume(ctx, v):
+    await ctx.channel.purge(limit=1)
+    try:
+        v = int(v)/100
+        if v >= 0 and v <= 1:
+            authorvc = ctx.message.author.voice.channel
+            for i in fenrir.voice_clients:
+                if i.channel == authorvc:
+                    i.source.volume = v
+                    break
+        else:
+            await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+    except TypeError:
+        await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+
 @fenrir.event
 async def on_command_error(ctx, error):
     print(error)
@@ -584,5 +386,5 @@ async def on_command_error(ctx, error):
     if ctx.command.name == "update":
         await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
 
-fenrir.loop.create_task(checkIfNotification())
+fenrir.loop.create_task(checkIfNotification(c,fenrir))
 fenrir.run(str(key))
