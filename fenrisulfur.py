@@ -10,6 +10,7 @@ import urllib
 import random
 import re
 import math
+import string
 
 leftarrow = "\u2B05"
 rightarrow = "\u27A1"
@@ -19,7 +20,7 @@ c = conn.cursor()
 
 keyFile = open("key", "r")
 
-key = keyFile.read()
+key = keyFile.read().strip()
 print(key)
 keyFile.close()
 
@@ -286,6 +287,10 @@ async def checkIfNotification():
                             # await channel.send(content="**Event starting now:**\n>>> *Name*: __**{0}**__\n*Date*: __{1}__\n*Description*: {2}\n*Attendees*:{3}".format(name,date,description,attendees))
         await asyncio.sleep(60)
 
+async def fashion_reply(message):
+    m = "Good bot. /pat"
+    await message.channel.send(content=m)
+
 @fenrir.event
 async def on_ready():
     print('Logged on as {0}!'.format(fenrir.user))
@@ -318,6 +323,8 @@ async def on_guild_join(guild):
 
 @fenrir.event
 async def on_message(message):
+    if message.author.id == "619220397195264031":
+        await fashion_reply(message)
     if isinstance(message.channel, discord.abc.GuildChannel):
         if (message.channel.name == "events" and message.channel.category.name == "Fenrir") \
             or message.content == prefix + "setup"\
@@ -574,4 +581,4 @@ async def on_command_error(ctx, error):
         await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
 
 fenrir.loop.create_task(checkIfNotification())
-fenrir.run(key)
+fenrir.run(str(key))
