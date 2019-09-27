@@ -537,7 +537,7 @@ async def eyebleach(ctx):
     a = json.loads(a.read())
     ind = random.randint(0,len(a["data"]["children"]))
     link = a["data"]["children"][ind]["data"]["url"]
-    await ctx.channel.send(content=link, delete_after=180.0)
+    await ctx.channel.send(content=link)
 
 @fenrir.command()
 async def cringe(ctx):
@@ -554,7 +554,7 @@ async def cringe(ctx):
     a = json.loads(a.read())
     ind = random.randint(0,len(a["data"]["children"]))
     link = a["data"]["children"][ind]["data"]["url"]
-    await ctx.channel.send(content="From /r/{}: {}".format(subs[subreddit],link), delete_after=180.0)
+    await ctx.channel.send(content="From /r/{}: {}".format(subs[subreddit],link))
 
 @fenrir.command()
 async def new_feature(ctx, cmd, *, description):
