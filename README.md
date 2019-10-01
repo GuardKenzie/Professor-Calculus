@@ -54,4 +54,7 @@ smswig
 
 smboard
   - Shows cookie leaderboards
+
+me [what (birthday)] {value}
+  - Sets your birthday or tells you your birthday if value is not set
 ```
