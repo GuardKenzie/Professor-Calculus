@@ -307,19 +307,19 @@ async def help(ctx, *, cmd="none"):
             msg = discord.Embed(title="stress")
             msg.add_field(name="\u200b", value="Bot stops playing music and leaves voice.", inline=False)
             await ctx.author.send(embed=msg)
-        elif cmd == "volume"
+        elif cmd == "volume":
             msg = discord.Embed(title="volume [volume]")
             msg.add_field(name="[volume]", value="a number from 0-100", inline=False)
             await ctx.author.send(embed=msg)
-        elif cmd == "smswig"
+        elif cmd == "smswig":
             msg = discord.Embed(title="smswig")
             msg.add_field(name="\u200b", value="Take a swig of Spriggan Mead and get a complimentary misfortune cookie.", inline=False)
             await ctx.author.send(embed=msg)
-        elif cmd == "smboard"
+        elif cmd == "smboard":
             msg = discord.Embed(title="smboard")
             msg.add_field(name="\u200b", value="prints the leaderboard for Spriggan Mead.", inline=False)
             await ctx.author.send(embed=msg)
-        elif cmd == "me"
+        elif cmd == "me":
             msg = discord.Embed(title="me birthday [date]")
             msg.add_field(name="[date]", value="Your birthday DD/MM/YYY", inline=False)
             await ctx.author.send(embed=msg)
