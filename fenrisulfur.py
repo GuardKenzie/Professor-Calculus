@@ -434,14 +434,11 @@ async def smboard(ctx):
     board = getCookieBoard(c, ctx.guild)
     board = sorted(board.items(),key=lambda x: x[1])
     i = 1
-    outNames = ""
-    outSwigs = ""
+    out= ""
     msg = discord.Embed(title="Cookie leaderboards:", description="")
     for entry in board:
-        outNames += entry[0] + "\n"
-        outSwigs += str(entry[1]) + "\n"
-    msg.add_field(name="\u200b", value=outNames,inline=1)
-    msg.add_field(name="\u200b", value=outSwigs,inline=1)
+        out += entry[0] + ":\u2003" + str(entry[1]) + "\n"
+    msg.add_field(name="\u200b", value=out,inline=0)
     await ctx.send(embed=msg)
 
 @fenrir.command()
