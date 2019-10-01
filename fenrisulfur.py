@@ -424,7 +424,7 @@ async def smswig(ctx):
     insultmsg = insult(username,tipa)
     cookies = eatCookie(c, ctx.author)
 
-    await ctx.send("Here is your misfortune cookie:\n\"{}\"".format(insultmsg))
+    await ctx.send("Here is your misfortune cookie:\n{}".format(insultmsg))
     await asyncio.sleep(1)
     await ctx.send("{} has now had {} swigs of Spriggan Mead!".format(username, cookies))
     conn.commit()
@@ -455,7 +455,7 @@ async def me(ctx, what, *, value=""):
                 await ctx.send(content="You have not yet set your birthday.", delete_after=30)
 
         elif dcheck(value,True):
-            if updateBday(c,ctx.author.id,hash(ctx.guild),value):
+            if updateBday(c,ctx.author.id,hash(ctx.guild),paddate(value)):
                 await ctx.send(content="Your birthday has been set to {}.".format(value), delete_after=30)
 
     conn.commit()

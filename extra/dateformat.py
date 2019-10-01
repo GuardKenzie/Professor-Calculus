@@ -3,6 +3,7 @@
 # Filename: dateformat.py
 
 import math
+from datetime import datetime
 
 def dcheck(x,bday=False):
     if "TBD" in x:
@@ -53,6 +54,16 @@ def add0(x):
         return "0" + x
     else:
         return x
+
+def paddate(x):
+
+    x = x.split("/")
+
+    x = list(map(add0,x))
+
+    out = "/".join(x)
+
+    return out
 
 def pad(x):
     if x == "TBD":

@@ -19,8 +19,10 @@ jol = jol.read().strip().split("\n")
 
 def insult(name,t):
     if t == "j":
-        insults = jol
+        bad = jol
     elif t=="b":
-        insults = bday
-    i = random.randint(0,len(insults)-1)
-    return insults[i].format(name)
+        bad = bday
+    else:
+        bad = insults
+    i = random.randint(0,len(bad)-1)
+    return bad[i].format(name)
