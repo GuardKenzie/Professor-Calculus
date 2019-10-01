@@ -16,6 +16,9 @@ import string
 from extra.dateformat import *
 from extra.eventsDatabase import *
 
+from mead.cookieDatabase import *
+from mead.sprigganInsult import *
+
 #commands
 
 conn = sqlite3.connect("events.db")
@@ -29,7 +32,7 @@ keyFile.close()
 
 prefix = "f? "
 
-annad = [prefix + "eyebleach", prefix + "drinkbleach", prefix + "chill",prefix + "stress",prefix + "cringe", prefix + "chill", prefix + "stress", prefix + "volume", prefix + "help"]
+annad = ["smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
 
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
@@ -87,7 +90,7 @@ async def on_message(message):
         await fashion_reply(message)
     if isinstance(message.channel, discord.abc.GuildChannel):
         if (message.channel.name == "events" and message.channel.category.name == "Fenrir") \
-                or content in annad:
+                or content.replace(prefix,"").lower() in annad:
             await fenrir.process_commands(message)
     else:
         await fenrir.process_commands(message)
@@ -404,6 +407,32 @@ async def volume(ctx, v):
             await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
     except TypeError:
         await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+
+@fenrir.command()
+async def smswig(ctx):
+    username = ctx.author.display_name
+    insultmsg = insult(username)
+    cookies = eatCookie(c, ctx.author)
+
+    await ctx.send("Here is your misfortune cookie:\n\"{}\"".format(insultmsg))
+    await asyncio.sleep(1)
+    await ctx.send("{} has now had {} swigs of Spriggan Mead!".format(username, cookies))
+    conn.commit()
+
+@fenrir.command()
+async def smboard(ctx):
+    board = getCookieBoard(c, ctx.guild)
+    board = sorted(board.items(),key=lambda x: x[1])
+    i = 1
+    outNames = ""
+    outSwigs = ""
+    msg = discord.Embed(title="Cookie leaderboards:", description="")
+    for entry in board:
+        outNames += entry[0] + "\n"
+        outSwigs += str(entry[1]) + "\n"
+    msg.add_field(name="\u200b", value=outNames,inline=1)
+    msg.add_field(name="\u200b", value=outSwigs,inline=1)
+    await ctx.send(embed=msg)
 
 @fenrir.event
 async def on_command_error(ctx, error):

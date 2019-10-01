@@ -33,8 +33,25 @@ help [command]
   
 eyebleach
   - finds some eyebleach
+
+drinkbleach
+  - You die
+
+cringe
+  - finds some cringe
+
+chill
+  - Joins voice and plays some jams
+
+stress
+  - Leaves voice
+
+volume [0-100]
+  - Sets chill volume
+
+smswig
+  - gives you a misfortune cookie
+
+smboard
+  - Shows cookie leaderboards
 ```
-
-## To do:
-
-- Lofi
