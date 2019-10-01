@@ -4,7 +4,7 @@
 
 import math
 
-def dcheck(x):
+def dcheck(x,bday=False):
     if "TBD" in x:
         return True
     _30 = [4,6,9,10]
@@ -12,15 +12,19 @@ def dcheck(x):
     ok = True
     x = x.split(" ")
 
-    if len(x) != 2:
+    if len(x) != 2 and not bday:
         return False
 
     d = x[0]
-    t = x[1]
 
-    t = t.split(":")
-    h = int(t[0])
-    m = int(t[1])
+    if not bday:
+        t = x[1]
+        t = t.split(":")
+        h = int(t[0])
+        m = int(t[1])
+    else:
+        h = 0
+        m = 0
 
     d = d.split("/")
 
@@ -73,3 +77,11 @@ def gmt(x):
     else:
         return x + " GMT"
 
+def eruJol():
+    m = datetime.now().strftime("%m")
+    d = datetime.now().strftime("%d")
+
+    if m == 12 and d<= 25:
+        return True
+    else:
+        return False

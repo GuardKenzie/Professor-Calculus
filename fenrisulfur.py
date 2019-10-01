@@ -19,6 +19,8 @@ from extra.eventsDatabase import *
 from mead.cookieDatabase import *
 from mead.sprigganInsult import *
 
+from info.birthdayDatabase import updateBday, getBday, checkIfBirthday, isBday
+
 #commands
 
 conn = sqlite3.connect("events.db")
@@ -32,7 +34,7 @@ keyFile.close()
 
 prefix = "f? "
 
-annad = ["smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
+annad = ["me", "smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
 
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
@@ -59,6 +61,8 @@ async def on_ready():
         await listi[0].purge(limit=messages-2)
 
         await updatePinned(guild,1,fenrir,c)
+    fenrir.loop.create_task(checkIfNotification(c,fenrir))
+    fenrir.loop.create_task(checkIfBirthday(c,fenrir))
 
 @fenrir.event
 async def on_command_completion(ctx):
@@ -410,8 +414,14 @@ async def volume(ctx, v):
 
 @fenrir.command()
 async def smswig(ctx):
+    tipa = "s"
+    if isBday(c, ctx.author.id, hash(ctx.guild)):
+        tipa = "b"
+    elif eruJol():
+        tipa = "j"
+
     username = ctx.author.display_name
-    insultmsg = insult(username)
+    insultmsg = insult(username,tipa)
     cookies = eatCookie(c, ctx.author)
 
     await ctx.send("Here is your misfortune cookie:\n\"{}\"".format(insultmsg))
@@ -434,6 +444,22 @@ async def smboard(ctx):
     msg.add_field(name="\u200b", value=outSwigs,inline=1)
     await ctx.send(embed=msg)
 
+@fenrir.command()
+async def me(ctx, what, *, value=""):
+    if what.lower() == "birthday":
+        if value == "":
+            bday = getBday(c,ctx.author.id,hash(ctx.guild))
+            if bday != -1:
+                await ctx.send(content="Your birthday is set to {}".format(bday), delete_after=30)
+            else:
+                await ctx.send(content="You have not yet set your birthday.", delete_after=30)
+
+        elif dcheck(value,True):
+            if updateBday(c,ctx.author.id,hash(ctx.guild),value):
+                await ctx.send(content="Your birthday has been set to {}.".format(value), delete_after=30)
+
+    conn.commit()
+
 @fenrir.event
 async def on_command_error(ctx, error):
     print(error)
@@ -452,5 +478,4 @@ async def on_command_error(ctx, error):
     if ctx.command.name == "update":
         await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
 
-fenrir.loop.create_task(checkIfNotification(c,fenrir))
 fenrir.run(str(key))
