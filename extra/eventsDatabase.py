@@ -193,7 +193,7 @@ def eventsList(guild, page):
                 desc = "No description yet."
 
             name = "{}. {} ({})".format(str(numer), name,date)
-            msg.add_field(name=name, value=des,inline = True)
+            msg.add_field(name=name, value=desc,inline = True)
             msg.add_field(name="Party", value="\n".join(attendants))
             if i != eList[-1]:
                 msg.add_field(name="\u200b", value="\u200b", inline=False)
