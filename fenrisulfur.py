@@ -34,7 +34,7 @@ keyFile.close()
 
 prefix = "f? "
 
-annad = ["me", "smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
+annad = ["setup","me", "smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
 
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
