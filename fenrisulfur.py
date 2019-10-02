@@ -60,8 +60,8 @@ async def on_ready():
         messages = len(await listi[0].history().flatten())
         await listi[0].purge(limit=messages-2)
 
-        await updatePinned(guild,1,fenrir,c)
-    fenrir.loop.create_task(checkIfNotification(c,fenrir))
+        await updatePinned(guild,1,fenrir)
+    fenrir.loop.create_task(checkIfNotification(fenrir))
     fenrir.loop.create_task(checkIfBirthday(c,fenrir))
 
 @fenrir.event
@@ -69,7 +69,7 @@ async def on_command_completion(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         page = await getCurrentPage(ctx.guild,fenrir)
         page = page[0]
-        await updatePinned(ctx.guild,page,fenrir,c)
+        await updatePinned(ctx.guild,page,fenrir)
 
 @fenrir.event
 async def on_guild_join(guild):
@@ -124,7 +124,7 @@ async def purge(ctx):
     if ctx.channel.name == "events" and ctx.channel.category.name == "Fenrir" and 'Scheduler' in [y.name for y in ctx.author.roles]:
         messages = len(await ctx.channel.history().flatten())
         await ctx.channel.purge(limit=messages-2)
-        await updatePinned(ctx.guild,1,fenrir,c)
+        await updatePinned(ctx.guild,1,fenrir)
 
 
 @fenrir.command()
@@ -159,7 +159,7 @@ async def remove(ctx, *, numer):
         try:
             numer = int(numer)
 
-            if numer in allIds(c, str(hash(ctx.guild))):
+            if numer in allIds(str(hash(ctx.guild))):
                 i = ctx.args[0]
                 c.execute("DELETE FROM events WHERE id=? AND server_hash=?;", (int(numer), str(hash(ctx.guild))))
                 conn.commit()
@@ -225,7 +225,7 @@ async def update(ctx, numer, what, *, instead):
     if isinstance(ctx.channel, discord.abc.GuildChannel) and 'Scheduler' in [y.name for y in ctx.author.roles]:
         try:
             numer = int(numer)
-            if numer in allIds(c, str(hash(ctx.guild))):
+            if numer in allIds(str(hash(ctx.guild))):
                 valid = ["name", "date", "description", "people"]
                 if what in valid:
                     if (what == "date" and dcheck(instead)) or what != "date":

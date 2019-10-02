@@ -14,17 +14,20 @@ import sqlite3
 leftarrow = "\u2B05"
 rightarrow = "\u27A1"
 
-async def updatePinned(guild,page, fenrir,c, myMessage="",myChannel=""):
+conn = sqlite3.connect("events.db")
+c = conn.cursor()
+
+async def updatePinned(guild,page, fenrir, myMessage="",myChannel=""):
     if myMessage == "":
         eventlist = await getEventList(guild,fenrir)
         myMessage = eventlist[1]
     if myMessage == "":
-        myMessage = await eventlist[0].send(content="Pinned event list:", embed=eventsList(c,guild,1))
+        myMessage = await eventlist[0].send(content="Pinned event list:", embed=eventsList(guild,1))
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
         await myMessage.pin()
     else:
-        await myMessage.edit(content="Pinned event list:".format(), embed=eventsList(c,guild,page))
+        await myMessage.edit(content="Pinned event list:".format(), embed=eventsList(guild,page))
 
 async def pageUpdate(react, user,fenrir):
     if react.me and user != fenrir.user:
@@ -35,14 +38,14 @@ async def pageUpdate(react, user,fenrir):
         if react.emoji == leftarrow:
             if page == 1:
                 page = lastpage+1
-            await updatePinned(react.message.guild, page-1, fenrir,c, react.message)
+            await updatePinned(react.message.guild, page-1, fenrir, react.message)
         elif react.emoji == rightarrow:
             if page == lastpage:
                 page = 0
-            await updatePinned(react.message.guild,page+1, fenrir,c, react.message)
+            await updatePinned(react.message.guild,page+1, fenrir, react.message)
         await react.remove(user)
 
-async def checkIfNotification(c,fenrir):
+async def checkIfNotification(fenrir):
     await fenrir.wait_until_ready()
     while True:
         timetocheck = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
@@ -107,7 +110,7 @@ async def checkIfNotification(c,fenrir):
                     page = await getCurrentPage(guild,fenrir)
                     page = page[0]
 
-                    await updatePinned(guild, page,fenrir,c)
+                    await updatePinned(guild, page,fenrir)
 
                     for channel in guild.text_channels:
                         if channel.name == "events" and channel.category.name == "Fenrir":
@@ -142,7 +145,7 @@ async def getEventList(guild,fenrir):
                 break
     return [myChannel,myMessage]
 
-def allIds(c,h):
+def allIds(h):
     c.execute("SELECT id FROM events WHERE server_hash=?", (h,))
     a = c.fetchall()
     out = []
@@ -150,7 +153,7 @@ def allIds(c,h):
         out.append(i[0])
     return out
 
-def eventsList(c, guild, page):
+def eventsList(guild, page):
         c.execute("SELECT * FROM events WHERE server_hash=?", (str(hash(guild)),))
 
         eList = c.fetchall()
@@ -190,7 +193,7 @@ def eventsList(c, guild, page):
                 desc = "No description yet."
 
             name = "{}. {} ({})".format(str(numer), name,date)
-            msg.add_field(name=name, value=desc,inline = True)
+            msg.add_field(name=name, value=des,inline = True)
             msg.add_field(name="Party", value="\n".join(attendants))
             if i != eList[-1]:
                 msg.add_field(name="\u200b", value="\u200b", inline=False)
