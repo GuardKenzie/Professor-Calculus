@@ -447,9 +447,13 @@ async def smswig(ctx):
 @fenrir.command()
 async def smboard(ctx):
     board = getCookieBoard(c, ctx.guild)
+    print(board)
     board = sorted(board.items(),key=lambda x: x[1])
     i = 1
-    out= ""
+    if board:
+        out= ""
+    else:
+        out = "No swigs taken yet"
     msg = discord.Embed(title="Cookie leaderboards:", description="")
     for entry in board:
         out += entry[0] + ":\u2003" + str(entry[1]) + "\n"
