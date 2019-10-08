@@ -325,7 +325,6 @@ async def help(ctx, *, cmd="none"):
             await ctx.author.send(embed=msg)
         else:
             await ctx.author.send(content="Unrecognised command")
-    await ctx.message.delete()
 
 # @fenrir.command()
 # async def nei(ctx):
