@@ -157,6 +157,7 @@ def eventsList(guild, page):
         c.execute("SELECT * FROM events WHERE server_hash=?", (str(hash(guild)),))
 
         eList = c.fetchall()
+        eList = sorted(eList, key=lambda x: x[1])
 
         pages = math.ceil(len(eList)/5)
         lastPage = len(eList)%5
@@ -174,7 +175,6 @@ def eventsList(guild, page):
         msg = discord.Embed(title="Scheduled events: (Page {}/{})".format(page,pages), colour=discord.Colour.purple())
 
         eList = eList[begin:end]
-        eList = sorted(eList, key=lambda x: x[1])
 
         for i in eList:
             numer = i[1]
