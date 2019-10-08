@@ -1,3 +1,4 @@
 
 events.db
 key
+__pycache__/*
