@@ -21,6 +21,8 @@ from mead.sprigganInsult import *
 
 from info.birthdayDatabase import updateBday, getBday, checkIfBirthday, isBday
 
+from ssanta.rada import rada
+
 #commands
 
 conn = sqlite3.connect("events.db")
@@ -34,7 +36,7 @@ keyFile.close()
 
 prefix = "f? "
 
-annad = ["setup","me", "smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
+annad = ["santa","setup","me", "smboard", "smswig", "eyebleach", "drinkbleach", "chill","stress","cringe", "chill", "stress", "volume", "help"]
 
 fenrir = commands.Bot(command_prefix = prefix)
 fenrir.remove_command("help")
@@ -474,6 +476,27 @@ async def me(ctx, what, *, value=""):
                 await ctx.send(content="Your birthday has been set to {}.".format(value), delete_after=30)
 
     conn.commit()
+
+@fenrir.command()
+async def santa(ctx, *, msg=""):
+    c.execute("SELECT people FROM events WHERE server_hash=? AND name=?", (hash(ctx.guild), "Secret santa"))
+    a = c.fetchone()[0]
+    ids = json.loads(a)
+    ids = list(map(str, ids))
+
+    memberList = {}
+
+    for member in ctx.guild.members:
+        if str(member.id) in ids:
+            memberList[str(member.id)] = member
+
+    r = rada(ids)
+    for member in list(r.keys()):
+        await memberList[member].send(content = "{}\n {}".format(msg, memberList[r[member]].display_name))
+
+    await ctx.message.delete()
+
+
 
 @fenrir.event
 async def on_command_error(ctx, error):
