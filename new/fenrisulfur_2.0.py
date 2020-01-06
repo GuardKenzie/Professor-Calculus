@@ -1,5 +1,6 @@
 # TODO:
 # - Help msg and command error handle 
+# - Fix date padding when updating
 import discord
 import json
 from discord.ext import commands
@@ -74,8 +75,7 @@ async def updatePinned(myChannel, guild):
         await myMessage.edit(content="-", embed=update)
 
 async def notification(event, color, time, channel, now):
-    # Parse event
-    event = events.parseEvent(event)
+    # Parse eventf? update 7 )
     guildMembers = dictFromMembers(channel.guild.members)
     attendants = []
 
