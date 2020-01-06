@@ -96,11 +96,9 @@ async def notification(event, color, time, channel, now):
 
     # Generate message
     message = discord.Embed(title = event["name"], description = event["description"], color=color)
-    message.add_field(name="When?", value = event["time"])
+    message.add_field(name="When?", value = event["date"])
     message.add_field(name="Party:", value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
-
-    updatePinned(channel, channel.guild)
 
 async def notification_loop():
     await fenrir.wait_until_ready()
@@ -108,9 +106,9 @@ async def notification_loop():
         await asyncio.sleep(60)
         for guild in fenrir.guilds:
             e = eventsDict[hash(guild)].checkIfNotification()
-            print(e)
             if e:
                 await notification(e[0], e[1], e[2], e[3], e[4])
+                await updatePinned(eventsDict[hash(guild)].channel, guild)
 
 # ==========================================
 # Bot events

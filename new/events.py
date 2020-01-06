@@ -15,7 +15,7 @@ def randomId():
     # Generate random int from 1 to 1000000000
     return random.randint(1,1000000000)
 
-def parseEvent(self, event):
+def parseEvent(event):
         out = {}
         out["hash"] = event[0]
         out["id"] = event[1]
@@ -190,6 +190,10 @@ class Events():
 
         numberOfPages = math.ceil(len(eventList)/5)
 
+        # Fix page 0
+        if numberOfPages == 0:
+            numberOfPages = 1
+
         # Check if at the last page
         if page > numberOfPages:
             page = numberOfPages
@@ -212,6 +216,8 @@ class Events():
         # Create line for each event on page
         fakeId = 1 + (page-1)*5
         for event in eventList:
+            # Check if last event
+            lastEvent = (event == eventList[-1])
             # Get info
             event = parseEvent(event)
             attendants = []
@@ -234,7 +240,7 @@ class Events():
             message.add_field(name="Party", value="\n".join(attendants))
 
             # Add a margin if it isn't the last event in list
-            if event != eventList[-1]:
+            if not lastEvent:
                 message.add_field(name="\u200b", value="\u200b", inline=False)
             fakeId += 1
 
@@ -250,12 +256,11 @@ class Events():
 
         # Check if notification for now or in an hour
         for event in eventsList:
-            eventTime = event[2]
-            eventId = event[1]
+            event = parseEvent(event)
 
             # If now then remove
-            if eventTime == timeNow:
-                self.removeEvent(eventId)
+            if event["date"] == timeNow:
+                self.removeEvent(event["id"])
                 return (event, discord.Color.red(), timeNow, self.channel, True)
             elif eventTime == timeHour:
                 return (event, discord.Color.orange(), timeHour, self.channel, False)
