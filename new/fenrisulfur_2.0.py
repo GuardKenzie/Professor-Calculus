@@ -75,7 +75,7 @@ async def updatePinned(myChannel, guild):
 
 async def notification(event, color, time, channel, now):
     # Parse event
-    event = events.Events.parseEvent(event)
+    event = events.parseEvent(event)
     guildMembers = dictFromMembers(channel.guild.members)
     attendants = []
 

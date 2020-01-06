@@ -15,6 +15,17 @@ def randomId():
     # Generate random int from 1 to 1000000000
     return random.randint(1,1000000000)
 
+def parseEvent(self, event):
+        out = {}
+        out["hash"] = event[0]
+        out["id"] = event[1]
+        out["date"] = event[2]
+        out["name"] = event[3]
+        out["description"] = event[4]
+        out["people"] = json.loads(event[5])
+
+        return out
+
 class Events():
     # Events database handler
     # Format for table 'events': 
@@ -37,7 +48,7 @@ class Events():
 
         monthsWith30Days = [4,6,9,10]
 
-        # Seperate date and time
+    # Seperate date and time
         date = date.split(" ")
         if len(date) != 2:
             return False
@@ -72,17 +83,6 @@ class Events():
         if M not in range(1,13):
             return False
         out = "{}/{}/{} {}:{}".format(str(D).zfill(2), str(M).zfill(2), str(Y), str(h).zfill(2), str(m).zfill(2))
-        return out
-
-    def parseEvent(self, event):
-        out = {}
-        out["hash"] = event[0]
-        out["id"] = event[1]
-        out["date"] = event[2]
-        out["name"] = event[3]
-        out["description"] = event[4]
-        out["people"] = json.loads(event[5])
-
         return out
 
     def getChannel(self):
@@ -213,7 +213,7 @@ class Events():
         fakeId = 1 + (page-1)*5
         for event in eventList:
             # Get info
-            event = self.parseEvent(event)
+            event = parseEvent(event)
             attendants = []
 
             # Get display names for attendants and put them in a list
