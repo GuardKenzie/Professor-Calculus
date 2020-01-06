@@ -1,5 +1,5 @@
 # TODO:
-# - Make event parser
+# - Help msg and command error handle 
 import discord
 import json
 from discord.ext import commands
@@ -75,19 +75,17 @@ async def updatePinned(myChannel, guild):
 
 async def notification(event, color, time, channel, now):
     # Parse event
-    eventName = event[3]
-    eventDescription = event[4]
+    event = events.Events.parseEvent(event)
     guildMembers = dictFromMembers(channel.guild.members)
-    attendantIds = json.loads(event[5])
     attendants = []
 
-    for member in attendantIds:
+    for member in event["people"]:
         attendants.append(guildMembers[member])
 
     if len(attendants) == 0:
         attendants = ["Nobody :("]
-    if eventDescription == "":
-        eventDescription = "No description yet."
+    if event["description"] == "":
+        event["description"] = "No description yet."
 
     if now:
         messageTitle = "Event starting now!"
@@ -97,8 +95,8 @@ async def notification(event, color, time, channel, now):
         deleteTime = 3600
 
     # Generate message
-    message = discord.Embed(title = eventName, description = eventDescription, color=color)
-    message.add_field(name="When?", value = time)
+    message = discord.Embed(title = event["name"], description = event["description"], color=color)
+    message.add_field(name="When?", value = event["time"])
     message.add_field(name="Party:", value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
 

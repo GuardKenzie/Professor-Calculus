@@ -74,6 +74,17 @@ class Events():
         out = "{}/{}/{} {}:{}".format(str(D).zfill(2), str(M).zfill(2), str(Y), str(h).zfill(2), str(m).zfill(2))
         return out
 
+    def parseEvent(self, event):
+        out = {}
+        out["hash"] = event[0]
+        out["id"] = event[1]
+        out["date"] = event[2]
+        out["name"] = event[3]
+        out["description"] = event[4]
+        out["people"] = json.loads(event[5])
+
+        return out
+
     def getChannel(self):
         # Get the events channel for the server
         return self.channel
@@ -202,25 +213,22 @@ class Events():
         fakeId = 1 + (page-1)*5
         for event in eventList:
             # Get info
-            eventName = event[3]
-            eventDate = event[2]
-            eventDescription = event[4]
-            attendantIds = json.loads(event[5])
+            event = self.parseEvent(event)
             attendants = []
 
             # Get display names for attendants and put them in a list
-            for member in attendantIds:
+            for member in event["people"]:
                 attendants.append(guildMembers[member])
 
             # Check if noone is attending or no description
             if len(attendants) == 0:
                 attendants = ["Nobody :("]
-            if eventDescription == "":
-                eventDescription = "No description yet."
+            if event["description"] == "":
+                event["description"] = "No description yet."
 
             # Create the header
-            fieldName = "{}. {} ({})".format(str(fakeId), eventName, eventDate)
-            message.add_field(name=fieldName, value=eventDescription, inline = True)
+            fieldName = "{}. {} ({})".format(str(fakeId), event["name"], event["date"])
+            message.add_field(name=fieldName, value=event["description"], inline = True)
 
             # Add party
             message.add_field(name="Party", value="\n".join(attendants))
