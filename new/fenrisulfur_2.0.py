@@ -100,6 +100,8 @@ async def notification(event, color, time, channel, now):
     message.add_field(name="Party:", value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
 
+    updatePinned(channel, channel.guild)
+
 async def notification_loop():
     await fenrir.wait_until_ready()
     while True:
