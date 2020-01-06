@@ -515,5 +515,7 @@ async def on_command_error(ctx, error):
         await ctx.author.send(content="Usage: `event [event id]` where `[event id]` is a number")
     if ctx.command.name == "update":
         await ctx.author.send(content="Usage: `update: [event id] [update catagory] [new value]` where `[event id]` is a number and Valid update catagories are\n```name\ndate\ndescription\npeople (format: \"['name1', 'name2',...]\")```")
-
-fenrir.run(str(key))
+try:
+    fenrir.run(str(key))
+except Exception as exc:
+    print(exc)
