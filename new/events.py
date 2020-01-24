@@ -262,7 +262,7 @@ class Events():
             if event["date"] == timeNow:
                 self.removeEvent(event["id"])
                 return (event, discord.Color.red(), timeNow, self.channel, True)
-            elif eventTime == timeHour:
+            elif event["date"] == timeHour:
                 return (event, discord.Color.orange(), timeHour, self.channel, False)
         else:
             return False
