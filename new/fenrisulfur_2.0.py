@@ -325,7 +325,7 @@ async def eyebleach(ctx):
 
 @fenrir.command()
 async def help(ctx, *, cmd="none"):
-    message = helper.helpCmd(cmd)
+    message = helper.helpCmd(prefix, cmd)
     if message != -1:
         await ctx.author.send(embed=message)
     else:

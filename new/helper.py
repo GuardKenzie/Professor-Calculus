@@ -1,5 +1,5 @@
 import discord
-def helpCmd(cmd="none"):
+def helpCmd(prefix, cmd):
     if cmd == "none":
         msg = discord.Embed(title="Available commands:", description="Use `help [command]` for more information")
         msg.add_field(name="schedule", value="Schedules a new event", inline=False)
