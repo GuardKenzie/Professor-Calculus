@@ -11,6 +11,7 @@ import random
 
 # Mine
 import events
+import helper
 
 # Bot key
 keyFile = open("key", "r")
@@ -26,6 +27,7 @@ prefix = "f? "
 
 # initiate bot
 fenrir = commands.Bot(command_prefix = prefix)
+fenrir.remove_command("help")
 
 # Load messages
 with open("messages.json", "r") as f:
@@ -304,6 +306,8 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
+# --- Misc ---
+
 @fenrir.command()
 async def eyebleach(ctx):
     success = False
@@ -318,6 +322,14 @@ async def eyebleach(ctx):
     ind = random.randint(0,len(a["data"]["children"]))
     link = a["data"]["children"][ind]["data"]["url"]
     await ctx.channel.send(content=link)
+
+@fenrir.command()
+async def help(ctx, *, cmd="none"):
+    message = helper.helpCmd(cmd)
+    if message != -1:
+        await ctx.author.send(embed=message)
+    else:
+        await ctx.author.send(content="Unrecognised command")
 
 # Start bot
 fenrir.run(str(key))
