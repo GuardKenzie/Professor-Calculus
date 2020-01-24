@@ -68,6 +68,5 @@ def helpCmd(cmd="none"):
             msg = discord.Embed(title="me birthday [date]")
             msg.add_field(name="[date]", value="Your birthday DD/MM/YYY", inline=False)
         else:
-            await ctx.author.send(content="Unrecognised command")
             return -1
         return msg
