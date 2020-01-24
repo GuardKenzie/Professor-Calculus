@@ -69,4 +69,4 @@ def helpCmd(cmd="none"):
             msg.add_field(name="[date]", value="Your birthday DD/MM/YYY", inline=False)
         else:
             return -1
-        return msg
+    return msg
