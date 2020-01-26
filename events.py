@@ -257,6 +257,7 @@ class Events():
         # Check if notification for now or in an hour
         for event in eventsList:
             event = parseEvent(event)
+            print(event["date"] + " " + timeHour + " " + timeNow)
 
             # If now then remove
             if event["date"] == timeNow:
