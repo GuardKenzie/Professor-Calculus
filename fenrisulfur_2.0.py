@@ -107,7 +107,9 @@ async def notification_loop():
     while True:
         await asyncio.sleep(60)
         for guild in fenrir.guilds:
+            print(guild.name)
             e = eventsDict[hash(guild)].checkIfNotification()
+            print(e)
             if e:
                 await notification(e[0], e[1], e[2], e[3], e[4])
                 await updatePinned(eventsDict[hash(guild)].channel, guild)
