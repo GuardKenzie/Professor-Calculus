@@ -1,6 +1,5 @@
 # TODO:
 # - Help msg and command error handle 
-# - Fix date padding when updating
 import discord
 import json
 from discord.ext import commands
@@ -103,14 +102,16 @@ async def notification(event, color, time, channel, now):
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
 
 async def notification_loop():
+    # Wait until bot is ready
     await fenrir.wait_until_ready()
     while True:
+        # Check every 60s
         await asyncio.sleep(60)
         for guild in fenrir.guilds:
-            print(guild.name)
+            # Check every guild for notifications
             e = eventsDict[hash(guild)].checkIfNotification()
-            print(e)
             if e:
+                # If there is a notification, send it and update events list
                 await notification(e[0], e[1], e[2], e[3], e[4])
                 await updatePinned(eventsDict[hash(guild)].channel, guild)
 
@@ -156,6 +157,13 @@ async def on_command_completion(ctx):
         await updatePinned(eventsDict[guildHash].channel, ctx.guild)
 
 @fenrir.event
+async def on_command_error(ctx, error):
+    print(error)
+    print(ctx.message.content)
+
+    await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content))
+
+@fenrir.event
 async def on_message(message):
     # Process command and then delete the message if it wasn't a command in events channel
     a = await fenrir.process_commands(message)
@@ -182,6 +190,15 @@ async def on_reaction_add(react, user):
             await updatePinned(eventsDict[hash(guild)].channel, guild)
             await react.remove(user)
 
+@fenrir.event
+async def on_guild_join(guild):
+    # Print setup message in first text channel we can
+    for i in guild.text_channels:
+        try:
+            await i.send(content="Type `" +prefix+ "setup` to get started")
+            break
+        except discord.errors.Forbidden:
+            pass
 
 # ==========================================
 # Bot commands
