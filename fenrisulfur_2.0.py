@@ -14,7 +14,7 @@ import events
 import helper
 
 # Bot key
-keyFile = open(sys.argv[2], "r")
+keyFile = open(sys.argv[1], "r")
 
 key = keyFile.read().strip()
 keyFile.close()
