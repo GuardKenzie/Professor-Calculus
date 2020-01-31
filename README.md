@@ -1,11 +1,11 @@
 # fenrisúlfur
 
 A simple event scheduler bot for discord I wrote for a FC!
-A discord bot token needs to be placed in a file titled `key` in the root directory.
+A discord bot token needs to be placed in a file titled `key` in the root directory and then the bot can be started with `python fenrisulfur_2.0.py key`.
 
 The bot will, once the owner runs the setup command, automatically create it's own channel to use for notifications. It notifies users an hour before an event starts and again when it starts.
 
-[Invite to your server!](https://discordapp.com/api/oauth2/authorize?client_id=608760669181050885&permissions=305327120&scope=bot)
+[Invite Fenrir to your server!](https://discordapp.com/api/oauth2/authorize?client_id=608760669181050885&permissions=305327120&scope=bot)
 
 ## Commands:
 Command prefix is `f?`
