@@ -168,9 +168,11 @@ async def on_command_error(ctx, error):
 @fenrir.event
 async def on_message(message):
     # Process command and then delete the message if it wasn't a command in events channel
+    a = await fenrir.process_commands(message)
+
+    # Check if we are in dm
     privateMessage = isinstance(message.channel, discord.abc.GuildChannel)
 
-    a = await fenrir.process_commands(message)
     if not privateMessage \
             and message.channel == eventsDict[hash(message.guild)].channel \
             and message.author != fenrir.user:
