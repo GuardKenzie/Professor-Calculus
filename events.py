@@ -172,8 +172,11 @@ class Events():
         if not eventId:
             return False
 
-        if toUpdate == "date" and not self.dateFormat(newInfo):
-            return False
+        # Check for date and set correct padding
+        if toUpdate == "date"
+            newInfo = self.dateFormat(newInfo)
+            if not newInfo:
+                return False
 
         # Update entry and check for success
         e = self.c.execute("UPDATE events SET {}=?  WHERE server_hash=? AND id=?".format(toUpdate), (newInfo, self.guildHash, eventId))
@@ -257,8 +260,6 @@ class Events():
         # Check if notification for now or in an hour
         for event in eventsList:
             event = parseEvent(event)
-            print(event["date"] + " " + timeHour + " " + timeNow)
-
             # If now then remove
             if event["date"] == timeNow:
                 self.removeEvent(event["id"])
