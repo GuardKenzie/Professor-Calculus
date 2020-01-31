@@ -147,14 +147,15 @@ async def on_ready():
 @fenrir.event
 async def on_command_completion(ctx):
     # List of commands for events
-    eventCommands = ["attend", "leave", "schedule", "remove", "update"]
+    if ctx.guild:
+        eventCommands = ["attend", "leave", "schedule", "remove", "update"]
 
-    guildHash = hash(ctx.guild)
-    members = ctx.guild.members
+        guildHash = hash(ctx.guild)
+        members = ctx.guild.members
 
-    # Update pinned list if command is for event
-    if ctx.command.name in eventCommands:
-        await updatePinned(eventsDict[guildHash].channel, ctx.guild)
+        # Update pinned list if command is for event
+        if ctx.command.name in eventCommands:
+            await updatePinned(eventsDict[guildHash].channel, ctx.guild)
 
 @fenrir.event
 async def on_command_error(ctx, error):
@@ -168,7 +169,13 @@ async def on_command_error(ctx, error):
 async def on_message(message):
     # Process command and then delete the message if it wasn't a command in events channel
     a = await fenrir.process_commands(message)
-    if message.channel == eventsDict[hash(message.guild)].channel and message.author != fenrir.user:
+
+    # Check if we are in dm
+    privateMessage = isinstance(message.channel, discord.abc.GuildChannel)
+
+    if not privateMessage \
+            and message.channel == eventsDict[hash(message.guild)].channel \
+            and message.author != fenrir.user:
         await message.delete()
 
 @fenrir.event
