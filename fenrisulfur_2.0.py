@@ -1,5 +1,3 @@
-# TODO:
-# - Help msg and command error handle 
 import discord
 import json
 from discord.ext import commands
