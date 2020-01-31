@@ -173,7 +173,7 @@ class Events():
             return False
 
         # Check for date and set correct padding
-        if toUpdate == "date"
+        if toUpdate == "date":
             newInfo = self.dateFormat(newInfo)
             if not newInfo:
                 return False

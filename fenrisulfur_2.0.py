@@ -158,6 +158,7 @@ async def on_command_completion(ctx):
 
 @fenrir.event
 async def on_command_error(ctx, error):
+    # Send user an error message when command throws an error.
     print(error)
     print(ctx.message.content)
 
