@@ -172,11 +172,9 @@ async def on_message(message):
 
     # Check if we are in dm
     privateMessage = isinstance(message.channel, discord.abc.GuildChannel)
-
-    if not privateMessage \
-            and message.channel == eventsDict[hash(message.guild)].channel \
-            and message.author != fenrir.user:
-        await message.delete()
+    if not privateMessage:
+        if message.channel == eventsDict[hash(message.guild)].channel and message.author != fenrir.user:
+            await message.delete()
 
 @fenrir.event
 async def on_reaction_add(react, user):
