@@ -7,13 +7,14 @@ from urllib import request
 import urllib
 import asyncio
 import random
+import sys
 
 # Mine
 import events
 import helper
 
 # Bot key
-keyFile = open("key", "r")
+keyFile = open(sys.argv[2], "r")
 
 key = keyFile.read().strip()
 keyFile.close()
