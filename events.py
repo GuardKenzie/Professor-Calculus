@@ -269,4 +269,16 @@ class Events():
         else:
             return False
 
+    def setMyChannelId(self, channelId):
+        self.c.execute("SELECT * FROM myChannels WHERE guildHash=?;", (self.guildHash,))
+        if len(self.c.fetchall()) > 0:
+            self.c.execute("UPDATE myChannels SET channelId=? WHERE guildHash=?;", (channelId, self.guildHash))
+        else:
+            self.c.execute("INSERT INTO myChannels (guildHash, channelId) VALUES (?, ?);", (self.guildHash, channelId))
+        self.conn.commit();
+
+    def getMyChannelId(self):
+        self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=?;", (self.guildHash, ))
+        return self.c.fetchone()[0]
+
 

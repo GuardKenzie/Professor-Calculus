@@ -131,16 +131,21 @@ async def on_ready():
     for guild in fenrir.guilds:
         guildHash = hash(guild)
 
+        eventsDict[guildHash] = events.Events(guildHash, None)
+
         # Find my channel
-        myChannel = ""
+        myChannelId = eventsDict[guildHash].getMyChannelId()
+        myChannel = 0
         for channel in guild.text_channels:
-            if channel.name == "events" and channel.category.name == "Events" or channel.category.name == "Fenrir":
+            if channel.id == myChannelId:
                 myChannel = channel
+                print("yes")
                 break
+        print(myChannelId)
 
         # If I have a channel, purge and post event list
         if myChannel:
-            eventsDict[guildHash] = events.Events(guildHash, myChannel)
+            eventsDict[guildHash].channel = myChannel
             await myChannel.purge()
             await updatePinned(myChannel, guild)
     fenrir.loop.create_task(notification_loop())
@@ -240,9 +245,17 @@ async def setup(ctx):
 
         # Initiate Events class
         eventsDict[hash(ctx.guild)] = events.Events(hash(ctx.guild), channel)
+        eventsDict[hash(ctx.guild)].setMyChannelId(channel.id)
 
         # Update pinned
         await updatePinned(channel, ctx.guild)
+
+@fenrir.command()
+async def setChannel(ctx):
+    eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id)
+    eventsDict[hash(ctx.guild)].channel = ctx.channel
+    eventsDict[hash(ctx.guild)].myMessage = None
+    await updatePinned(ctx.channel, ctx.guild)
 
 # --- Events ---
 
