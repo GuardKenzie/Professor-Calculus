@@ -132,7 +132,7 @@ async def on_ready():
         # Find my channel
         myChannel = ""
         for channel in guild.text_channels:
-            if channel.name == "events" and channel.category.name == "Fenrir":
+            if channel.name == "events" and channel.category.name == "Events" or channel.category.name == "Fenrir":
                 myChannel = channel
                 break
 
@@ -224,7 +224,7 @@ async def setup(ctx):
         await ctx.message.delete()
 
         # Create category and channel
-        category = await ctx.guild.create_category("Fenrir")
+        category = await ctx.guild.create_category("Events")
         channel = await ctx.guild.create_text_channel("events", category=category)
 
         await channel.send(content=infoMessages["helloMessage"].format(prefix))
