@@ -63,7 +63,7 @@ async def updatePinned(myChannel, guild):
     myMessage = eventsDict[guildHash].myMessage
 
     # Get my nick
-    nick = guild.me.nick
+    nick = guild.me.display_name
 
     # Update the message if it exists, else post new one
     if myMessage == "":
@@ -227,7 +227,7 @@ async def setup(ctx):
         await ctx.message.delete()
 
         # Get nickname
-        nick = ctx.guild.me.nick
+        nick = ctx.guild.me.display_name
 
         # Create category and channel
         category = await ctx.guild.create_category("Events")
