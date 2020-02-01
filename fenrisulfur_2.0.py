@@ -132,7 +132,7 @@ async def on_ready():
         # Find my channel
         myChannel = ""
         for channel in guild.text_channels:
-            if channel.name == "events" and channel.category.name == "Events":
+            if channel.name == "events" and channel.category.name == "Events" or channel.category.name == "Fenrir":
                 myChannel = channel
                 break
 
