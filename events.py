@@ -281,7 +281,7 @@ class Events():
         self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=?;", (self.guildHash, ))
         res = self.c.fetchone()
         if len(res) > 0:
-            return res[1]
+            return res[0]
         else:
             return 0
 
