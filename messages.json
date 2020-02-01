@@ -1,5 +1,5 @@
 {
-  "helloMessage":           "Hello! I'm Fenrisúlfur or Fenrir for short. Nice to meet you :D\nThis is my events channel. Here I will post notifications for upcoming FC events!\nPlease type ` {} help` in chat to see what I'm capable of.",
+  "helloMessage":           "Hello! I'm {}. Nice to meet you :D\nThis is my events channel. Here I will post notifications for upcoming FC events!\nPlease type ` {} help` in chat to see what I'm capable of.",
   "schedulerMessage":       "Assign the newly created role `Scheduler` to people you want to be able to schedule events.",
 
   "eventCreated":           "Event `{}` at `{}` successfully booked!",

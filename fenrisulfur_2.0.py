@@ -62,10 +62,13 @@ async def updatePinned(myChannel, guild):
     # Find the message
     myMessage = eventsDict[guildHash].myMessage
 
+    # Get my nick
+    nick = guild.me.nick
+
     # Update the message if it exists, else post new one
     if myMessage == "":
         await myChannel.purge()
-        await myChannel.send(content=infoMessages["helloMessage"].format(prefix))
+        await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
         myMessage = await myChannel.send(content="-", embed=update)
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
@@ -223,11 +226,14 @@ async def setup(ctx):
         # Delete message
         await ctx.message.delete()
 
+        # Get nickname
+        nick = ctx.guild.me.nick
+
         # Create category and channel
         category = await ctx.guild.create_category("Events")
         channel = await ctx.guild.create_text_channel("events", category=category)
 
-        await channel.send(content=infoMessages["helloMessage"].format(prefix))
+        await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
 
         # Create scheduler rank and let owner know
         await ctx.guild.create_role(name="Scheduler")
