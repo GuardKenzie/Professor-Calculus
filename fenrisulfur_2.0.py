@@ -414,7 +414,7 @@ async def help(ctx, *, cmd="none"):
         await ctx.author.send(content="Unrecognised command")
 
 @fenrir.command()
-async def random(ctx, *, names):
+async def roll(ctx, *, names):
     names = names.split(", ")
     winner = random.choice(names)
 
