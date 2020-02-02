@@ -252,10 +252,11 @@ async def setup(ctx):
 
 @fenrir.command()
 async def setChannel(ctx):
-    eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id)
-    eventsDict[hash(ctx.guild)].channel = ctx.channel
-    eventsDict[hash(ctx.guild)].myMessage = None
-    await updatePinned(ctx.channel, ctx.guild)
+    if ctx.author == ctx.guild.owner or ctx.author.id == "197471216594976768":
+        eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id)
+        eventsDict[hash(ctx.guild)].channel = ctx.channel
+        eventsDict[hash(ctx.guild)].myMessage = None
+        await updatePinned(ctx.channel, ctx.guild)
 
 # --- Events ---
 
