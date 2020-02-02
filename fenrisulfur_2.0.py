@@ -82,6 +82,7 @@ async def friendly_notification(e):
     eventDesc = e["event"]["description"]
     weekday = e["date"]
 
+    # Find my friendly channel
     channelId = e["channelId"]
     guild = e["guild"]
 
