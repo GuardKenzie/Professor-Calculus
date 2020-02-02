@@ -418,7 +418,7 @@ async def help(ctx, *, cmd="none"):
 async def roll(ctx, *, names):
     # Determine a random thing from a list
     await ctx.channel.send(content="And the winner is...")
-    await asyncio.sleep(8)
+    await asyncio.sleep(5)
 
     names = names.split(", ")
     winner = random.choice(names)
