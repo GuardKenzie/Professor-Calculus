@@ -76,8 +76,32 @@ async def updatePinned(myChannel, guild):
         await myMessage.add_reaction(rightarrow)
         eventsDict[guildHash].myMessage = myMessage
 
-async def notification(event, color, time, channel, now):
-    # Parse eventf? update 7 )
+async def friendly_notification(e):
+    # Friendly reminder for recurring events
+    eventName = e["event"]["name"]
+    eventDesc = e["event"]["description"]
+    weekday = e["date"]
+
+    channelId = e["channelId"]
+    guild = e["guild"]
+
+    for channel in guild.text_channels:
+        if channel.id == channelId:
+            friendlyChannel = channel
+
+    msgContent = "Hey everyone! Today is \"{} {}\". \n {} \n Check the events channel for details.".format(eventName, weekday, eventDesc)
+
+    await friendlyChannel.send(content=msgContent)
+
+async def event_notification(e):
+    # Parse event
+    event = e["event"]
+    date = e["date"]
+    channel = e["channel"]
+    color = e["color"]
+    now = e["now"]
+
+
     guildMembers = dictFromMembers(channel.guild.members)
     attendants = []
 
@@ -113,8 +137,11 @@ async def notification_loop():
             e = eventsDict[hash(guild)].checkIfNotification()
             if e:
                 # If there is a notification, send it and update events list
-                await notification(e[0], e[1], e[2], e[3], e[4])
-                await updatePinned(eventsDict[hash(guild)].channel, guild)
+                if e["friendly"]:
+                    await friendly_notification(e)
+                else:
+                    await event_notification(e)
+                    await updatePinned(eventsDict[hash(guild)].channel, guild)
 
 # ==========================================
 # Bot events
@@ -134,7 +161,7 @@ async def on_ready():
         eventsDict[guildHash] = events.Events(guildHash, None)
 
         # Find my channel
-        myChannelId = eventsDict[guildHash].getMyChannelId()
+        myChannelId = eventsDict[guildHash].getMyChannelId("events")
         myChannel = 0
         for channel in guild.text_channels:
             if channel.id == myChannelId:
@@ -245,18 +272,28 @@ async def setup(ctx):
 
         # Initiate Events class
         eventsDict[hash(ctx.guild)] = events.Events(hash(ctx.guild), channel)
-        eventsDict[hash(ctx.guild)].setMyChannelId(channel.id)
+        eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
 
         # Update pinned
         await updatePinned(channel, ctx.guild)
 
 @fenrir.command()
-async def setChannel(ctx):
+async def setChannel(ctx, channelType):
+    if channelType not in ["events", "friendly"]:
+        await ctx.message.delete()
+        await ctx.author.send(content="{} is not a valid channel type.".format(channelType))
+        return
+
     if ctx.author == ctx.guild.owner or ctx.author.id == "197471216594976768":
-        eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id)
-        eventsDict[hash(ctx.guild)].channel = ctx.channel
-        eventsDict[hash(ctx.guild)].myMessage = None
-        await updatePinned(ctx.channel, ctx.guild)
+        eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
+
+        if (channelType == "events"):
+            eventsDict[hash(ctx.guild)].channel = ctx.channel
+            eventsDict[hash(ctx.guild)].myMessage = None
+            await updatePinned(ctx.channel, ctx.guild)
+        else:
+            await ctx.message.delete()
+            await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
 
 # --- Events ---
 

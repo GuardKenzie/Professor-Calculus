@@ -46,6 +46,8 @@ class Events():
         if date.lower() == "tbd":
             return "TBD"
 
+        weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
         monthsWith30Days = [4,6,9,10]
 
     # Seperate date and time
@@ -53,9 +55,6 @@ class Events():
         if len(date) != 2:
             return False
 
-        day = date[0].split("/")
-        if len(day) != 3:
-            return False
 
         time = date[1].split(":")
         if len(time) != 2:
@@ -64,25 +63,35 @@ class Events():
         h = int(time[0])
         m = int(time[1])
 
-        D = int(day[0])
-        M = int(day[1])
-        Y = int(day[2])
-
         if h not in range(0,24):
             return False
         if m not in range(0,61):
             return False
-        if D not in range(1,32):
-            return False
-        if D not in range(1,31) and M in monthsWith30Days:
-            return False
-        if D not in range(1,29) and M == 2 and Y%4 != 0:
-            return False
-        if D not in range(1,30) and M == 2 and Y%4 == 0:
-            return False
-        if M not in range(1,13):
-            return False
-        out = "{}/{}/{} {}:{}".format(str(D).zfill(2), str(M).zfill(2), str(Y), str(h).zfill(2), str(m).zfill(2))
+
+        if date[0].lower() not in weekdays:
+            day = date[0].split("/")
+            if len(day) != 3:
+                return False
+
+            D = int(day[0])
+            M = int(day[1])
+            Y = int(day[2])
+
+            if D not in range(1,32):
+                return False
+            if D not in range(1,31) and M in monthsWith30Days:
+                return False
+            if D not in range(1,29) and M == 2 and Y%4 != 0:
+                return False
+            if D not in range(1,30) and M == 2 and Y%4 == 0:
+                return False
+            if M not in range(1,13):
+                return False
+            dayString = "{}/{}/{}".format(str(D).zfill(2), str(M).zfill(2), str(Y))
+        else:
+            dayString = date[0].capitalize()
+
+        out = "{} {}:{}".format(dayString, str(h).zfill(2), str(m).zfill(2))
         return out
 
     def getChannel(self):
@@ -252,33 +261,78 @@ class Events():
 
     def checkIfNotification(self):
         # Generate time string for 1 hour in future and now
-        timeHour = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
-        timeNow = datetime.now().strftime("%d/%m/%Y %H:%M")
+        dateHour = []
+        dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M"))
+        dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%A %H:%M"))
+
+        dateNow = []
+        dateNow.append(datetime.now().strftime("%d/%m/%Y %H:%M"))
+        dateNow.append(datetime.now().strftime("%A %H:%M"))
+
+        timeNow = datetime.now().strftime("%H:%M")
+
+        weekday = datetime.now().strftime("%A")
 
         eventsList = self.getEvents()
 
         # Check if notification for now or in an hour
         for event in eventsList:
             event = parseEvent(event)
+            recurringEvent = False
+
+            # Get actual day of event
+            eventDay = event["date"].split(" ")[0]
+
+            if eventDay == weekday:
+                recurringEvent = True
+
+                if timeNow == "10:00":
+                    return {"event":    event, \
+                            "date":     weekday,
+                            "friendly": True, \
+                            "channelId":  self.getMyChannelId("friendly"),
+                            "guild":    self.channel.guild
+                            }
+
             # If now then remove
-            if event["date"] == timeNow:
-                self.removeEvent(event["id"])
-                return (event, discord.Color.red(), timeNow, self.channel, True)
-            elif event["date"] == timeHour:
-                return (event, discord.Color.orange(), timeHour, self.channel, False)
+            if event["date"] in dateNow:
+                if not recurringEvent:
+                    self.removeEvent(event["id"])
+                return {"event":    event, \
+                        "color":    discord.Color.red(), \
+                        "date":     dateNow, \
+                        "channel":  self.channel, \
+                        "now":      True, \
+                        "friendly": False }
+                #(event, discord.Color.red(), dateNow, self.channel, True)
+
+            elif event["date"] in dateHour:
+                return {"event":    event, \
+                        "color":    discord.Color.orange(), \
+                        "date":     dateHour, \
+                        "channel":  self.channel, \
+                        "now":      False, \
+                        "friendly": False }
+                # (event, discord.Color.orange(), dateHour, self.channel, False)
         else:
             return False
 
-    def setMyChannelId(self, channelId):
-        self.c.execute("SELECT * FROM myChannels WHERE guildHash=?;", (self.guildHash,))
+    def setMyChannelId(self, channelId, channelType):
+        # Get my channel id from the database
+        self.c.execute("SELECT * FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash, channelType))
+
+        # Check if I have a channel id
         if len(self.c.fetchall()) > 0:
-            self.c.execute("UPDATE myChannels SET channelId=? WHERE guildHash=?;", (channelId, self.guildHash))
+            self.c.execute("UPDATE myChannels SET channelId=? WHERE guildHash=? AND channelType=?;", (channelId, self.guildHash, channelType))
         else:
-            self.c.execute("INSERT INTO myChannels (guildHash, channelId) VALUES (?, ?);", (self.guildHash, channelId))
+            self.c.execute("INSERT INTO myChannels (guildHash, channelId, channelType) VALUES (?, ?, ?);", (self.guildHash, channelId, channelType))
+
+        # Save
         self.conn.commit();
 
-    def getMyChannelId(self):
-        self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=?;", (self.guildHash, ))
+    def getMyChannelId(self, channelType):
+        # Check if I have a channel and return
+        self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash,  channelType))
         res = self.c.fetchone()
         if len(res) > 0:
             return res[0]
