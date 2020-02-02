@@ -416,13 +416,14 @@ async def help(ctx, *, cmd="none"):
 
 @fenrir.command()
 async def roll(ctx, *, names):
+    # Determine a random thing from a list
     await ctx.channel.send(content="And the winner is...")
-    await asyncio.sleep(3)
+    await asyncio.sleep(5)
 
     names = names.split(", ")
     winner = random.choice(names)
 
-    await ctx.channel.send(content="{0} wins the roll! {1}{1}{1}".format(winner, party))
+    await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
 
 # Start bot
 fenrir.run(str(key))
