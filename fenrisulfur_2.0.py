@@ -415,6 +415,7 @@ async def help(ctx, *, cmd="none"):
 
 @fenrir.command()
 async def roll(ctx, *, names):
+    await ctx.message.delete()
     names = names.split(", ")
     winner = random.choice(names)
 

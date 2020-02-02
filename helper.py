@@ -7,7 +7,8 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="attend", value="Join an event", inline=False)
         msg.add_field(name="leave", value="Leave an event", inline=False)
         msg.add_field(name="update", value="Updates a scheduled event", inline=False)
-        msg.add_field(name="eyebleach", value="Produces some eyebleach", inline=False)
+        msg.add_field(name="setChannel", value="Sets the event or weekday channel", inline=False)
+        msg.add_field(name="roll", value="Select a random person from a list.", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule [event date (Format: 'DD/MM/YYYY hh:mm' or TBD)] [event name]")
@@ -35,6 +36,12 @@ def helpCmd(prefix, cmd):
         elif cmd == "eyebleach":
             msg = discord.Embed(title="eyebleach")
             msg.add_field(name="\u200b", value="Produces some eyebleach", inline=False)
+        elif cmd == "setChannel":
+            msg = discord.Embed(title="setChannel [channel type]")
+            msg.add_field(name="[channelType]", value="events for events channel or friendly for weekday announcements", inline=False)
+        elif cmd == "roll":
+            msg = discord.Embed(title="roll [list of names]")
+            msg.add_field(name="[list of names]", value="A list of names seperated with a ', '", inline=False)
         else:
             return -1
     return msg
