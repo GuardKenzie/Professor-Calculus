@@ -34,6 +34,7 @@ with open("messages.json", "r") as f:
 # Emotes
 leftarrow = "\u2B05"
 rightarrow = "\u27A1"
+party = "\U0001F389"
 
 # ==========================================
 # Functions
@@ -421,7 +422,7 @@ async def roll(ctx, *, names):
     names = names.split(", ")
     winner = random.choice(names)
 
-    await ctx.channel.send(content="{} wins the roll!".format(winner))
+    await ctx.channel.send(content="{0} wins the roll! {1}{1}{1}".format(winner, party))
 
 # Start bot
 fenrir.run(str(key))
