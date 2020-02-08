@@ -10,6 +10,7 @@ import sys
 # Mine
 import events
 import helper
+import salt.salty
 
 # Bot key
 keyFile = open(sys.argv[1], "r")
@@ -32,9 +33,12 @@ with open("messages.json", "r") as f:
     infoMessages = json.loads(f.read())
 
 # Emotes
-leftarrow = "\u2B05"
-rightarrow = "\u27A1"
+leftarrow = "\U00002B05"
+rightarrow = "\U000027A1"
 party = "\U0001F389"
+
+# Salt initialisation
+saltWraper = salty.salty()
 
 # ==========================================
 # Functions
@@ -425,5 +429,15 @@ async def roll(ctx, *, names):
 
     await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
 
+
+@fenrir.command()
+async def salt(ctx):
+    username = ctx.author.display_name
+    insultMessage = saltyWraper.insult(username)
+    cookies = saltyWraper.eatCookie(ctx.author)
+
+    await ctx.send("Here is your misfortune cookie:\n{}".format(insultmsg))
+    await asyncio.sleep(1)
+    await ctx.send("{} has now had {} salty cookies!".format(username, cookies))
 # Start bot
 fenrir.run(str(key))
