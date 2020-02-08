@@ -9,6 +9,8 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="update", value="Updates a scheduled event", inline=False)
         msg.add_field(name="setChannel", value="Sets the event or weekday channel", inline=False)
         msg.add_field(name="roll", value="Select a random person from a list.", inline=False)
+        msg.add_field(name="salt", value="Get a salty nugg.", inline=False)
+        msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule [event date (Format: 'DD/MM/YYYY hh:mm' or TBD)] [event name]")
@@ -42,6 +44,12 @@ def helpCmd(prefix, cmd):
         elif cmd == "roll":
             msg = discord.Embed(title="roll [list of names]")
             msg.add_field(name="[list of names]", value="A list of names seperated with a ', '", inline=False)
+        elif cmd == "salt":
+            msg = discord.Embed(title="salt")
+            msg.add_field(name="\u200b", value="A nice message", inline=False)
+        elif cmd == "saltboard":
+            msg = discord.Embed(title="saltboard")
+            msg.add_field(name="\u200b", value="See who is the most salty", inline=False)
         else:
             return -1
     return msg
