@@ -23,7 +23,7 @@ class saltClass():
 
     def eatCookie(self, user):
         i = user.id
-        current = getCookies(user)
+        current = self.getCookies(user)
         if current:
             current = current[0] + 1
             c.execute("UPDATE salt SET count=? WHERE userId=?",(current,i))
