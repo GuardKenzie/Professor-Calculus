@@ -10,7 +10,7 @@ import sys
 # Mine
 import events
 import helper
-import salt.salty
+import salt.salty as salty
 
 # Bot key
 keyFile = open(sys.argv[1], "r")
