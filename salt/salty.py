@@ -22,7 +22,7 @@ class saltClass():
             current = self.getCookies(i)
             if current:
                 out[i.display_name] = current[0]
-        out = sorted(board.items(),key=lambda x: x[1])
+        out = sorted(out.items(),key=lambda x: x[1])
         return out
 
     def getCookies(self, user):
