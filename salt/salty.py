@@ -2,7 +2,7 @@ import math
 import random
 import sqlite3
 
-insults = open("mead/insults.txt", "r+")
+insults = open("salt/insults.txt", "r+")
 insults = insults.read().strip().split("\n")
 
 def insult(name,t):
