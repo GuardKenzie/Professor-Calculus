@@ -433,6 +433,7 @@ async def roll(ctx, *, names):
 
 @fenrir.command()
 async def salt(ctx):
+    # Get a random nugg and increment count
     username = ctx.author.display_name
     insultMessage = saltWraper.insult(username)
     count = saltWraper.eatCookie(ctx.author)
@@ -443,17 +444,21 @@ async def salt(ctx):
 
 @fenrir.command()
 async def saltboard(ctx):
+    # Display leaderboard of salt
     board = saltWraper.getCookieBoard(ctx.guild)
-    print(board)
 
+    # Check if empty
     if board:
         out= ""
     else:
         out = "Nothing here yet"
+
+    # Make message
     msg = discord.Embed(title="Salt leaderboards:", description="")
     for entry in board:
         out += entry[0] + ":\u2003" + str(entry[1]) + "\n"
     msg.add_field(name="\u200b", value=out,inline=0)
+
     await ctx.send(embed=msg)
 
 # Start bot
