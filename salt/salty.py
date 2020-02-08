@@ -5,15 +5,16 @@ import sqlite3
 insults = open("salt/insults.txt", "r+")
 insults = insults.read().strip().split("\n")
 
-def insult(name,t):
-    bad = insults
-    i = random.randint(0,len(bad)-1)
-    return bad[i].format(name)
 
 class saltClass():
     def __init__(self):
         self.conn = sqlite3.connect("salt.db")
         self.c = self.conn.cursor()
+
+    def insult(self, name):
+        bad = insults
+        i = random.randint(0,len(bad)-1)
+        return bad[i].format(name)
 
     def getCookies(self, user):
         i = user.id
