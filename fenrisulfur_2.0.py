@@ -434,10 +434,10 @@ async def roll(ctx, *, names):
 async def salt(ctx):
     username = ctx.author.display_name
     insultMessage = saltWraper.insult(username)
-    cookies = saltWraper.eatCookie(ctx.author)
+    count = saltWraper.eatCookie(ctx.author)
 
-    await ctx.send("Here is your little nugget of salt:\n{}".format(insultmsg))
+    await ctx.send("Here is your little nugget of salt:\n{}".format(insultMessage))
     await asyncio.sleep(1)
-    await ctx.send("{} has now had {} salty nuggs!".format(username, cookies))
+    await ctx.send("{} has now had {} salty nuggs!".format(username, count))
 # Start bot
 fenrir.run(str(key))
