@@ -38,7 +38,7 @@ rightarrow = "\U000027A1"
 party = "\U0001F389"
 
 # Salt initialisation
-saltWraper = salty.salty()
+saltWraper = salty.saltClass()
 
 # ==========================================
 # Functions
@@ -433,11 +433,11 @@ async def roll(ctx, *, names):
 @fenrir.command()
 async def salt(ctx):
     username = ctx.author.display_name
-    insultMessage = saltyWraper.insult(username)
-    cookies = saltyWraper.eatCookie(ctx.author)
+    insultMessage = saltWraper.insult(username)
+    cookies = saltWraper.eatCookie(ctx.author)
 
-    await ctx.send("Here is your misfortune cookie:\n{}".format(insultmsg))
+    await ctx.send("Here is your little nugget of salt:\n{}".format(insultmsg))
     await asyncio.sleep(1)
-    await ctx.send("{} has now had {} salty cookies!".format(username, cookies))
+    await ctx.send("{} has now had {} salty nuggs!".format(username, cookies))
 # Start bot
 fenrir.run(str(key))

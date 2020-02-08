@@ -10,14 +10,14 @@ def insult(name,t):
     i = random.randint(0,len(bad)-1)
     return bad[i].format(name)
 
-class sprigganMead():
+class saltClass():
     def __init__(self):
         self.conn = sqlite3.connect("salt.db")
         self.c = self.conn.cursor()
 
     def getCookies(self, user):
         i = user.id
-        self.c.execute("SELECT cookies FROM cookies WHERE uid=?",(i,))
+        self.c.execute("SELECT count FROM salt WHERE userId=?",(i,))
         return self.c.fetchone()
 
     def eatCookie(self, user):
@@ -25,9 +25,9 @@ class sprigganMead():
         current = getCookies(user)
         if current:
             current = current[0] + 1
-            c.execute("UPDATE cookies SET cookies=? WHERE uid=?",(current,i))
+            c.execute("UPDATE salt SET count=? WHERE userId=?",(current,i))
         else:
-            c.execute("INSERT INTO cookies VALUES (1,?)",(i,))
+            c.execute("INSERT INTO salt VALUES (1,?)",(i,))
             current = 1
         self.conn.commit()
         return current
