@@ -429,6 +429,7 @@ async def roll(ctx, *, names):
 
     await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
 
+# --- Salt ---
 
 @fenrir.command()
 async def salt(ctx):
@@ -439,5 +440,21 @@ async def salt(ctx):
     await ctx.send("Here is your little nugget of salt:\n{}".format(insultMessage))
     await asyncio.sleep(1)
     await ctx.send("{} has now had {} salty nuggs!".format(username, count))
+
+@fenrir.command()
+async def saltboard(ctx):
+    board = saltWraper.getCookieBoard(ctx.guild)
+    print(board)
+
+    if board:
+        out= ""
+    else:
+        out = "Nothing here yet"
+    msg = discord.Embed(title="Salt leaderboards:", description="")
+    for entry in board:
+        out += entry[0] + ":\u2003" + str(entry[1]) + "\n"
+    msg.add_field(name="\u200b", value=out,inline=0)
+    await ctx.send(embed=msg)
+
 # Start bot
 fenrir.run(str(key))

@@ -16,6 +16,15 @@ class saltClass():
         i = random.randint(0,len(bad)-1)
         return bad[i].format(name)
 
+    def getCookieBoard(self, guild):
+        out = {}
+        for i in guild.members:
+            current = self.getCookies(i)
+            if current:
+                out[i.display_name] = current[0]
+        out = sorted(board.items(),key=lambda x: x[1])
+        return out
+
     def getCookies(self, user):
         i = user.id
         self.c.execute("SELECT count FROM salt WHERE userId=?",(i,))
