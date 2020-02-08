@@ -26,9 +26,9 @@ class saltClass():
         current = self.getCookies(user)
         if current:
             current = current[0] + 1
-            c.execute("UPDATE salt SET count=? WHERE userId=?",(current,i))
+            self.c.execute("UPDATE salt SET count=? WHERE userId=?",(current,i))
         else:
-            c.execute("INSERT INTO salt VALUES (1,?)",(i,))
+            self.c.execute("INSERT INTO salt VALUES (1,?)",(i,))
             current = 1
         self.conn.commit()
         return current
