@@ -76,6 +76,8 @@ class Events():
             D = int(day[0])
             M = int(day[1])
             Y = int(day[2])
+            if Y < 100:
+                Y = 2000 + Y
 
             if D not in range(1,32):
                 return False
