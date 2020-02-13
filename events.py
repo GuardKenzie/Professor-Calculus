@@ -92,7 +92,7 @@ class Events():
             dayString = date[0].capitalize()
 
         out = "{} {}:{}".format(dayString, str(h).zfill(2), str(m).zfill(2))
-        if datetime.strptime(out, "%D/%M/%Y %H:%M") < datetime.now():
+        if datetime.strptime(out, "%d/%M/%Y %H:%M") < datetime.now():
             return False
         else:
             return out
