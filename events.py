@@ -92,7 +92,10 @@ class Events():
             dayString = date[0].capitalize()
 
         out = "{} {}:{}".format(dayString, str(h).zfill(2), str(m).zfill(2))
-        return out
+        if datetime.strptime(out, "%D/%M/%Y %H:%M") < datetime.now():
+            return False
+        else:
+            return out
 
     def getChannel(self):
         # Get the events channel for the server
