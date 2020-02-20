@@ -91,11 +91,13 @@ async def friendly_notification(e):
     channelId = e["channelId"]
     guild = e["guild"]
 
+    everyone = guild.me.roles[0].mention
+
     for channel in guild.text_channels:
         if channel.id == channelId:
             friendlyChannel = channel
 
-    msgContent = "Hey everyone! Today is \"{} {}\". \n {} \n Check the events channel for details.".format(eventName, weekday, eventDesc)
+    msgContent = "Hey %! Today is \"{} {}\". \n {} \n Check the events channel for details.".format(everyone, eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
@@ -106,6 +108,8 @@ async def event_notification(e):
     channel = e["channel"]
     color = e["color"]
     now = e["now"]
+
+    everyone = channel.guild.me.roles[0].mention
 
 
     guildMembers = dictFromMembers(channel.guild.members)
@@ -120,10 +124,10 @@ async def event_notification(e):
         event["description"] = "No description yet."
 
     if now:
-        messageTitle = "Event starting now!"
+        messageTitle = everyon + " Event starting now!"
         deleteTime = 60
     else:
-        messageTitle = "Event starting in an hour!"
+        messageTitle = everyone + " Event starting in an hour!"
         deleteTime = 3600
 
     # Generate message
@@ -146,8 +150,8 @@ async def notification_loop():
                 if e["friendly"]:
                     await friendly_notification(e)
                 else:
-                    await event_notification(e)
                     await updatePinned(eventsDict[hash(guild)].channel, guild)
+                    await event_notification(e)
 
 # ==========================================
 # Bot events
