@@ -124,7 +124,7 @@ async def event_notification(e):
         event["description"] = "No description yet."
 
     if now:
-        messageTitle = everyon + " Event starting now!"
+        messageTitle = everyone + " Event starting now!"
         deleteTime = 60
     else:
         messageTitle = everyone + " Event starting in an hour!"
