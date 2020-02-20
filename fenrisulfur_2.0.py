@@ -40,6 +40,8 @@ party = "\U0001F389"
 # Salt initialisation
 saltWraper = salty.saltClass()
 
+everyone = "@everyone"
+
 # ==========================================
 # Functions
 # ==========================================
@@ -91,7 +93,7 @@ async def friendly_notification(e):
     channelId = e["channelId"]
     guild = e["guild"]
 
-    everyone = guild.me.roles[0].mention
+    # everyone = guild.me.roles[0].mention
 
     for channel in guild.text_channels:
         if channel.id == channelId:
@@ -109,7 +111,7 @@ async def event_notification(e):
     color = e["color"]
     now = e["now"]
 
-    everyone = channel.guild.me.roles[0].mention
+    # everyone = channel.guild.me.roles[0].mention
 
 
     guildMembers = dictFromMembers(channel.guild.members)
