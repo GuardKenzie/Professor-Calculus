@@ -53,17 +53,24 @@ def isScheduler(user):
     else:
         return False
 
-def dictFromMembers(members):
+def dictFromMembersName(members):
     # Generate dictionary with key: member id and value: display name
     out = {}
     for member in members:
         out[member.id] = member.display_name
     return out
 
+def dictFromMembers(members):
+    # Generate dictionary with key: member id and value: member
+    out = {}
+    for member in members:
+        out[member.id] = member
+    return out
+
 async def updatePinned(myChannel, guild):
     # Updates the pinned event list
     guildHash = hash(guild)
-    guildMembers = dictFromMembers(guild.members)
+    guildMembers = dictFromMembersName(guild.members)
     update = eventsDict[guildHash].generateEventsMessage(guildMembers)
 
     # Find the message
@@ -99,7 +106,7 @@ async def friendly_notification(e):
         if channel.id == channelId:
             friendlyChannel = channel
 
-    msgContent = "Hey %! Today is \"{} {}\". \n {} \n Check the events channel for details.".format(everyone, eventName, weekday, eventDesc)
+    msgContent = "Today is \"{} {}\". \n {} \n Remember to sign up in the events channel!.".format(eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
@@ -113,12 +120,17 @@ async def event_notification(e):
 
     # everyone = channel.guild.me.roles[0].mention
 
-
     guildMembers = dictFromMembers(channel.guild.members)
     attendants = []
 
+    # Create event role
+    eventRole = await channel.guild.create_role(name="event", mentionable=True)
+    mention = eventRole.mention
+
+    # Get names of attendants and give them the event role
     for member in event["people"]:
-        attendants.append(guildMembers[member])
+        attendants.append(guildMembers[member].display_name)
+        await guildMembers[member].add_roles(eventRole)
 
     if len(attendants) == 0:
         attendants = ["Nobody :("]
@@ -126,10 +138,10 @@ async def event_notification(e):
         event["description"] = "No description yet."
 
     if now:
-        messageTitle = everyone + " Event starting now!"
+        messageTitle = mention + " Event starting now!"
         deleteTime = 60
     else:
-        messageTitle = everyone + " Event starting in an hour!"
+        messageTitle = mention + " Event starting in an hour!"
         deleteTime = 3600
 
     # Generate message
@@ -137,6 +149,7 @@ async def event_notification(e):
     message.add_field(name="When?", value = event["date"])
     message.add_field(name="Party:", value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
+    await eventRole.delete()
 
 async def notification_loop():
     # Wait until bot is ready
