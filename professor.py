@@ -25,8 +25,8 @@ eventsDict = {}
 prefix = "f? "
 
 # initiate bot
-fenrir = commands.Bot(command_prefix = prefix)
-fenrir.remove_command("help")
+professor = commands.Bot(command_prefix = prefix)
+professor.remove_command("help")
 
 # Load messages
 with open("messages.json", "r") as f:
@@ -153,11 +153,11 @@ async def event_notification(e):
 
 async def notification_loop():
     # Wait until bot is ready
-    await fenrir.wait_until_ready()
+    await professor.wait_until_ready()
     while True:
         # Check every 60s
         await asyncio.sleep(60)
-        for guild in fenrir.guilds:
+        for guild in professor.guilds:
             # Check every guild for notifications
             e = eventsDict[hash(guild)].checkIfNotification()
             if e:
@@ -172,15 +172,15 @@ async def notification_loop():
 # Bot events
 # ==========================================
 
-@fenrir.event
+@professor.event
 async def on_ready():
-    print("Logged on as {}!".format(fenrir.user))
+    print("Logged on as {}!".format(professor.user))
     # Set activity
     activity = discord.Game(name="with some adventurers in Snowcloak")
-    await fenrir.change_presence(activity=activity)
+    await professor.change_presence(activity=activity)
 
     # Initiate Events class for each guild
-    for guild in fenrir.guilds:
+    for guild in professor.guilds:
         guildHash = hash(guild)
 
         eventsDict[guildHash] = events.Events(guildHash, None)
@@ -200,9 +200,9 @@ async def on_ready():
             eventsDict[guildHash].channel = myChannel
             await myChannel.purge()
             await updatePinned(myChannel, guild)
-    fenrir.loop.create_task(notification_loop())
+    professor.loop.create_task(notification_loop())
 
-@fenrir.event
+@professor.event
 async def on_command_completion(ctx):
     # List of commands for events
     if ctx.guild:
@@ -215,7 +215,7 @@ async def on_command_completion(ctx):
         if ctx.command.name in eventCommands:
             await updatePinned(eventsDict[guildHash].channel, ctx.guild)
 
-@fenrir.event
+@professor.event
 async def on_command_error(ctx, error):
     # Send user an error message when command throws an error.
     print(error)
@@ -223,25 +223,25 @@ async def on_command_error(ctx, error):
 
     await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content))
 
-@fenrir.event
+@professor.event
 async def on_message(message):
     # Process command and then delete the message if it wasn't a command in events channel
-    a = await fenrir.process_commands(message)
+    a = await professor.process_commands(message)
 
     # Check if we are in dm
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
     if guildMessage \
             and message.channel == eventsDict[hash(message.guild)].channel \
-            and message.author != fenrir.user:
+            and message.author != professor.user:
             await message.delete()
 
-@fenrir.event
+@professor.event
 async def on_reaction_add(react, user):
     # Process pages
     guild = react.message.guild
 
     # If react to me and was someone else
-    if react.me and user != fenrir.user:
+    if react.me and user != professor.user:
         # Page down if left arrow
         if react.emoji == leftarrow:
             if eventsDict[hash(guild)].page > 1:
@@ -255,7 +255,7 @@ async def on_reaction_add(react, user):
             await updatePinned(eventsDict[hash(guild)].channel, guild)
             await react.remove(user)
 
-@fenrir.event
+@professor.event
 async def on_guild_join(guild):
     # Print setup message in first text channel we can
     for i in guild.text_channels:
@@ -272,9 +272,9 @@ async def on_guild_join(guild):
 
 # --- Setup and stuff ---
 
-@fenrir.command()
+@professor.command()
 async def setup(ctx):
-    # Create events channel in fenrir category
+    # Create events channel in professor category
     # Initiate Events class for guild
 
     # Check if server owner is seting up
@@ -302,7 +302,7 @@ async def setup(ctx):
         # Update pinned
         await updatePinned(channel, ctx.guild)
 
-@fenrir.command()
+@professor.command()
 async def setChannel(ctx, channelType):
     if channelType not in ["events", "friendly"]:
         await ctx.message.delete()
@@ -322,7 +322,7 @@ async def setChannel(ctx, channelType):
 
 # --- Events ---
 
-@fenrir.command()
+@professor.command()
 async def schedule(ctx, *args):
     # Schedule an event
     # command syntax: schedule [date] [name]
@@ -351,7 +351,7 @@ async def schedule(ctx, *args):
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
-@fenrir.command()
+@professor.command()
 async def remove(ctx, *args):
     # Remove an event
     # command syntax: remove [eventId]
@@ -371,7 +371,7 @@ async def remove(ctx, *args):
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
-@fenrir.command()
+@professor.command()
 async def attend(ctx, *, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
@@ -383,7 +383,7 @@ async def attend(ctx, *, eventId):
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
-@fenrir.command()
+@professor.command()
 async def leave(ctx, *, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
@@ -395,7 +395,7 @@ async def leave(ctx, *, eventId):
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
-@fenrir.command()
+@professor.command()
 async def update(ctx, eventId, toUpdate, *, newInfo):
     # Updates eventId description or name to newInfo
     # Command syntax: update [eventId] [to update] [new info]
@@ -414,7 +414,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
 # --- Misc ---
 
-@fenrir.command()
+@professor.command()
 async def eyebleach(ctx):
     success = False
     while not success:
@@ -429,7 +429,7 @@ async def eyebleach(ctx):
     link = a["data"]["children"][ind]["data"]["url"]
     await ctx.channel.send(content=link)
 
-@fenrir.command()
+@professor.command()
 async def help(ctx, *, cmd="none"):
     message = helper.helpCmd(prefix, cmd)
     if message != -1:
@@ -437,7 +437,7 @@ async def help(ctx, *, cmd="none"):
     else:
         await ctx.author.send(content="Unrecognised command")
 
-@fenrir.command()
+@professor.command()
 async def roll(ctx, *, names):
     # Determine a random thing from a list
     await ctx.channel.send(content="And the winner is...")
@@ -450,7 +450,7 @@ async def roll(ctx, *, names):
 
 # --- Salt ---
 
-@fenrir.command()
+@professor.command()
 async def salt(ctx):
     # Get a random nugg and increment count
     username = ctx.author.display_name
@@ -461,7 +461,7 @@ async def salt(ctx):
     await asyncio.sleep(1)
     await ctx.send("{} has now had {} salty nuggs!".format(username, count))
 
-@fenrir.command()
+@professor.command()
 async def saltboard(ctx):
     # Display leaderboard of salt
     board = saltWraper.getCookieBoard(ctx.guild)
@@ -481,4 +481,4 @@ async def saltboard(ctx):
     await ctx.send(embed=msg)
 
 # Start bot
-fenrir.run(str(key))
+professor.run(str(key))
