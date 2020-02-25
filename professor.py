@@ -12,6 +12,7 @@ import events
 import helper
 import salt.salty as salty
 
+
 # Bot key
 keyFile = open(sys.argv[1], "r")
 
@@ -24,13 +25,16 @@ eventsDict = {}
 # Command prefix
 prefix = "f? "
 
-# initiate bot
-professor = commands.Bot(command_prefix = prefix)
-professor.remove_command("help")
-
 # Load messages
 with open("messages.json", "r") as f:
     infoMessages = json.loads(f.read())
+
+# Activity
+activity = discord.Game(infoMessages["activity"])
+
+# initiate bot
+professor = commands.Bot(command_prefix = prefix, activity=activity)
+professor.remove_command("help")
 
 # Emotes
 leftarrow = "\U00002B05"
@@ -177,8 +181,7 @@ async def notification_loop():
 async def on_ready():
     print("Logged on as {}!".format(professor.user))
     # Set activity
-    activity = discord.CustomActivity(name=infoMessages["activity"])
-    await professor.change_presence(activity=activity)
+    print(activity)
 
     # Initiate Events class for each guild
     for guild in professor.guilds:
@@ -487,7 +490,7 @@ async def saltboard(ctx):
 async def refresh(ctx):
     with open("messages.json", "r") as f:
         infoMessages = json.loads(f.read())
-    activity = discord.CustomActivity(name=infoMessages["activity"])
+    activity = discord.Game(infoMessages["activity"])
     await professor.change_presence(activity=activity)
 
 # Start bot
