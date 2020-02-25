@@ -36,6 +36,7 @@ with open("messages.json", "r") as f:
 leftarrow = "\U00002B05"
 rightarrow = "\U000027A1"
 party = "\U0001F389"
+calculator = "\U0001F5A9"
 
 # Salt initialisation
 saltWraper = salty.saltClass()
@@ -176,7 +177,7 @@ async def notification_loop():
 async def on_ready():
     print("Logged on as {}!".format(professor.user))
     # Set activity
-    activity = discord.Game(name="with some adventurers in Snowcloak")
+    activity = discord.CustomActivity(name=infoMessages["activity"])
     await professor.change_presence(activity=activity)
 
     # Initiate Events class for each guild
@@ -479,6 +480,15 @@ async def saltboard(ctx):
     msg.add_field(name="\u200b", value=out,inline=0)
 
     await ctx.send(embed=msg)
+
+# --- Maintenance ---
+
+@professor.command()
+async def refresh(ctx):
+    with open("messages.json", "r") as f:
+        infoMessages = json.loads(f.read())
+    activity = discord.CustomActivity(name=infoMessages["activity"])
+    await professor.change_presence(activity=activity)
 
 # Start bot
 professor.run(str(key))
