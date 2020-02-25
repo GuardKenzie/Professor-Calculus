@@ -1,7 +1,7 @@
-# fenrisúlfur
+# Professor Calculus
 
 A simple event scheduler bot for discord I wrote for a FC!
-A discord bot token needs to be placed in a file titled `key` in the root directory and then the bot can be started with `python fenrisulfur_2.0.py key`.
+A discord bot token needs to be placed in a file titled `key` in the root directory and then the bot can be started with `python professor.py key`.
 
 The bot will, once the owner runs the setup command, automatically create it's own channel to use for notifications. It notifies users an hour before an event starts and again when it starts.
 
