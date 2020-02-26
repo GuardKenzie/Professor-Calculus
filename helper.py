@@ -13,10 +13,8 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
     else:
         if cmd == "schedule":
-            msg = discord.Embed(title="schedule [event date (Format: 'DD/MM/YYYY hh:mm' or TBD)] [event name]")
-            msg.add_field(name="[event date]", value="The day the event is to take place, for example 31/02/2019 20:41", inline = False)
-            msg.add_field(name="[event name]", value="The name of the event", inline=False)
-            msg.add_field(name="Examples", value=prefix+"schedule 21/09/2011 12:23 example event\n"+prefix+"schedule TBD example event")
+            msg = discord.Embed(title="schedule")
+            msg.add_field(name="\u200b", value="Start scheduling an event", inline=False)
         elif cmd == "remove":
             msg = discord.Embed(title="remove [event id]")
             msg.add_field(name="[event id]", value="The id of the event to be removed", inline=False)
