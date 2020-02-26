@@ -27,7 +27,7 @@
 
   "startSchedule": "Creating new event",
   "eventTitle":     "Please enter a title for your event:",
-  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM`.",
+  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM` for weekly events. (all times are in Server Time)",
   "eventDesc":      "Enter a description for your event:",
   "invalidDate":    "`{}` is not a valid date!"
 }
