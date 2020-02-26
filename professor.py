@@ -236,7 +236,8 @@ async def on_message(message):
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
     if guildMessage \
             and message.channel == eventsDict[hash(message.guild)].channel \
-            and message.author != professor.user:
+            and message.author != professor.user \
+            and eventsDict[hash(message.guild)].scheduling == 0:
             await message.delete()
 
 @professor.event
@@ -316,44 +317,139 @@ async def setChannel(ctx, channelType):
     if ctx.author == ctx.guild.owner or ctx.author.id == "197471216594976768":
         eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
 
+        def check(m):
+            return (m.content == "yes" or m.content == "no") and m.channel == ctx.channel and m.author == ctx.author
+
         if (channelType == "events"):
-            eventsDict[hash(ctx.guild)].channel = ctx.channel
-            eventsDict[hash(ctx.guild)].myMessage = None
-            await updatePinned(ctx.channel, ctx.guild)
+            confirmMsg = await ctx.channel.send(content=infoMessages["confirmEventsChannel"])
+            confirmReply = await professor.wait_for("message", check = check)
+            confirm = confirmReply.content == "yes"
+
+            if confirm:
+                eventsDict[hash(ctx.guild)].channel = ctx.channel
+                eventsDict[hash(ctx.guild)].myMessage = None
+                await updatePinned(ctx.channel, ctx.guild)
+            else:
+                await confirmMsg.delete()
+                await confirmReply.delete()
         else:
             await ctx.message.delete()
             await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
 
 # --- Events ---
 
+# @professor.command()
+# async def schedule(ctx, *args):
+#     # Schedule an event
+#     # command syntax: schedule [date] [name]
+
+#     # Check if user is scheduler
+#     if isScheduler(ctx.author):
+
+#         # Check if there are enough args
+#         enoughArgs = True
+#         if len(args) < 2:
+#             enoughArgs = False
+
+#         # Check if event is yet to be dated
+#         if "TBD" in args:
+#             eventDate = args[0]
+#             eventName = " ".join(args[1:])
+#         elif enoughArgs:
+#             eventDate = args[0] + " " + args[1]
+#             eventName = " ".join(args[2:])
+
+#         # Check if enough args to create event and if creation was successful
+#         if enoughArgs and eventsDict[hash(ctx.guild)].createEvent(eventDate, eventName):
+#             await ctx.channel.send(content=infoMessages["eventCreated"].format(eventName, eventDate), delete_after=15)
+#         else:
+#             await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
+#     else:
+#         await ctx.author.send(content=infoMessages["userNotScheduler"])
+
 @professor.command()
-async def schedule(ctx, *args):
-    # Schedule an event
-    # command syntax: schedule [date] [name]
+async def schedule(ctx):
+    channel = ctx.channel
+    author = ctx.author
 
-    # Check if user is scheduler
-    if isScheduler(ctx.author):
+    def check(m):
+        return m.channel == channel and m.author == author
+    def cancelCheck(m):
+        if m.lower() == "cancel":
+            raise asyncio.TimeoutError
 
-        # Check if there are enough args
-        enoughArgs = True
-        if len(args) < 2:
-            enoughArgs = False
+    if isScheduler(author):
+        try:
+            # Announce that we are scheduling
+            eventsDict[hash(ctx.guild)].scheduling += 1
 
-        # Check if event is yet to be dated
-        if "TBD" in args:
-            eventDate = args[0]
-            eventName = " ".join(args[1:])
-        elif enoughArgs:
-            eventDate = args[0] + " " + args[1]
-            eventName = " ".join(args[2:])
+            emb = discord.Embed(title="Title ", description="Time: \n Description:")
 
-        # Check if enough args to create event and if creation was successful
-        if enoughArgs and eventsDict[hash(ctx.guild)].createEvent(eventDate, eventName):
-            await ctx.channel.send(content=infoMessages["eventCreated"].format(eventName, eventDate), delete_after=15)
-        else:
-            await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
+            startEvent = await channel.send(content="Scheduling started. Type `cancel` to cancel", embed=emb)
+
+            # Title
+            msg = await channel.send(content=infoMessages["eventTitle"])
+            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+
+            title = replyMsg.content
+            cancelCheck(title)
+
+            await replyMsg.delete()
+
+            emb.title = title
+            await startEvent.edit(embed=emb)
+
+            # Time
+            await msg.edit(content=infoMessages["eventTime"])
+            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+
+            cancelCheck(replyMsg.content)
+
+            # Check if time is ok
+            timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
+            while timeOk == False:
+                await replyMsg.delete()
+                await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
+                replyMsg = await professor.wait_for("message", check=check, timeout=120)
+                cancelCheck(replyMsg.content)
+                timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
+
+            time = replyMsg.content
+            await replyMsg.delete()
+
+            emb.description = "Time: {} \n Description:".format(time)
+            await startEvent.edit(embed=emb)
+
+            # Desc
+            await msg.edit(content=infoMessages["eventDesc"])
+            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+
+            desc = replyMsg.content
+            cancelCheck(desc)
+
+            await replyMsg.delete()
+
+            emb.description = "Time: {} \n Description: {}".format(time, desc)
+            await startEvent.edit(embed=emb)
+
+            # Delete temp messages
+            await msg.delete()
+            await startEvent.delete()
+
+            # Schedule events
+            if eventsDict[hash(ctx.guild)].createEvent(time, title, desc):
+                await ctx.channel.send(content=infoMessages["eventCreated"].format(title, time), delete_after=15)
+            else:
+                await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
+            eventsDict[hash(ctx.guild)].scheduling -= 1
+        except asyncio.TimeoutError:
+            eventsDict[hash(ctx.guild)].scheduling -= 1
+            await msg.delete()
+            await startEvent.delete()
+            await replyMsg.delete()
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
+
 
 @professor.command()
 async def remove(ctx, *args):

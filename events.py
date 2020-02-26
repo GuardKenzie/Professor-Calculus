@@ -40,6 +40,8 @@ class Events():
 
         self.page = 1
 
+        self.scheduling = 0
+
     def dateFormat(self, date):
         # checks if date is in format D/M/Y h:m
         # returns padded date if ok or False if not
@@ -94,7 +96,9 @@ class Events():
             dayString = date[0].capitalize()
 
         out = "{} {}:{}".format(dayString, str(h).zfill(2), str(m).zfill(2))
-        if datetime.strptime(out, "%d/%m/%Y %H:%M") < datetime.now():
+        if date[0] in weekdays:
+            return out
+        elif datetime.strptime(out, "%d/%m/%Y %H:%M") < datetime.now():
             return False
         else:
             return out
@@ -127,12 +131,12 @@ class Events():
         except ValueError:
             return False
 
-    def createEvent(self, eventDate, eventName):
+    def createEvent(self, eventDate, eventName, eventDesc):
         # Creates a new event and stores in database
         eventDate = self.dateFormat(eventDate)
         eventId = randomId()
         if eventDate:
-            e = self.c.execute("INSERT INTO events VALUES (?, ?, ?, ?, '', '[]')", (self.guildHash, eventId, eventDate, eventName))
+            e = self.c.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?, '[]')", (self.guildHash, eventId, eventDate, eventName, eventDesc))
             self.conn.commit()
             return e
         else:

@@ -21,5 +21,13 @@
   "userNotScheduler":       "You lack the sufficient permissions to do that (you do not have the rank 'Scheduler'). Check with an admin if you think this is an error.",
 
   "commandError":           "There was an error executing your command: `{}`\n If you belive this is a bug, please contact the admins.",
-  "activity":               "Phoenix Wright: Ace Attorney!"
+  "activity":               "Phoenix Wright: Ace Attorney!",
+
+  "confirmEventsChannel":   "Are you sure you want to set this channel as the events channel?\n**WARNING: THIS WILL DELETE ALL MESSAGES IN THIS CHANNEL.**\nReply with `yes/no`",
+
+  "startSchedule": "Creating new event",
+  "eventTitle":     "Please enter a title for your event:",
+  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM`.",
+  "eventDesc":      "Enter a description for your event:",
+  "invalidDate":    "`{}` is not a valid date!"
 }
