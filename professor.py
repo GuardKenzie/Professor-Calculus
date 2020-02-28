@@ -37,8 +37,8 @@ professor = commands.Bot(command_prefix = prefix, activity=activity)
 professor.remove_command("help")
 
 # Emotes
-leftarrow = "\U00002B05"
-rightarrow = "\U000027A1"
+leftarrow = "\u2B05\uFE0F"
+rightarrow = "\u27A1\uFE0F"
 party = "\U0001F389"
 calculator = "\U0001F5A9"
 
