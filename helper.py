@@ -11,6 +11,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="roll", value="Select a random person from a list.", inline=False)
         msg.add_field(name="salt", value="Get a salty nugg.", inline=False)
         msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
+        msg.add_field(name="eyebleach", value="Get some eyebleach.", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule")
@@ -42,6 +43,9 @@ def helpCmd(prefix, cmd):
         elif cmd == "roll":
             msg = discord.Embed(title="roll [list of names]")
             msg.add_field(name="[list of names]", value="A list of names seperated with a ', '", inline=False)
+        elif cmd == "eyebleach":
+            msg = discord.Embed(title="eyebleach")
+            msg.add_field(name="\u200b", value="Get some bleach.", inline=False)
         elif cmd == "salt":
             msg = discord.Embed(title="salt")
             msg.add_field(name="\u200b", value="A nice message", inline=False)

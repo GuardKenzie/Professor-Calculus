@@ -37,8 +37,8 @@ professor = commands.Bot(command_prefix = prefix, activity=activity)
 professor.remove_command("help")
 
 # Emotes
-leftarrow = "\U00002B05"
-rightarrow = "\U000027A1"
+leftarrow = "\u2B05\uFE0F"
+rightarrow = "\u27A1\uFE0F"
 party = "\U0001F389"
 calculator = "\U0001F5A9"
 
@@ -337,35 +337,6 @@ async def setChannel(ctx, channelType):
             await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
 
 # --- Events ---
-
-# @professor.command()
-# async def schedule(ctx, *args):
-#     # Schedule an event
-#     # command syntax: schedule [date] [name]
-
-#     # Check if user is scheduler
-#     if isScheduler(ctx.author):
-
-#         # Check if there are enough args
-#         enoughArgs = True
-#         if len(args) < 2:
-#             enoughArgs = False
-
-#         # Check if event is yet to be dated
-#         if "TBD" in args:
-#             eventDate = args[0]
-#             eventName = " ".join(args[1:])
-#         elif enoughArgs:
-#             eventDate = args[0] + " " + args[1]
-#             eventName = " ".join(args[2:])
-
-#         # Check if enough args to create event and if creation was successful
-#         if enoughArgs and eventsDict[hash(ctx.guild)].createEvent(eventDate, eventName):
-#             await ctx.channel.send(content=infoMessages["eventCreated"].format(eventName, eventDate), delete_after=15)
-#         else:
-#             await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
-#     else:
-#         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
 @professor.command()
 async def schedule(ctx):
