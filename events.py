@@ -96,7 +96,7 @@ class Events():
             dayString = date[0].capitalize()
 
         out = "{} {}:{}".format(dayString, str(h).zfill(2), str(m).zfill(2))
-        if date[0] in weekdays:
+        if date[0].lower() in weekdays:
             return out
         elif datetime.strptime(out, "%d/%m/%Y %H:%M") < datetime.now():
             return False
