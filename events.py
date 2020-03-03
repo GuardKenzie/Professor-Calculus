@@ -107,12 +107,17 @@ class Events():
         # Get the events channel for the server
         return self.channel
 
-    def getEvents(self):
+    def getAllEvents(self):
         # Fetches all events from database and returns
         # Format of out: 
         self.c.execute("SELECT * FROM events WHERE server_hash=?", (self.guildHash,))
         out = self.c.fetchall()
         return out
+
+    def getEvent(self, eventNumber):
+        eventId = self.getEventId(eventNumber)
+        self.c.execute("SELECT * FROM events WHERE server_hash=? AND id=?", (self.guildHash,eventId))
+        return parseEvent(self.c.fetchone())
 
     def getEventId(self, eventNumber):
         # Takes event index and returns id
@@ -120,7 +125,7 @@ class Events():
             # Check if eventNumber is int
             eventNumber = int(eventNumber)
 
-            allEvents = self.getEvents()
+            allEvents = self.getAllEvents()
 
             # Check if eventNumber is out of bounds
             if eventNumber <= len(allEvents) and eventNumber > 0:
@@ -205,7 +210,7 @@ class Events():
             return False
 
     def generateEventsMessage(self, guildMembers):
-        eventList = self.getEvents()
+        eventList = self.getAllEvents()
 
         page = self.page
 
@@ -282,7 +287,7 @@ class Events():
 
         weekday = datetime.now().strftime("%A")
 
-        eventsList = self.getEvents()
+        eventsList = self.getAllEvents()
 
         # Check if notification for now or in an hour
         for event in eventsList:
