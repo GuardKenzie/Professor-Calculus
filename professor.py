@@ -47,6 +47,9 @@ saltWraper = salty.saltClass()
 
 everyone = "@everyone"
 
+# event check loop
+eventCheckerLoop = None
+
 # ==========================================
 # Functions
 # ==========================================
@@ -179,9 +182,10 @@ async def notification_loop():
 
 @professor.event
 async def on_ready():
-    print("Logged on as {}!".format(professor.user))
+    global eventCheckerLoop
+    print("User:\t\t\t{}".format(professor.user))
     # Set activity
-    print(activity)
+    print("Activity:\t\t{}".format(activity))
 
     # Initiate Events class for each guild
     for guild in professor.guilds:
@@ -195,16 +199,18 @@ async def on_ready():
         for channel in guild.text_channels:
             if channel.id == myChannelId:
                 myChannel = channel
-                print("yes")
                 break
-        print(myChannelId)
+        print("Cid:\t\t\t{}".format(myChannelId))
 
         # If I have a channel, purge and post event list
         if myChannel:
             eventsDict[guildHash].channel = myChannel
             await myChannel.purge()
             await updatePinned(myChannel, guild)
-    professor.loop.create_task(notification_loop())
+    print()
+    if not eventCheckerLoop in asyncio.all_tasks():
+        print("Starting event checking loop")
+        eventCheckerLoop = professor.loop.create_task(notification_loop())
 
 @professor.event
 async def on_command_completion(ctx):
@@ -450,7 +456,9 @@ async def attend(ctx, *, eventId):
 
     # Attend event and check for success
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True):
-        await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, eventId), delete_after=15)
+        event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+
+        await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, event["name"]), delete_after=15)
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
