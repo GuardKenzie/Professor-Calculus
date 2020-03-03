@@ -8,7 +8,7 @@
   "eventRemoved":           "Event successfully removed.",
   "eventRemovalFailed":     "Could not remove event. Maybe check `{} help` and try again.",
 
-  "attendSuccess":          "{} is now attending event `{}`.",
+  "attendSuccess":          "{} is now attending `{}`.",
   "attendFailed":           "Could not attend event. Are you already attending? Maybe check `{} help` and try again.",
 
   "leaveSuccess":           "{} has left event `{}`",
