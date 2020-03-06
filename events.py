@@ -187,13 +187,14 @@ class Events():
         self.conn.commit()
         return e
 
-    def updateEvent(self, eventId, toUpdate, newInfo):
+    def updateEvent(self, eventId, toUpdate, newInfo, actualId=False):
         # updates field toUpdate to newInfo in database
 
         # Get actual Id
-        eventId = self.getEventId(eventId)
-        if not eventId:
-            return False
+        if not actualId:
+                eventId = self.getEventId(eventId)
+                if not eventId:
+                    return False
 
         # Check for date and set correct padding
         if toUpdate == "date":
@@ -313,7 +314,7 @@ class Events():
                 if not recurringEvent:
                     self.removeEvent(event["id"])
                 else:
-                    self.updateEvent(event["id"], "people", "[]")
+                    self.updateEvent(event["id"], "people", "[]",actualId=True)
                 return {"event":    event, \
                         "color":    discord.Color.red(), \
                         "date":     dateNow, \

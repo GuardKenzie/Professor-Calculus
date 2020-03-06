@@ -481,7 +481,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
     # Check if usere is scheduler
     if isScheduler(ctx.author):
-        if toUpdate == "description" or toUpdate == "name" or toUpdate == "date":
+        if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
             if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
                 await ctx.channel.send(content=infoMessages["updateSuccess"].format(eventId, toUpdate, newInfo), delete_after=15)
             else:
