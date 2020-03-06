@@ -312,6 +312,8 @@ class Events():
             if event["date"] in dateNow:
                 if not recurringEvent:
                     self.removeEvent(event["id"])
+                else:
+                    self.updateEvent(event["id"], "people", "[]")
                 return {"event":    event, \
                         "color":    discord.Color.red(), \
                         "date":     dateNow, \
