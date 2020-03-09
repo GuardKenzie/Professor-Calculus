@@ -356,4 +356,26 @@ class Events():
         else:
             return 0
 
+    def getLog(self):
+        self.c.execute("SELECT log FROM log WHERE server_hash=?;", (self.guildHash, ))
+        log = self.c.fetchone()
 
+        if len(log) > 0:
+            return json.loads(log[0])
+        else:
+            self.c.execute("INSERT INTO log (server_hash, log) VALUES (?, ?)", (self.guildHash, "[]"))
+            self.conn.commit()
+            return []
+
+    def insertIntoLog(self, message):
+        oldLog = self.getLog()
+        time = datetime.now().strftime("%D %T")
+
+        if len(oldLog) >= 5:
+            newLog = oldLog[1:]
+        else:
+            newLog = oldLog
+
+        newLog.append((time, message))
+        self.c.execute("UPDATE log SET log=? WHERE server_hash=?", (json.dumps(newLog), self.guildHash))
+        self.conn.commit()

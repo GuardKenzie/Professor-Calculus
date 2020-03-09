@@ -12,6 +12,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="salt", value="Get a salty nugg.", inline=False)
         msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
         msg.add_field(name="eyebleach", value="Get some eyebleach.", inline=False)
+        msg.add_field(name="log", value="Prints a log of recent activity.", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule")
@@ -52,6 +53,9 @@ def helpCmd(prefix, cmd):
         elif cmd == "saltboard":
             msg = discord.Embed(title="saltboard")
             msg.add_field(name="\u200b", value="See who is the most salty", inline=False)
+        elif cmd == "log":
+            msg = discord.Embed(title="log")
+            msg.add_field(name="\u200b", value="Prints a log of recent activity.", inline=False)
         else:
             return -1
     return msg

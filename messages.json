@@ -5,13 +5,13 @@
   "eventCreated":           "Event `{}` at `{}` successfully booked!",
   "eventCreationFailed":    "Failed to schedule event. Maybe check `{} help` and try again.",
 
-  "eventRemoved":           "Event successfully removed.",
+  "eventRemoved":           "`{}` successfully removed.",
   "eventRemovalFailed":     "Could not remove event. Maybe check `{} help` and try again.",
 
   "attendSuccess":          "{} is now attending `{}`.",
   "attendFailed":           "Could not attend event. Are you already attending? Maybe check `{} help` and try again.",
 
-  "leaveSuccess":           "{} has left event `{}`",
+  "leaveSuccess":           "{} has left `{}`",
   "leaveFailed":            "Could not leave event. Have you already left? Maybee check `{} help` and try again",
 
   "updateSuccess":          "Event `{}`'s `{}` updated to `{}`.",

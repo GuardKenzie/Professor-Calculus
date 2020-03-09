@@ -416,6 +416,7 @@ async def schedule(ctx):
             # Schedule events
             if eventsDict[hash(ctx.guild)].createEvent(time, title, desc):
                 await ctx.channel.send(content=infoMessages["eventCreated"].format(title, time), delete_after=15)
+                eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
             else:
                 await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
             eventsDict[hash(ctx.guild)].scheduling -= 1
@@ -437,12 +438,15 @@ async def remove(ctx, *args):
     if isScheduler(ctx.author):
         guildHash = hash(ctx.guild)
 
+        event = eventsDict[guildHash].getEvent(args[0])
+
         # Get actual event id
         eventId = eventsDict[guildHash].getEventId(args[0])
 
         # Check if event id was found and if removal successful
         if eventId and eventsDict[guildHash].removeEvent(eventId):
-            await ctx.channel.send(content=infoMessages["eventRemoved"], delete_after=15)
+            await ctx.channel.send(content=infoMessages["eventRemoved"].format(event["name"]), delete_after=15)
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event["name"]))
         else:
             await ctx.channel.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
     else:
@@ -459,6 +463,7 @@ async def attend(ctx, *, eventId):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, event["name"]), delete_after=15)
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
@@ -470,7 +475,10 @@ async def leave(ctx, *, eventId):
 
     # Leave event and check for success
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, False):
-        await ctx.channel.send(content=infoMessages["leaveSuccess"].format(authorName, eventId), delete_after=15)
+        event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+
+        await ctx.channel.send(content=infoMessages["leaveSuccess"].format(authorName, event["name"]), delete_after=15)
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
@@ -482,8 +490,12 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     # Check if usere is scheduler
     if isScheduler(ctx.author):
         if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
+            event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+
             if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
                 await ctx.channel.send(content=infoMessages["updateSuccess"].format(eventId, toUpdate, newInfo), delete_after=15)
+                eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event["name"], toUpdate, event[toUpdate], newInfo))
+
             else:
                 await ctx.channel.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
         else:
@@ -558,6 +570,17 @@ async def saltboard(ctx):
     msg.add_field(name="\u200b", value=out,inline=0)
 
     await ctx.send(embed=msg)
+
+# --- Log ---
+@professor.command()
+async def log(ctx):
+    log = eventsDict[hash(ctx.guild)].getLog()
+    embed = discord.Embed(title= "Activity log", color=discord.Color.blue())
+
+    for e in log:
+        embed.add_field(name=e[0], value=e[1], inline=False)
+
+    await ctx.author.send(embed=embed,delete_after=300)
 
 # --- Maintenance ---
 
