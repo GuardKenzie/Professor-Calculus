@@ -275,6 +275,7 @@ async def on_guild_join(guild):
             break
         except discord.errors.Forbidden:
             pass
+    eventsDict[hash(guild)] = events.Events(hash(guild), None)
 
 # ==========================================
 # Bot commands
@@ -307,7 +308,6 @@ async def setup(ctx):
         await ctx.author.send(content=infoMessages["schedulerMessage"])
 
         # Initiate Events class
-        eventsDict[hash(ctx.guild)] = events.Events(hash(ctx.guild), channel)
         eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
 
         # Update pinned
