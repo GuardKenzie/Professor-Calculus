@@ -360,7 +360,7 @@ class Events():
         self.c.execute("SELECT log FROM log WHERE server_hash=?;", (self.guildHash, ))
         log = self.c.fetchone()
 
-        if len(log) > 0:
+        if log != None:
             return json.loads(log[0])
         else:
             self.c.execute("INSERT INTO log (server_hash, log) VALUES (?, ?)", (self.guildHash, "[]"))
