@@ -539,6 +539,16 @@ async def roll(ctx, *, names):
 
     await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
 
+@professor.command()
+async def sorry(ctx):
+    await ctx.channel.send(content="Oh, that's alright {}. Don't worry about it ^^".format(ctx.author.display_name))
+
+@professor.command()
+async def oj(ctx):
+    f = open("res/oj.png", "r")
+    await ctx.channel.send(file=f);
+    f.close()
+
 # --- Salt ---
 
 @professor.command()
