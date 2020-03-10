@@ -551,9 +551,12 @@ async def oj(ctx):
 
 @professor.command()
 async def subwoah(ctx):
-    with open("res/subwoah.mp3", "rb") as f:
-        woah = discord.File(f,filename="subwoah.mp3")
-    await ctx.channel.send(file=woah)
+    voiceChannel = ctx.author.voice.channel
+
+    connection = await voiceChannel.connect()
+
+    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("res/subwoah.mp3"))
+    connection.play(after=voiceChannel.disconnect())
 
 # --- Salt ---
 
