@@ -555,8 +555,11 @@ async def subwoah(ctx):
 
     connection = await voiceChannel.connect()
 
-    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("res/subwoah.mp3"))
-    connection.play(after=voiceChannel.disconnect())
+    source = discord.FFmpegPCMAudio("res/subwoah.mp3")
+    connection.play(source)
+    while connection.is_playing():
+        await asyncio.sleep(0.3)
+    await connection.disconnect()
 
 # --- Salt ---
 
