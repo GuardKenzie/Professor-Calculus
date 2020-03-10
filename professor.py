@@ -551,15 +551,17 @@ async def oj(ctx):
 
 @professor.command()
 async def subwoah(ctx):
-    voiceChannel = ctx.author.voice.channel
+    try:
+        voiceChannel = ctx.author.voice.channel
+        connection = await voiceChannel.connect()
 
-    connection = await voiceChannel.connect()
-
-    source = discord.FFmpegPCMAudio("res/subwoah.mp3")
-    connection.play(source)
-    while connection.is_playing():
-        await asyncio.sleep(0.3)
-    await connection.disconnect()
+        source = discord.FFmpegPCMAudio("res/subwoah.mp3")
+        connection.play(source)
+        while connection.is_playing():
+            await asyncio.sleep(0.3)
+        await connection.disconnect()
+    except AttributeError:
+        await ctx.author.send(content="You need to be connected to Voice Chat to do that!")
 
 # --- Salt ---
 
