@@ -549,6 +549,12 @@ async def oj(ctx):
         oj = discord.File(f, filename="High quality oj.png")
     await ctx.channel.send(file=oj);
 
+@professor.command()
+async def subwoah(ctx):
+    with open("res/subwoah.mp3", "rb") as f:
+        woah = discord.File(f,filename="subwoah.mp3")
+    await ctx.channel.send(file=woah)
+
 # --- Salt ---
 
 @professor.command()
