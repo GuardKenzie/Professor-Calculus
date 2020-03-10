@@ -545,9 +545,9 @@ async def sorry(ctx):
 
 @professor.command()
 async def oj(ctx):
-    f = open("res/oj.png", "r")
-    await ctx.channel.send(file=f);
-    f.close()
+    with open("res/oj.png", "rb") as f:
+        oj = discord.File(f, filename="High quality oj.png")
+    await ctx.channel.send(file=oj);
 
 # --- Salt ---
 
