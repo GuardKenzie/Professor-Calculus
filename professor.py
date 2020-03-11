@@ -563,6 +563,10 @@ async def subwoah(ctx):
     except AttributeError:
         await ctx.author.send(content="You need to be connected to voice chat to do that!")
 
+@professor.command(aliases=["trúðagrín"])
+async def clowntime(ctx):
+    await ctx.channel.send(content=":o)")
+
 # --- Salt ---
 
 @professor.command()
