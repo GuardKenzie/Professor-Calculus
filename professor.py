@@ -562,6 +562,7 @@ async def subwoah(ctx):
         await connection.disconnect()
     except AttributeError:
         await ctx.author.send(content="You need to be connected to voice chat to do that!")
+    await ctx.message.delete()
 
 @professor.command(aliases=["trúðagrín"])
 async def clowntime(ctx):
