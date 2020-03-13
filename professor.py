@@ -651,26 +651,31 @@ async def on_voice_state_update(member, before, after):
 @professor.group()
 async def chill(ctx):
     if ctx.invoked_subcommand is None:
-        await ctx.message.delete()
-        vc = ctx.message.author.voice.channel
-        s = await vc.connect()
+        try:
+            await ctx.message.delete()
+            vc = ctx.message.author.voice.channel
+            s = await vc.connect()
 
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
-        s.play(source)
-        source.volume = 0.1
-        print(source.volume)
+            source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
+            s.play(source)
+            source.volume = 0.1
+        except:
+            await ctx.author.send(content="You have to be on voice to do that")
 
 
 
 @chill.command()
-async def stress(ctx):
+async def stop(ctx):
     await ctx.message.delete()
-    authorvc = ctx.message.author.voice.channel
-    for i in professor.voice_clients:
-        if i.channel == authorvc:
-            i.stop()
-            await i.disconnect()
-            break
+    try:
+        authorvc = ctx.message.author.voice.channel
+        for i in professor.voice_clients:
+            if i.channel == authorvc:
+                i.stop()
+                await i.disconnect()
+                break
+    except:
+        await ctx.author.send(content="You have to be on voice to do that")
 
 @chill.command()
 async def volume(ctx, v):
@@ -678,15 +683,18 @@ async def volume(ctx, v):
     try:
         v = int(v)/100
         if v >= 0 and v <= 1:
-            authorvc = ctx.message.author.voice.channel
-            for i in professor.voice_clients:
-                if i.channel == authorvc:
-                    i.source.volume = v
-                    break
+            try:
+                authorvc = ctx.message.author.voice.channel
+                for i in professor.voice_clients:
+                    if i.channel == authorvc:
+                        i.source.volume = v
+                        break
+            except:
+                await ctx.author.send(content="You have to be on voice to do that")
         else:
-            await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+            await ctx.send("Please give a volume between 0 and 100")
     except TypeError:
-        await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+        await ctx.send("Please give a volume between 0 and 100")
 
 # --- Log ---
 @professor.command()
