@@ -34,6 +34,7 @@ class Events():
         self.guildHash = guildHash
         self.channel = channel
         self.myMessage = ""
+        self.myMessageId = None
 
         self.conn = sqlite3.connect("events.db")
         self.c = self.conn.cursor()
