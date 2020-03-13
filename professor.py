@@ -315,6 +315,8 @@ async def setup(ctx):
         await ctx.author.send(content=infoMessages["schedulerMessage"])
 
         # Initiate Events class
+        eventsDict[hash(ctx.guild)].channel = channel
+        eventsDict[hash(ctx.guild)].myMessage = None
         eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
 
         # Update pinned
@@ -328,7 +330,6 @@ async def setChannel(ctx, channelType):
         return
 
     if ctx.author == ctx.guild.owner or ctx.author.id == "197471216594976768":
-        eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
 
         def check(m):
             return (m.content == "yes" or m.content == "no") and m.channel == ctx.channel and m.author == ctx.author
@@ -341,6 +342,7 @@ async def setChannel(ctx, channelType):
             if confirm:
                 eventsDict[hash(ctx.guild)].channel = ctx.channel
                 eventsDict[hash(ctx.guild)].myMessage = None
+                eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
                 await updatePinned(ctx.channel, ctx.guild)
             else:
                 await confirmMsg.delete()
@@ -348,6 +350,7 @@ async def setChannel(ctx, channelType):
         else:
             await ctx.message.delete()
             await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
+            eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
 
 # --- Events ---
 
