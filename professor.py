@@ -35,6 +35,7 @@ activity = discord.Game(infoMessages["activity"])
 # initiate bot
 professor = commands.Bot(command_prefix = prefix, activity=activity)
 professor.remove_command("help")
+professor.case_insensitive = True
 
 # Emotes
 leftarrow = "\u2B05\uFE0F"
@@ -339,7 +340,7 @@ async def setChannel(ctx, channelType):
 
 # --- Events ---
 
-@professor.command()
+@professor.command(aliases=["s"])
 async def schedule(ctx):
     channel = ctx.channel
     author = ctx.author
@@ -424,7 +425,7 @@ async def schedule(ctx):
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
 
-@professor.command()
+@professor.command(aliases=["r"])
 async def remove(ctx, *args):
     # Remove an event
     # command syntax: remove [eventId]
@@ -447,7 +448,7 @@ async def remove(ctx, *args):
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
-@professor.command()
+@professor.command(aliases = ["a"])
 async def attend(ctx, *, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
@@ -462,7 +463,7 @@ async def attend(ctx, *, eventId):
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
-@professor.command()
+@professor.command(aliases=["l"])
 async def leave(ctx, *, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
@@ -477,7 +478,7 @@ async def leave(ctx, *, eventId):
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
-@professor.command()
+@professor.command(aliases="u")
 async def update(ctx, eventId, toUpdate, *, newInfo):
     # Updates eventId description or name to newInfo
     # Command syntax: update [eventId] [to update] [new info]
@@ -500,7 +501,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
 # --- Misc ---
 
-@professor.command()
+@professor.command(aliases=["cute", "cutestuff", "helppls", "pleasehelp" ])
 async def eyebleach(ctx):
     success = False
     while not success:
@@ -523,7 +524,7 @@ async def help(ctx, *, cmd="none"):
     else:
         await ctx.author.send(content="Unrecognised command")
 
-@professor.command()
+@professor.command(aliases=["dice", "random", "pick"])
 async def roll(ctx, *, names):
     # Determine a random thing from a list
     await ctx.channel.send(content="And the winner is...")
@@ -538,7 +539,7 @@ async def roll(ctx, *, names):
 async def sorry(ctx):
     await ctx.channel.send(content="Oh, that's alright {}. Don't worry about it ^^".format(ctx.author.display_name))
 
-@professor.command()
+@professor.command(aliases=["orangejuice", "applejuice", "juice", "akidrugs"])
 async def oj(ctx):
     with open("res/oj.png", "rb") as f:
         oj = discord.File(f, filename="High quality oj.png")
@@ -576,7 +577,7 @@ async def salt(ctx):
     await asyncio.sleep(1)
     await ctx.send("{} has now had {} salty nuggs!".format(username, count))
 
-@professor.command()
+@professor.command(aliases=["sb"])
 async def saltboard(ctx):
     # Display leaderboard of salt
     board = saltWraper.getCookieBoard(ctx.guild)
@@ -650,4 +651,4 @@ async def force_friendly(ctx):
 
 
 # Start bot
-professor.run(str(key))
+professor.run(str(key)) 
