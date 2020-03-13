@@ -391,8 +391,8 @@ class Events():
         self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?;", (self.guildHash, ))
         res = self.c.fetchone()
         if res:
-            self.c.execute("UPDATE myMessages SET messageId=? WHERE server_hash=?;", (messageId, self.guildHash))
+            self.c.execute("UPDATE myMessages SET messageId=? WHERE server_hash=?;", (str(messageId), self.guildHash))
         else:
-            self.c.execute("INSERT INTO myMessages VALUES (?, ?);", (messageId, self.guildHash))
+            self.c.execute("INSERT INTO myMessages VALUES (?, ?);", (str(messageId), self.guildHash))
 
         self.conn.commit()
