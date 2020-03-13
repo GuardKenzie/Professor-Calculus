@@ -55,7 +55,10 @@ eventCheckerLoop = None
 # ==========================================
 
 def eventChannelCheck(ctx):
-    return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
+    isinstance(ctx.channel, discord.abc.GuildChannel)
+        return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
+    else:
+        return True
 
 def isScheduler(user):
     # Check if a user is a scheduler
