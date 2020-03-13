@@ -33,9 +33,8 @@ with open("messages.json", "r") as f:
 activity = discord.Game(infoMessages["activity"])
 
 # initiate bot
-professor = commands.Bot(command_prefix = prefix, activity=activity)
+professor = commands.Bot(case_insensitive = True, command_prefix = prefix, activity=activity)
 professor.remove_command("help")
-professor.case_insensitive = True
 
 # Emotes
 leftarrow = "\u2B05\uFE0F"
@@ -650,7 +649,6 @@ async def force_friendly(ctx):
 
     except asyncio.TimeoutError:
         await msg.delete()
-
 
 
 # Start bot
