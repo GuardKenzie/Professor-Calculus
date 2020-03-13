@@ -243,6 +243,7 @@ async def on_message(message):
     a = await professor.process_commands(message)
 
     # Check if we are in dm
+    print(message)
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
     if guildMessage \
             and message.channel == eventsDict[hash(message.guild)].channel \
