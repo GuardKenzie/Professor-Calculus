@@ -55,6 +55,9 @@ eventCheckerLoop = None
 # Functions
 # ==========================================
 
+def eventChannelCheck(ctx):
+    return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
+
 def isScheduler(user):
     # Check if a user is a scheduler
     if 'Scheduler' in [role.name for role in user.roles]:
@@ -280,7 +283,7 @@ async def on_guild_join(guild):
 
 # --- Setup and stuff ---
 
-@professor.command()
+@professor.command(checks=[eventChannelCheck])
 async def setup(ctx):
     # Create events channel in professor category
     # Initiate Events class for guild
@@ -309,7 +312,7 @@ async def setup(ctx):
         # Update pinned
         await updatePinned(channel, ctx.guild)
 
-@professor.command()
+@professor.command(checks=[eventChannelCheck])
 async def setChannel(ctx, channelType):
     if channelType not in ["events", "friendly"]:
         await ctx.message.delete()
@@ -478,7 +481,7 @@ async def leave(ctx, *, eventId):
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
-@professor.command(aliases="u")
+@professor.command(aliases=["u"])
 async def update(ctx, eventId, toUpdate, *, newInfo):
     # Updates eventId description or name to newInfo
     # Command syntax: update [eventId] [to update] [new info]
@@ -501,7 +504,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
 # --- Misc ---
 
-@professor.command(aliases=["cute", "cutestuff", "helppls", "pleasehelp" ])
+@professor.command(checks=[eventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp" ])
 async def eyebleach(ctx):
     success = False
     while not success:
@@ -524,7 +527,7 @@ async def help(ctx, *, cmd="none"):
     else:
         await ctx.author.send(content="Unrecognised command")
 
-@professor.command(aliases=["dice", "random", "pick"])
+@professor.command(checks=[eventChannelCheck],aliases=["dice", "random", "pick"])
 async def roll(ctx, *, names):
     # Determine a random thing from a list
     await ctx.channel.send(content="And the winner is...")
@@ -535,17 +538,17 @@ async def roll(ctx, *, names):
 
     await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
 
-@professor.command()
+@professor.command(checks=[eventChannelCheck])
 async def sorry(ctx):
     await ctx.channel.send(content="Oh, that's alright {}. Don't worry about it ^^".format(ctx.author.display_name))
 
-@professor.command(aliases=["orangejuice", "applejuice", "juice", "akidrugs"])
+@professor.command(checks=[eventChannelCheck],aliases=["orangejuice", "applejuice", "juice", "akidrugs"])
 async def oj(ctx):
     with open("res/oj.png", "rb") as f:
         oj = discord.File(f, filename="High quality oj.png")
     await ctx.channel.send(file=oj);
 
-@professor.command()
+@professor.command(checks=[eventChannelCheck])
 async def subwoah(ctx):
     try:
         voiceChannel = ctx.author.voice.channel
@@ -560,13 +563,13 @@ async def subwoah(ctx):
         await ctx.author.send(content="You need to be connected to voice chat to do that!")
     await ctx.message.delete()
 
-@professor.command(aliases=["trúðagrín"])
+@professor.command(checks=[eventChannelCheck], aliases=["trúðagrín"])
 async def clowntime(ctx):
     await ctx.channel.send(content=":o)")
 
 # --- Salt ---
 
-@professor.command()
+@professor.command(checks=[eventChannelCheck])
 async def salt(ctx):
     # Get a random nugg and increment count
     username = ctx.author.display_name
@@ -577,7 +580,7 @@ async def salt(ctx):
     await asyncio.sleep(1)
     await ctx.send("{} has now had {} salty nuggs!".format(username, count))
 
-@professor.command(aliases=["sb"])
+@professor.command(checks=[eventChannelCheck],aliases=["sb"])
 async def saltboard(ctx):
     # Display leaderboard of salt
     board = saltWraper.getCookieBoard(ctx.guild)
