@@ -581,31 +581,31 @@ async def clowntime(ctx):
 @professor.command(checks=[eventChannelCheck], aliases=["what?", "wat"])
 async def what(ctx):
     i = random.randint(0,9)
+    deltime=120
     if i == 1:
         with open("res/confused.jpg", "rb") as f:
             oj = discord.File(f, filename="confused.jpg")
-        await ctx.channel.send(file=oj)
+        await ctx.channel.send(file=oj, delete_after=deltime)
     elif i == 2:
         with open("res/wat.jpg", "rb") as f:
             oj = discord.File(f, filename="wat.jpg")
-        await ctx.channel.send(file=oj)
+        await ctx.channel.send(file=oj, delete_after=deltime)
     elif i == 3:
-        await ctx.channel.send(content="I dunno, you tell me")
+        await ctx.channel.send(content="I dunno, you tell me", delete_after=deltime)
     elif i == 4:
-        await ctx.channel.send(content="Jeg har brug for mælk!\nhttps://www.youtube.com/watch?v=uYzJ-thBfIs")
+        await ctx.channel.send(content="Jeg har brug for mælk!\nhttps://www.youtube.com/watch?v=uYzJ-thBfIs", delete_after=deltime)
     elif i == 5:
-        await ctx.channel.send(content="An important and fundamental axiom in set theory sometimes called Zermelo's axiom of choice. It was formulated by Zermelo in 1904 and states that, given any set of mutually disjoint nonempty sets, there exists at least one set that contains exactly one element in common with each of the nonempty sets. The axiom of choice is related to the first of Hilbert's problems.")
+        await ctx.channel.send(content="An important and fundamental axiom in set theory sometimes called Zermelo's axiom of choice. It was formulated by Zermelo in 1904 and states that, given any set of mutually disjoint nonempty sets, there exists at least one set that contains exactly one element in common with each of the nonempty sets. The axiom of choice is related to the first of Hilbert's problems.", delete_after=deltime)
     elif i == 6:
         with open("res/lahabread.png", "rb") as f:
             oj = discord.File(f, filename="lahabread.png")
-        await ctx.channel.send(file=oj)
+        await ctx.channel.send(file=oj, delete_after=deltime)
     elif i == 7:
-        await ctx.channel.send(content="https://www.youtube.com/watch?v=QK7oacKDt88")
+        await ctx.channel.send(content="https://www.youtube.com/watch?v=QK7oacKDt88", delete_after=deltime)
     elif i == 8:
-        await ctx.channel.send(content="f? clowntime")
+        await ctx.channel.send(content="f? clowntime", delete_after=deltime)
     elif i == 9:
-        await ctx.channel.send(content="f? what")
-
+        await ctx.channel.send(content="f? what", delete_after=deltime)
 
 # --- Salt ---
 
