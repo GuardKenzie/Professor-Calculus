@@ -389,6 +389,7 @@ class Events():
 
     def setMyMessage(self, message):
         self.myMessage = message
+        self.myMessageId = message.id
         self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?;", (self.guildHash, ))
         res = self.c.fetchone()
         if res:
