@@ -650,7 +650,7 @@ async def on_voice_state_update(member, before, after):
 
 @professor.command()
 async def chill(ctx):
-    await ctx.channel.purge(limit=1)
+    await ctx.message.delete()
     vc = ctx.message.author.voice.channel
     s = await vc.connect()
 
@@ -663,7 +663,7 @@ async def chill(ctx):
 
 @professor.command()
 async def stress(ctx):
-    await ctx.channel.purge(limit=1)
+    await ctx.message.delete()
     authorvc = ctx.message.author.voice.channel
     for i in professor.voice_clients:
         if i.channel == authorvc:
@@ -673,7 +673,7 @@ async def stress(ctx):
 
 @professor.command()
 async def volume(ctx, v):
-    await ctx.channel.purge(limit=1)
+    await ctx.message.delete()
     try:
         v = int(v)/100
         if v >= 0 and v <= 1:
