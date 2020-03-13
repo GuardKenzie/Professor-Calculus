@@ -40,8 +40,8 @@ class Events():
 
         # Fetch my message from the database
         self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?", (guildHash, ))
-        self.myMessage = self.c.fetchone()
-        if self.myMessage:
+        myMessage = self.c.fetchone()
+        if myMessage:
             self.myMessage = int(myMessage[0])
 
         self.page = 1
