@@ -96,11 +96,13 @@ async def updatePinned(myChannel, guild):
         await myMessage.edit(content="-", embed=update)
     except:
         await myChannel.purge()
-        await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+        helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
         myMessage = await myChannel.send(content="-", embed=update)
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
         eventsDict[guildHash].setMyMessage(myMessage)
+        await myMessage.pin()
+        await helloMessage.pin()
 
 async def friendly_notification(e):
     # Friendly reminder for recurring events
