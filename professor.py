@@ -92,7 +92,7 @@ async def updatePinned(myChannel, guild):
 
     # Update the message if it exists, else post new one
     try:
-        myMessage = myChannel.fetch_message(myMessageId)
+        myMessage = await myChannel.fetch_message(myMessageId)
         await myMessage.edit(content="-", embed=update)
     except:
         await myChannel.purge()
