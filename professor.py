@@ -639,6 +639,54 @@ async def saltboard(ctx):
 
     await ctx.send(embed=msg)
 
+# --- Lofi ---
+@professor.event
+async def on_voice_state_update(member, before, after):
+    for i in professor.voice_clients:
+        if i.channel == before.channel and len(before.channel.members) == 1:
+            i.stop()
+            await i.disconnect()
+            break
+
+@professor.command()
+async def chill(ctx):
+    await ctx.channel.purge(limit=1)
+    vc = ctx.message.author.voice.channel
+    s = await vc.connect()
+
+    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
+    s.play(source)
+    source.volume = 0.1
+    print(source.volume)
+
+
+
+@professor.command()
+async def stress(ctx):
+    await ctx.channel.purge(limit=1)
+    authorvc = ctx.message.author.voice.channel
+    for i in professor.voice_clients:
+        if i.channel == authorvc:
+            i.stop()
+            await i.disconnect()
+            break
+
+@professor.command()
+async def volume(ctx, v):
+    await ctx.channel.purge(limit=1)
+    try:
+        v = int(v)/100
+        if v >= 0 and v <= 1:
+            authorvc = ctx.message.author.voice.channel
+            for i in professor.voice_clients:
+                if i.channel == authorvc:
+                    i.source.volume = v
+                    break
+        else:
+            await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+    except TypeError:
+        await ctx.send("Aðeins tölur frá 0 upp í 100 takk!")
+
 # --- Log ---
 @professor.command()
 async def log(ctx):
