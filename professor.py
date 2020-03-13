@@ -276,13 +276,13 @@ async def on_reaction_add(react, user):
 @professor.event
 async def on_guild_join(guild):
     # Print setup message in first text channel we can
+    eventsDict[hash(guild)] = events.Events(hash(guild), None)
     for i in guild.text_channels:
         try:
             await i.send(content="Type `" +prefix+ "setup` to get started")
             break
         except discord.errors.Forbidden:
             pass
-    eventsDict[hash(guild)] = events.Events(hash(guild), None)
 
 # ==========================================
 # Bot commands
