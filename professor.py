@@ -151,7 +151,7 @@ async def event_notification(e):
 
     if now:
         messageTitle = mention + " Event starting now!"
-        deleteTime = 60
+        deleteTime = 600
     else:
         messageTitle = mention + " Event starting in an hour!"
         deleteTime = 3600
