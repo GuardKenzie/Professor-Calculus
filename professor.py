@@ -99,7 +99,7 @@ async def updatePinned(myChannel, guild):
         myMessage = await myChannel.send(content="-", embed=update)
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
-        eventsDict[guildHash].myMessage = myMessage
+        eventsDict[guildHash].setMyMessage(myMessage)
 
 async def friendly_notification(e):
     # Friendly reminder for recurring events
@@ -200,10 +200,13 @@ async def on_ready():
 
         print("Cid:\t\t\t{}".format(myChannelId))
 
+        def purgechekc(m):
+            return not m.pinned
+
         # If I have a channel, purge and post event list
         if myChannel:
             eventsDict[guildHash].channel = myChannel
-            await myChannel.purge()
+            await myChannel.purge(check=purgecheck)
             await updatePinned(myChannel, guild)
     print()
     if not eventCheckerLoop in asyncio.all_tasks():

@@ -38,6 +38,12 @@ class Events():
         self.conn = sqlite3.connect("events.db")
         self.c = self.conn.cursor()
 
+        # Fetch my message from the database
+        self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?", (guildHash, ))
+        self.myMessage = int(self.c.fetchone())
+        if self.myMessage:
+            self.myMessage = mymessage[0]
+
         self.page = 1
 
         self.scheduling = 0
@@ -378,4 +384,15 @@ class Events():
 
         newLog.append((time, message))
         self.c.execute("UPDATE log SET log=? WHERE server_hash=?", (json.dumps(newLog), self.guildHash))
+        self.conn.commit()
+
+    def setMyMessage(self, messageId):
+        self.myMessage = messageId
+        self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?;", (self.guildHash, ))
+        res = self.c.fetchone()
+        if res:
+            self.c.execute("UPDATE myMessages SET messageId=? WHERE server_hash=?;", (messageId, self.guildHash))
+        else:
+            self.c.execute("INSERT INTO myMessages VALUES (?, ?);", (messageId, self.guildHash))
+
         self.conn.commit()
