@@ -55,7 +55,7 @@ eventCheckerLoop = None
 # ==========================================
 
 def eventChannelCheck(ctx):
-    isinstance(ctx.channel, discord.abc.GuildChannel)
+    if isinstance(ctx.channel, discord.abc.GuildChannel):
         return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
     else:
         return True
@@ -291,7 +291,7 @@ async def on_guild_join(guild):
 
 # --- Setup and stuff ---
 
-@professor.command(checks=[eventChannelCheck])
+@professor.command()
 async def setup(ctx):
     # Create events channel in professor category
     # Initiate Events class for guild
