@@ -200,7 +200,7 @@ async def on_ready():
 
         print("Cid:\t\t\t{}".format(myChannelId))
 
-        def purgechekc(m):
+        def purgecheck(m):
             return not m.pinned
 
         # If I have a channel, purge and post event list
