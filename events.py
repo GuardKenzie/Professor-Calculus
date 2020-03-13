@@ -40,9 +40,9 @@ class Events():
 
         # Fetch my message from the database
         self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?", (guildHash, ))
-        myMessage = self.c.fetchone()
-        if myMessage:
-            self.myMessage = int(myMessage[0])
+        myMessageId = self.c.fetchone()
+        if myMessageId:
+            self.myMessageId = int(myMessageId[0])
 
         self.page = 1
 
@@ -386,13 +386,13 @@ class Events():
         self.c.execute("UPDATE log SET log=? WHERE server_hash=?", (json.dumps(newLog), self.guildHash))
         self.conn.commit()
 
-    def setMyMessage(self, messageId):
-        self.myMessage = messageId
+    def setMyMessage(self, message):
+        self.myMessage = message
         self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?;", (self.guildHash, ))
         res = self.c.fetchone()
         if res:
-            self.c.execute("UPDATE myMessages SET messageId=? WHERE server_hash=?;", (str(messageId), self.guildHash))
+            self.c.execute("UPDATE myMessages SET messageId=? WHERE server_hash=?;", (str(message.id), self.guildHash))
         else:
-            self.c.execute("INSERT INTO myMessages VALUES (?, ?);", (str(messageId), self.guildHash))
+            self.c.execute("INSERT INTO myMessages VALUES (?, ?);", (str(message.id), self.guildHash))
 
         self.conn.commit()

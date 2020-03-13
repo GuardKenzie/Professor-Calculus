@@ -85,13 +85,14 @@ async def updatePinned(myChannel, guild):
     update = eventsDict[guildHash].generateEventsMessage(guildMembers)
 
     # Find the message
-    myMessage = eventsDict[guildHash].myMessage
+    myMessageId = eventsDict[guildHash].myMessageId
 
     # Get my nick
     nick = guild.me.display_name
 
     # Update the message if it exists, else post new one
     try:
+        myMessage = myChannel.fetch_message(myMessageId)
         await myMessage.edit(content="-", embed=update)
     except:
         await myChannel.purge()
