@@ -648,20 +648,21 @@ async def on_voice_state_update(member, before, after):
             await i.disconnect()
             break
 
-@professor.command()
+@professor.group()
 async def chill(ctx):
-    await ctx.message.delete()
-    vc = ctx.message.author.voice.channel
-    s = await vc.connect()
+    if ctx.invoked_subcommand is None:
+        await ctx.message.delete()
+        vc = ctx.message.author.voice.channel
+        s = await vc.connect()
 
-    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
-    s.play(source)
-    source.volume = 0.1
-    print(source.volume)
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
+        s.play(source)
+        source.volume = 0.1
+        print(source.volume)
 
 
 
-@professor.command()
+@chill.command()
 async def stress(ctx):
     await ctx.message.delete()
     authorvc = ctx.message.author.voice.channel
@@ -671,7 +672,7 @@ async def stress(ctx):
             await i.disconnect()
             break
 
-@professor.command()
+@chill.command()
 async def volume(ctx, v):
     await ctx.message.delete()
     try:
