@@ -55,7 +55,7 @@ eventCheckerLoop = None
 # ==========================================
 
 def eventChannelCheck(ctx):
-    isinstance(ctx.channel, discord.abc.GuildChannel)
+    if isinstance(ctx.channel, discord.abc.GuildChannel):
         return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
     else:
         return True
