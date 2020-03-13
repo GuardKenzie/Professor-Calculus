@@ -110,9 +110,7 @@ async def friendly_notification(e):
 
     # everyone = guild.me.roles[0].mention
 
-    for channel in guild.text_channels:
-        if channel.id == channelId:
-            friendlyChannel = channel
+    friendlyChannel = guild.get_channel(channelId)
 
     msgContent = "Today is \"{} {}\". \n {} \n Remember to sign up in the events channel!.".format(eventName, weekday, eventDesc)
 
@@ -195,11 +193,8 @@ async def on_ready():
 
         # Find my channel
         myChannelId = eventsDict[guildHash].getMyChannelId("events")
-        myChannel = 0
-        for channel in guild.text_channels:
-            if channel.id == myChannelId:
-                myChannel = channel
-                break
+        myChannel = guild.get_channel(myChannelId)
+
         print("Cid:\t\t\t{}".format(myChannelId))
 
         # If I have a channel, purge and post event list
@@ -619,6 +614,40 @@ async def refresh(ctx):
         infoMessages = json.loads(f.read())
     activity = discord.Game(infoMessages["activity"])
     await professor.change_presence(activity=activity)
+
+@professor.command()
+async def force_friendly(ctx):
+    try:
+        if ctx.author.id == 197471216594976768:
+            guilds = []
+
+            for guild in professor.guilds:
+                guilds.append((guild.name, hash(guild)))
+
+            outmsg = ""
+            avail = []
+            i = 0
+            for guild in guilds:
+                outmsg += str(i) + ": " + guild[0]
+                avail.append(str(i))
+                i += 1
+
+            msg = await ctx.author.send(content=outmsg)
+
+            def check(m):
+                return ctx.author == m.author and m.content in avail
+
+            rep = await professor.wait_for("message", check=check, timeout=100)
+
+            e = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
+            if e:
+                if e["friendly"]:
+                    await friendly_notification(e)
+
+    except asyncio.TimeoutError:
+        await msg.delete()
+
+
 
 # Start bot
 professor.run(str(key))

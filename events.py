@@ -274,7 +274,7 @@ class Events():
         self.page = page
         return message
 
-    def checkIfNotification(self):
+    def checkIfNotification(self, force=False):
         # Generate time string for 1 hour in future and now
         dateHour = []
         dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M"))
@@ -298,10 +298,10 @@ class Events():
             # Get actual day of event
             eventDay = event["date"].split(" ")[0]
 
-            if eventDay == weekday:
+            if eventDay.lower() == weekday.lower():
                 recurringEvent = True
 
-                if timeNow == "10:00":
+                if timeNow == "10:00" or force:
                     return {"event":    event, \
                             "date":     weekday,
                             "friendly": True, \
