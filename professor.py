@@ -366,6 +366,9 @@ async def schedule(ctx):
             raise asyncio.TimeoutError
 
     if isScheduler(author):
+        if eventsDict[hash(ctx.guild)].scheduling > 0:
+            await ctx.author.send(content="Someone else is scheduling an event. Please wait until they are done.")
+            return
         try:
             # Announce that we are scheduling
             eventsDict[hash(ctx.guild)].scheduling += 1
