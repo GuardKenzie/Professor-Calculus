@@ -1,5 +1,5 @@
 {
-  "helloMessage":           "Hello! I'm {0}. Nice to meet you :D\nThis is my events channel. Here I will post notifications for upcoming FC events!\n Some useful commands are:\n `{1} attend #` to sign up for event #\n `{1} leave #` to leave event #\n \n For all commands and more details type `{1} help`.",
+  "helloMessage":           "Hello! I'm {0}. Nice to meet you!\nThis is my events channel. Here I will post notifications for upcoming guild events!\n Some useful commands are:\n `{1} attend #` to sign up for event #\n `{1} leave #` to leave event #\n \n For all commands and more details type `{1} help`.",
   "schedulerMessage":       "Assign the newly created role `Scheduler` to people you want to be able to schedule events.",
 
   "eventCreated":           "Event `{}` at `{}` successfully booked!",
@@ -27,7 +27,7 @@
 
   "startSchedule": "Creating new event",
   "eventTitle":     "Please enter a title for your event:",
-  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM` for weekly events. (all times are in Server Time)",
+  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM` for weekly events. (all times are in GMT)",
   "eventDesc":      "Enter a description for your event:",
   "invalidDate":    "`{}` is not a valid date!"
 }

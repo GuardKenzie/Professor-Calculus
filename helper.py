@@ -1,7 +1,7 @@
 import discord
 def helpCmd(prefix, cmd):
     if cmd == "none":
-        msg = discord.Embed(title="Available commands:", description="Use `help [command]` for more information")
+        msg = discord.Embed(title="Available commands:", description="Use `help [command]` for more information and check https://professorcalculus.io/docs for better documentation.")
         msg.add_field(name="schedule", value="Schedules a new event", inline=False)
         msg.add_field(name="remove", value="Removes an event from the schedule", inline=False)
         msg.add_field(name="attend", value="Join an event", inline=False)
@@ -12,7 +12,11 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="salt", value="Get a salty nugg.", inline=False)
         msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
         msg.add_field(name="eyebleach", value="Get some eyebleach.", inline=False)
-        msg.add_field(name="log", value="Prints a log of recent activity.", inline=False)
+        msg.add_field(name="chill", value="Only works while on voice. The bot joins your channel and starts playing some chill tunes.", inline=False)
+        msg.add_field(name="chill volume", value="Sets the volume of the `chill` command", inline=False)
+        msg.add_field(name="chill stop", value="Stops playing lofi music.", inline=False)
+        msg.add_field(name="subwoah", value="Plays a funny sound effect on voice.", inline=False)
+        msg.add_field(name="oj", value="Get a pic of some high quality oj.", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule")
@@ -56,6 +60,21 @@ def helpCmd(prefix, cmd):
         elif cmd == "log":
             msg = discord.Embed(title="log")
             msg.add_field(name="\u200b", value="Prints a log of recent activity.", inline=False)
+        elif cmd == "chill":
+            msg = discord.Embed(title="chill")
+            msg.add_field(name="\u200b", value="Only works while on voice. The bot joins your channel and starts playing some chill tunes.", inline=False)
+        elif cmd == "chill volume":
+            msg = discord.Embed(title="chill volume [volume]")
+            msg.add_field(name="[volume]", value="A number between 1 and 100", inline=False)
+        elif cmd == "chill stop":
+            msg = discord.Embed(title="chill stop")
+            msg.add_field(name="\u200b", value="Stops playing lofi music.", inline=False)
+        elif cmd == "subwoah":
+            msg = discord.Embed(title="subwoah")
+            msg.add_field(name="\u200b", value="Plays a funny sound effect on voice.", inline=False)
+        elif cmd == "oj":
+            msg = discord.Embed(title="oj")
+            msg.add_field(name="\u200b", value="Get a pic of some high quality oj.", inline=False)
         else:
             return -1
     return msg
