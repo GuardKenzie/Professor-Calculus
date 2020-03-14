@@ -677,7 +677,7 @@ async def stop(ctx):
     except:
         await ctx.author.send(content="You have to be on voice to do that")
 
-@chill.command()
+@chill.command(aliases=["v"])
 async def volume(ctx, v):
     await ctx.message.delete()
     try:
