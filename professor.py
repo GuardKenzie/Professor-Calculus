@@ -96,11 +96,11 @@ async def updatePinned(myChannel, guild):
     # Update the message if it exists, else post new one
     try:
         myMessage = await myChannel.fetch_message(myMessageId)
-        await myMessage.edit(content="-", embed=update)
+        await myMessage.edit(content="Notice: all times are in GMT", embed=update)
     except:
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
-        myMessage = await myChannel.send(content="-", embed=update)
+        myMessage = await myChannel.send(content="Notice: all times are in GMT", embed=update)
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
         eventsDict[guildHash].setMyMessage(myMessage)
