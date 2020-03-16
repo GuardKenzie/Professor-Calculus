@@ -689,10 +689,10 @@ async def chill(ctx):
             vc = ctx.message.author.voice.channel
             s = await vc.connect()
 
-            source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://85.220.34.175:8000/lofi.mp3"));
+            source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://mystic.tokyo:8000/lofi.mp3"));
             s.play(source)
             source.volume = 0.1
-        except:
+        except AttributeError:
             await ctx.author.send(content="You have to be on voice to do that")
 
 
