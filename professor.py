@@ -41,10 +41,12 @@ professor.remove_command("help")
 # Emotes
 leftarrow = "\u2B05\uFE0F"
 rightarrow = "\u27A1\uFE0F"
-raw_leftarrow = "\u2B05"
-raw_rightarrow = "\u27A1"
+
 party = "\U0001F389"
 calculator = "\U0001F5A9"
+
+# Color
+accent_colour = discord.Colour(int("688F56",16))
 
 # Salt initialisation
 saltWraper = salty.saltClass()
@@ -733,7 +735,7 @@ async def volume(ctx, v):
 @professor.command()
 async def log(ctx):
     log = eventsDict[hash(ctx.guild)].getLog()
-    embed = discord.Embed(title= "Activity log", color=discord.Color.blue())
+    embed = discord.Embed(title= "Activity log", color=accent_colour)
 
     for e in log:
         embed.add_field(name=e[0], value=e[1], inline=False)

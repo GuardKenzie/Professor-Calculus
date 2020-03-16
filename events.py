@@ -11,6 +11,8 @@ import json
 from datetime import datetime
 from datetime import timedelta
 
+accent_colour = discord.Colour(int("688F56",16))
+
 def randomId():
     # Generate random int from 1 to 1000000000
     return random.randint(1,1000000000)
@@ -242,7 +244,7 @@ class Events():
             end = len(eventList)
 
         # Create embed
-        message = discord.Embed(title="Scheduled events: (Page {}/{})".format(page,numberOfPages), color=discord.Color.purple())
+        message = discord.Embed(title="Scheduled events: (Page {}/{})".format(page,numberOfPages), color=accent_colour)
 
         # Narrow list of events to begin:end
         eventList = eventList[begin:end]
