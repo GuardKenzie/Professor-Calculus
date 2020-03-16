@@ -25,7 +25,7 @@ keyFile.close()
 eventsDict = {}
 
 # Command prefix
-prefix = "f? "
+prefix = ["f? ", "f?", "p? ", "p?"]
 
 # Load messages
 with open("messages.json", "r") as f:
