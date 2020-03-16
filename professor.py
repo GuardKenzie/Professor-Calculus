@@ -689,7 +689,7 @@ async def chill(ctx):
             vc = ctx.message.author.voice.channel
             s = await vc.connect()
 
-            source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://127.0.0.1:8000/lofi.mp3"));
+            source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("http://85.220.34.175:8000/lofi.mp3"));
             s.play(source)
             source.volume = 0.1
         except:
