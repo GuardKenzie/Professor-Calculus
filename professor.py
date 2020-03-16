@@ -25,7 +25,8 @@ keyFile.close()
 eventsDict = {}
 
 # Command prefix
-prefix = ["f? ", "f?", "p? ", "p?"]
+prefixes = ["f? ", "f?", "p? ", "p?"]
+prefix = "p? "
 
 # Load messages
 with open("messages.json", "r") as f:
@@ -35,7 +36,10 @@ with open("messages.json", "r") as f:
 activity = discord.Game(infoMessages["activity"])
 
 # initiate bot
-professor = commands.Bot(case_insensitive = True, command_prefix = prefix, activity=activity)
+professor = commands.Bot(case_insensitive = True,
+                         command_prefix = prefixes,
+                         activity=activity)
+
 professor.remove_command("help")
 
 # Emotes
