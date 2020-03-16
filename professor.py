@@ -6,6 +6,8 @@ import urllib
 import asyncio
 import random
 import sys
+import praw
+import re
 
 # Mine
 import events
@@ -51,6 +53,16 @@ everyone = "@everyone"
 
 # event check loop
 eventCheckerLoop = None
+
+# Reddit
+with open("reddit", "r") as f:
+    r_id = f.readline().strip()
+    r_secret = f.readline().strip()
+    r_ua = f.readline().strip()
+
+    reddit = praw.Reddit(client_id = r_id,
+                         client_secret = r_secret,
+                         user_agent = r_ua)
 
 # ==========================================
 # Functions
@@ -526,18 +538,30 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
 @professor.command(checks=[eventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp" ])
 async def eyebleach(ctx):
-    success = False
-    while not success:
-        try:
-            a = request.urlopen("https://www.reddit.com/r/Eyebleach/top/.json?t=day")
-            success = True
-        except urllib.error.HTTPError:
-            success = False
-        await asyncio.sleep(1)
-    a = json.loads(a.read())
-    ind = random.randint(0,len(a["data"]["children"]))
-    link = a["data"]["children"][ind]["data"]["url"]
-    await ctx.channel.send(content=link)
+    subreddit = reddit.subreddit("eyebleach")
+
+    out = []
+    ok_extensions = ["png","gif","jpg","jpeg"]
+
+    for submission in subreddit.hot(limit=15):
+        url = submission.url
+        if "gfycat" in url:
+            url += ".gif"
+        else:
+            url = url.split(".")
+            if url[-1] == "gifv":
+                url[-1] = "gif"
+            elif url[-1].lower() not in ok_extensions:
+                continue
+            url = ".".join(url)
+        out.append((submission.title, url))
+
+    pick = random.choice(out)
+    await ctx.channel.send(content="From /r/eyebleach:\n{}\n{}".format(pick[0],pick[1]))
+    # embed = discord.Embed(title=pick[0], url=pick[1], color=discord.Color.blue())
+    # embed.set_image(url=pick[1])
+    # embed.set_footer(text="from /r/eyebleach")
+    # await ctx.channel.send(content="From https://reddit.com/r/eyebleach", embed=embed)
 
 @professor.command()
 async def help(ctx, *, cmd="none"):
