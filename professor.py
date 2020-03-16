@@ -39,6 +39,8 @@ professor.remove_command("help")
 # Emotes
 leftarrow = "\u2B05\uFE0F"
 rightarrow = "\u27A1\uFE0F"
+raw_leftarrow = "\u2B05"
+raw_rightarrow = "\u27A1"
 party = "\U0001F389"
 calculator = "\U0001F5A9"
 
@@ -254,24 +256,28 @@ async def on_message(message):
             await message.delete()
 
 @professor.event
-async def on_reaction_add(react, user):
+async def on_raw_reaction_add(payload):
     # Process pages
-    guild = react.message.guild
+    guild = professor.get_guild(payload.guild_id)
+    channel = guild.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+
+    myMessageId = eventsDict[hash(guild)].myMessageId
 
     # If react to me and was someone else
-    if react.me and user != professor.user:
+    if message.id == myMessageId and payload.member != professor.user:
         # Page down if left arrow
-        if react.emoji == leftarrow:
+        if payload.emoji.name == leftarrow:
             if eventsDict[hash(guild)].page > 1:
                 eventsDict[hash(guild)].page -= 1
             await updatePinned(eventsDict[hash(guild)].channel, guild)
-            await react.remove(user)
+            await message.remove_reaction(payload.emoji, payload.member)
 
         # Page up if rightarrow
-        elif react.emoji == rightarrow:
+        elif payload.emoji.name == rightarrow:
             eventsDict[hash(guild)].page += 1
             await updatePinned(eventsDict[hash(guild)].channel, guild)
-            await react.remove(user)
+            await message.remove_reaction(payload.emoji, payload.member)
 
 @professor.event
 async def on_guild_join(guild):
