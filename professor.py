@@ -85,6 +85,9 @@ def isScheduler(user):
     if 'Scheduler' in [role.name for role in user.roles]:
         return True
     else:
+        for role in user.roles:
+            if role.permissions.administrator:
+                return True
         return False
 
 def dictFromMembersName(members):
