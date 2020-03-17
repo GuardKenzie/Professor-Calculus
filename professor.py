@@ -25,7 +25,7 @@ keyFile.close()
 eventsDict = {}
 
 # Command prefix
-prefixes = ["f? ", "f?", "p? ", "p?"]
+prefixes = ["ft? ", "f?", "p? ", "p?"]
 prefix = "p? "
 
 # Load messages
@@ -384,7 +384,7 @@ async def schedule(ctx):
     author = ctx.author
 
     def check(m):
-        if m.lower() == "cancel":
+        if m.content.lower() == "cancel":
             raise asyncio.TimeoutError
         return m.channel == channel and m.author == author
 
@@ -446,8 +446,11 @@ async def schedule(ctx):
             def donecheck(m):
                 return ctx.author == m.author and m.content.lower() == "done"
             replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
+            await replyMsg.delete()
             emojis = []
             reactionNameMsg = await ctx.channel.send(content="-")
+
+            msg = await ctx.channel.fetch_message(msg.id)
 
             def checklimit(m):
                 try:
@@ -456,7 +459,7 @@ async def schedule(ctx):
                 except:
                     return False
 
-            for reaction in replyMsg.reactions:
+            for reaction in msg.reactions:
                 await reactionNameMsg.edit(content="Please enter a name for {}".format(str(reaction)))
                 nameRep = await professor.wait_for("message", check=check, timeout=120)
                 name = nameRep.content
@@ -467,7 +470,7 @@ async def schedule(ctx):
                 limit = int(limitRep.content)
                 await limitRep.delete()
 
-                emojis.append((str(reaction), name.content, limit))
+                emojis.append((str(reaction), name, limit))
 
             await reactionNameMsg.delete()
             await msg.clear_reactions()
@@ -486,7 +489,7 @@ async def schedule(ctx):
             print(limit)
 
             # Schedule events
-            if eventsDict[hash(ctx.guild)].createEvent(time, title, desc):
+            if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
                 await ctx.channel.send(content=infoMessages["eventCreated"].format(title, time), delete_after=15)
                 eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
             else:
