@@ -384,10 +384,9 @@ async def schedule(ctx):
     author = ctx.author
 
     def check(m):
-        return m.channel == channel and m.author == author
-    def cancelCheck(m):
         if m.lower() == "cancel":
             raise asyncio.TimeoutError
+        return m.channel == channel and m.author == author
 
     if isScheduler(author):
         if eventsDict[hash(ctx.guild)].scheduling > 0:
@@ -406,7 +405,6 @@ async def schedule(ctx):
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
             title = replyMsg.content
-            cancelCheck(title)
 
             await replyMsg.delete()
 
@@ -417,7 +415,6 @@ async def schedule(ctx):
             await msg.edit(content=infoMessages["eventTime"])
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
-            cancelCheck(replyMsg.content)
 
             # Check if time is ok
             timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
@@ -425,7 +422,6 @@ async def schedule(ctx):
                 await replyMsg.delete()
                 await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
                 replyMsg = await professor.wait_for("message", check=check, timeout=120)
-                cancelCheck(replyMsg.content)
                 timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
 
             time = replyMsg.content
@@ -439,16 +435,55 @@ async def schedule(ctx):
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
             desc = replyMsg.content
-            cancelCheck(desc)
 
             await replyMsg.delete()
 
             emb.description = "Time: {} \n Description: {}".format(time, desc)
             await startEvent.edit(embed=emb)
 
+            # Roles
+            await msg.edit(content="If there are any special roles people need to pick for this event, react to this message with the emojis you want to represent them. Type `done` when done.")
+            def donecheck(m):
+                return ctx.author == m.author and m.content.lower() == "done"
+            replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
+            emojis = []
+            reactionNameMsg = await ctx.channel.send(content="-")
+
+            def checklimit(m):
+                try:
+                    int(m.content)
+                    return check(m)
+                except:
+                    return False
+
+            for reaction in replyMsg.reactions:
+                await reactionNameMsg.edit(content="Please enter a name for {}".format(str(reaction)))
+                nameRep = await professor.wait_for("message", check=check, timeout=120)
+                name = nameRep.content
+                await nameRep.delete()
+
+                await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit)".format(str(reaction)))
+                limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+                limit = int(limitRep.content)
+                await limitRep.delete()
+
+                emojis.append((str(reaction), name.content, limit))
+
+            await reactionNameMsg.delete()
+            await msg.clear_reactions()
+
+            # Total limit
+            await msg.edit(content="Please enter the total limit of people who can join. (0 for no limit)")
+            limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+            limit = int(limitRep.content)
+            await limitRep.delete()
+
             # Delete temp messages
             await msg.delete()
             await startEvent.delete()
+
+            print(emojis)
+            print(limit)
 
             # Schedule events
             if eventsDict[hash(ctx.guild)].createEvent(time, title, desc):
@@ -462,6 +497,7 @@ async def schedule(ctx):
             await msg.delete()
             await startEvent.delete()
             await replyMsg.delete()
+            await reactionNameMsg.delete()
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
