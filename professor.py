@@ -25,7 +25,7 @@ keyFile.close()
 eventsDict = {}
 
 # Command prefix
-prefixes = ["ft? ", "f?", "p? ", "p?"]
+prefixes = ["f? ", "f?", "p? ", "p?"]
 prefix = "p? "
 
 # Load messages
@@ -164,7 +164,7 @@ async def event_notification(e):
 
     # Get names of attendants and give them the event role
     for member in event["people"]:
-        attendants.append(guildMembers[member].display_name)
+        attendants.append(str(event["rolesdict"][member]) + " " + str(guildMembers[member].display_name))
         await guildMembers[member].add_roles(eventRole)
 
     if len(attendants) == 0:
@@ -442,9 +442,9 @@ async def schedule(ctx):
             await startEvent.edit(embed=emb)
 
             # Roles
-            await msg.edit(content="If there are any special roles people need to pick for this event, react to this message with the emojis you want to represent them. Type `done` when done.")
+            await msg.edit(content="React to this message with any event specific roles. Type `done` when done.")
             def donecheck(m):
-                return ctx.author == m.author and m.content.lower() == "done"
+                return check(m) and m.content.lower() == "done"
             replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
             await replyMsg.delete()
             emojis = []
@@ -454,9 +454,10 @@ async def schedule(ctx):
 
             def checklimit(m):
                 try:
+                    out = check(m)
                     int(m.content)
-                    return check(m)
-                except:
+                    return out
+                except TypeError:
                     return False
 
             for reaction in msg.reactions:
@@ -465,7 +466,7 @@ async def schedule(ctx):
                 name = nameRep.content
                 await nameRep.delete()
 
-                await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit)".format(str(reaction)))
+                await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
                 limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
                 limit = int(limitRep.content)
                 await limitRep.delete()
@@ -476,7 +477,7 @@ async def schedule(ctx):
             await msg.clear_reactions()
 
             # Total limit
-            await msg.edit(content="Please enter the total limit of people who can join. (0 for no limit)")
+            await msg.edit(content="Please enter the total limit of people who can join the event (0 for no limit).")
             limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
             limit = int(limitRep.content)
             await limitRep.delete()
@@ -484,9 +485,6 @@ async def schedule(ctx):
             # Delete temp messages
             await msg.delete()
             await startEvent.delete()
-
-            print(emojis)
-            print(limit)
 
             # Schedule events
             if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
@@ -496,11 +494,12 @@ async def schedule(ctx):
                 await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
             eventsDict[hash(ctx.guild)].scheduling -= 1
         except asyncio.TimeoutError:
+            def pcheck(m):
+                return not m.pinned
+            if ctx.channel == eventsDict[hash(ctx.guild)].channel:
+                await ctx.channel.purge(check=pcheck)
+
             eventsDict[hash(ctx.guild)].scheduling -= 1
-            await msg.delete()
-            await startEvent.delete()
-            await replyMsg.delete()
-            await reactionNameMsg.delete()
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
@@ -533,9 +532,50 @@ async def attend(ctx, *, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
     authorName = ctx.author.display_name
+    role=""
+
+    emojis = []
+    def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in emojis
+
+    # Fetch event 
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+
+    # Check if event is full
+    if len(event["people"]) >= event["limit"] and event["limit"] != 0:
+        await ctx.channel.send(content="That event is already full!", delete_after=15)
+        return
+
+    # Get event roles
+    if event["roles"] != []:
+        try:
+            for role in event["roles"]:
+                if event["rolelimits"][role[0]] >= role[2] and role[2] != 0:
+                    continue
+                emojis.append(role[0])
+            if len(emojis) == 0:
+                role = ""
+            else:
+                rolelist = []
+                for u,v,z in event["roles"]:
+                    limitString = " ({}/{})".format(event["rolelimits"][u], z) if z != 0 else ""
+                    rolelist.append(u + ": " + v + limitString)
+
+                rolelist ="\n".join(rolelist)
+                reactMsg = await ctx.channel.send(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
+                for emoji in emojis:
+                    await reactMsg.add_reaction(emoji)
+                reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
+                await reactMsg.delete()
+                role = str(reaction.emoji)
+        except asyncio.TimeoutError:
+            def pcheck(m):
+                return not m.pinned
+            if ctx.channel == eventsDict[hash(ctx.guild)].channel:
+                await ctx.channel.purge(check=pcheck)
 
     # Attend event and check for success
-    if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True):
+    if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, event["name"]), delete_after=15)
@@ -549,8 +589,14 @@ async def leave(ctx, *, eventId):
     # Command syntax: leave [eventId]
     authorName = ctx.author.display_name
 
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    try:
+        role = event["rolesdict"][ctx.author.id]
+    except KeyError:
+        role = ""
+
     # Leave event and check for success
-    if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, False):
+    if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, False, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         await ctx.channel.send(content=infoMessages["leaveSuccess"].format(authorName, event["name"]), delete_after=15)

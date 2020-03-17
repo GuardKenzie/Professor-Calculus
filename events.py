@@ -25,9 +25,17 @@ def parseEvent(event):
         out["name"] = event[3]
         out["description"] = event[4]
         out["rolesdict"] = dict(json.loads(event[5]))
-        out["people"] = list(out["rolesdict"].keys)
-        out["roles"] = event[6]
+        out["people"] = list(out["rolesdict"].keys())
+        out["roles"] = json.loads(event[6])
         out["limit"] = event[7]
+        out["rolelimits"] = {}
+        for role in out["roles"]:
+            out["rolelimits"][role[0]] = 0
+
+        for p in out["people"]:
+            r = out["rolesdict"][p]
+            if r:
+                out["rolelimits"][r] += 1
 
         return out
 
@@ -167,7 +175,7 @@ class Events():
         return e
 
 
-    def attendEvent(self, eventId, userId, attend, role="")
+    def attendEvent(self, eventId, userId, attend, role=""):
         # Adds userId to list of attendants for event with id eventId
 
         # Get actual Id
@@ -179,6 +187,7 @@ class Events():
         self.c.execute("SELECT * FROM events WHERE server_hash=? AND id=?", (self.guildHash, eventId))
         event = self.c.fetchone()
 
+
         # Check if event was fetched
         if event == None:
             return False
@@ -187,11 +196,11 @@ class Events():
         attendantList = json.loads(event[5])
 
         # Check if attending and user not already in list
-        if attend and userId not in attendantList:
-                attendantList.append((userId, role))
+        if attend and userId not in dict(attendantList).keys():
+            attendantList.append((userId, role))
         # Check if leaving and user in list
-        elif not attend and userId in attendantList:
-            attendantList.remove((userId, role))
+        elif not attend and userId in dict(attendantList).keys():
+            attendantList.remove([userId, role])
         else:
             return False
 
@@ -264,7 +273,10 @@ class Events():
 
             # Get display names for attendants and put them in a list
             for member in event["people"]:
-                attendants.append(event["roledict"][member] + " " + guildMembers[member])
+                attendants.append(event["rolesdict"][member] + " " + guildMembers[member])
+
+            # Generate party title
+            limitMessage = "" if event["limit"]==0 else "({}/{})".format(len(attendants), event["limit"])
 
             # Check if noone is attending or no description
             if len(attendants) == 0:
@@ -277,7 +289,6 @@ class Events():
             message.add_field(name=fieldName, value=event["description"], inline = True)
 
             # Add party
-            limitMessage = "" if event["limit"]==0 else "({}/{})".format(len(attendants), event["limit"])
             message.add_field(name="Party {}".format(limitMessage), value="\n".join(attendants))
 
             # Add a margin if it isn't the last event in list
