@@ -180,9 +180,13 @@ async def event_notification(e):
         deleteTime = 3600
 
     # Generate message
+    if (event["limit"] != 0):
+        limitstr = "({}/{})".format(len(event["people"]), event["limit"])
+    else:
+        limitstr = "({})".format(str(len(event["people"])))
     message = discord.Embed(title = event["name"], description = event["description"], color=color)
     message.add_field(name="When?", value = event["date"])
-    message.add_field(name="Party:", value = "\n".join(attendants), inline=False)
+    message.add_field(name="Party " + limitstr, value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
     await eventRole.delete()
 
@@ -194,8 +198,8 @@ async def notification_loop():
         await asyncio.sleep(60)
         for guild in professor.guilds:
             # Check every guild for notifications
-            e = eventsDict[hash(guild)].checkIfNotification()
-            if e:
+            eventOut = eventsDict[hash(guild)].checkIfNotification()
+            for e in eventOut:
                 # If there is a notification, send it and update events list
                 if e["friendly"]:
                     await friendly_notification(e)

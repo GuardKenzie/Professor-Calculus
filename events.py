@@ -276,7 +276,7 @@ class Events():
                 attendants.append(event["rolesdict"][member] + " " + guildMembers[member])
 
             # Generate party title
-            limitMessage = "" if event["limit"]==0 else "({}/{})".format(len(attendants), event["limit"])
+            limitMessage = "({})".format(len(attendants)) if event["limit"]==0 else "({}/{})".format(len(attendants), event["limit"])
 
             # Check if noone is attending or no description
             if len(attendants) == 0:
@@ -316,6 +316,8 @@ class Events():
         eventsList = self.getAllEvents()
 
         # Check if notification for now or in an hour
+        eventOut =[]
+
         for event in eventsList:
             event = parseEvent(event)
             recurringEvent = False
@@ -327,12 +329,12 @@ class Events():
                 recurringEvent = True
 
                 if timeNow == "10:00" or force:
-                    return {"event":    event, \
+                    eventOut.append({"event":    event, \
                             "date":     weekday,
                             "friendly": True, \
                             "channelId":  self.getMyChannelId("friendly"),
                             "guild":    self.channel.guild
-                            }
+                            })
 
             # If now then remove
             if event["date"] in dateNow:
@@ -340,24 +342,26 @@ class Events():
                     self.removeEvent(event["id"])
                 else:
                     self.updateEvent(event["id"], "people", "[]",actualId=True)
-                return {"event":    event, \
+                eventOut.append({"event":    event, \
                         "color":    discord.Color.red(), \
                         "date":     dateNow, \
                         "channel":  self.channel, \
                         "now":      True, \
-                        "friendly": False }
+                        "friendly": False })
                 #(event, discord.Color.red(), dateNow, self.channel, True)
 
             elif event["date"] in dateHour:
-                return {"event":    event, \
+                eventOut.append({"event":    event, \
                         "color":    discord.Color.orange(), \
                         "date":     dateHour, \
                         "channel":  self.channel, \
                         "now":      False, \
-                        "friendly": False }
+                        "friendly": False })
                 # (event, discord.Color.orange(), dateHour, self.channel, False)
-        else:
+        if len(eventOut) == 0:
             return False
+        else:
+            return eventOut
 
     def setMyChannelId(self, channelId, channelType):
         # Get my channel id from the database
