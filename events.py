@@ -361,10 +361,7 @@ class Events():
                         "now":      False, \
                         "friendly": False })
                 # (event, discord.Color.orange(), dateHour, self.channel, False)
-        if len(eventOut) == 0:
-            return False
-        else:
-            return eventOut
+        return eventOut
 
     def setMyChannelId(self, channelId, channelType):
         # Get my channel id from the database
