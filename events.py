@@ -24,9 +24,12 @@ def parseEvent(event):
         out["date"] = event[2]
         out["name"] = event[3]
         out["description"] = event[4]
-        out["rolesdict"] = dict(json.loads(event[5]))
-        out["people"] = list(out["rolesdict"].keys())
         out["roles"] = json.loads(event[6])
+
+        parray = json.loads(event[5])
+        parray.sorted(key= lambda x : (out["roles"] + [""]).index(x[1]))
+        out["rolesdict"] = dict(parray)
+        out["people"] = list(out["rolesdict"].keys())
         out["limit"] = event[7]
         out["rolelimits"] = {}
         for role in out["roles"]:
