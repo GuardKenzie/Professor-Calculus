@@ -400,6 +400,8 @@ async def schedule(ctx):
         return m.channel == channel and m.author == author
 
     if isScheduler(author):
+        def pcheck(m):
+            return not m.pinned
         if eventsDict[hash(ctx.guild)].scheduling > 0:
             await ctx.author.send(content="Someone else is scheduling an event. Please wait until they are done.")
             return
@@ -499,14 +501,16 @@ async def schedule(ctx):
 
             # Schedule events
             if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
+                if ctx.channel == eventsDict[hash(ctx.guild)].channel:
+                    await ctx.channel.purge(check=pcheck)
                 await ctx.channel.send(content=infoMessages["eventCreated"].format(title, time), delete_after=15)
                 eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
             else:
+                if ctx.channel == eventsDict[hash(ctx.guild)].channel:
+                    await ctx.channel.purge(check=pcheck)
                 await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
             eventsDict[hash(ctx.guild)].scheduling -= 1
         except asyncio.TimeoutError:
-            def pcheck(m):
-                return not m.pinned
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
 
