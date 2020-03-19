@@ -328,36 +328,34 @@ async def on_guild_join(guild):
 
 # --- Setup and stuff ---
 
-@professor.command()
+@professor.command(checks=[checkadmin])
 async def setup(ctx):
     # Create events channel in professor category
     # Initiate Events class for guild
 
-    # Check if server owner is seting up
-    if ctx.author == ctx.guild.owner:
-        # Delete message
-        await ctx.message.delete()
+    # Delete message
+    await ctx.message.delete()
 
-        # Get nickname
-        nick = ctx.guild.me.display_name
+    # Get nickname
+    nick = ctx.guild.me.display_name
 
-        # Create category and channel
-        category = await ctx.guild.create_category("Events")
-        channel = await ctx.guild.create_text_channel("events", category=category)
+    # Create category and channel
+    category = await ctx.guild.create_category("Events")
+    channel = await ctx.guild.create_text_channel("events", category=category)
 
-        await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+    await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
 
-        # Create scheduler rank and let owner know
-        await ctx.guild.create_role(name="Scheduler")
-        await ctx.author.send(content=infoMessages["schedulerMessage"])
+    # Create scheduler rank and let owner know
+    await ctx.guild.create_role(name="Scheduler")
+    await ctx.author.send(content=infoMessages["schedulerMessage"])
 
-        # Initiate Events class
-        eventsDict[hash(ctx.guild)].channel = channel
-        eventsDict[hash(ctx.guild)].myMessage = None
-        eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
+    # Initiate Events class
+    eventsDict[hash(ctx.guild)].channel = channel
+    eventsDict[hash(ctx.guild)].myMessage = None
+    eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
 
-        # Update pinned
-        await updatePinned(channel, ctx.guild)
+    # Update pinned
+    await updatePinned(channel, ctx.guild)
 
 @professor.command(checks=[eventChannelCheck])
 async def setChannel(ctx, channelType):
