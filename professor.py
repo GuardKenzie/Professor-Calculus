@@ -517,7 +517,6 @@ async def schedule(ctx):
 
             eventsDict[hash(ctx.guild)].scheduling -= 1
     else:
-        await ctx.message.delete()
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
 
@@ -543,7 +542,6 @@ async def remove(ctx, *args):
             await ctx.channel.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
-    await ctx.message.delete()
 
 @professor.command(aliases = ["a"])
 async def attend(ctx, *, eventId):
@@ -601,7 +599,6 @@ async def attend(ctx, *, eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
-    await ctx.message.delete()
 
 @professor.command(aliases=["l"])
 async def leave(ctx, *, eventId):
@@ -623,7 +620,6 @@ async def leave(ctx, *, eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
-    await ctx.message.delete()
 
 @professor.command(aliases=["u"])
 async def update(ctx, eventId, toUpdate, *, newInfo):
@@ -645,7 +641,6 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             await ctx.channel.send(content=infoMessages["invalidUpdateField"], delete_after=15)
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
-    await ctx.message.delete()
 
 # --- Misc ---
 
