@@ -465,8 +465,8 @@ async def schedule(ctx):
 
             def checklimit(m):
                 try:
-                    out = check(m)
                     int(m.content)
+                    out = check(m)
                     return out
                 except TypeError:
                     return False
