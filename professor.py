@@ -468,7 +468,7 @@ async def schedule(ctx):
                     int(m.content)
                     out = check(m)
                     return out
-                except TypeError:
+                except ValueError:
                     return False
 
             for reaction in msg.reactions:
