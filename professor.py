@@ -282,7 +282,8 @@ async def on_message(message):
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
     if guildMessage \
             and message.channel == eventsDict[hash(message.guild)].channel \
-            and (message.author != professor.user or str(message.type) == "MessageType.pins_add"):
+            and (message.author != professor.user or str(message.type) == "MessageType.pins_add") \
+            and eventsDict[hash(message.guild)].scheduling == 0:
             await message.delete()
 
 @professor.event
