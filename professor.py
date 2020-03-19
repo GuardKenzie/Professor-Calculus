@@ -284,7 +284,10 @@ async def on_message(message):
             and message.channel == eventsDict[hash(message.guild)].channel \
             and (message.author != professor.user or str(message.type) == "MessageType.pins_add") \
             and eventsDict[hash(message.guild)].scheduling == 0:
-            await message.delete()
+            try:
+                await message.delete()
+            except discord.errors.NotFound:
+                continue
 
 @professor.event
 async def on_raw_reaction_add(payload):
