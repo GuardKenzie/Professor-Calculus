@@ -287,7 +287,7 @@ async def on_message(message):
             try:
                 await message.delete()
             except discord.errors.NotFound:
-                continue
+                pass
 
 @professor.event
 async def on_raw_reaction_add(payload):
