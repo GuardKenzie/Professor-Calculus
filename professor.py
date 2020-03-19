@@ -74,8 +74,8 @@ with open("reddit", "r") as f:
 # Functions
 # ==========================================
 
-def checkadmin(u):
-    for role in u.roles:
+def checkadmin(ctx):
+    for role in ctx.author.roles:
         if role.permissions.administrator:
             return True
     return False
@@ -744,7 +744,7 @@ async def what(ctx):
     elif i == 9:
         await ctx.channel.send(content="f? what", delete_after=deltime)
 
-@professor.command(check=checkadmin)
+@professor.command(checks=[checkadmin])
 async def clean(ctx):
     def check(m):
         return m.author == ctx.author and m.content.lower() in ["yes", "no"]
