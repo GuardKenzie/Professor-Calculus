@@ -271,7 +271,7 @@ async def on_command_error(ctx, error):
     print(error)
     print(ctx.message.content)
 
-    await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content))
+    await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content) + "\n" + error)
 
 @professor.event
 async def on_message(message):
@@ -280,11 +280,6 @@ async def on_message(message):
 
     # Check if we are in dm
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
-    if guildMessage \
-            and message.channel == eventsDict[hash(message.guild)].channel \
-            and (message.author != professor.user or str(message.type) == "MessageType.pins_add") \
-            and eventsDict[hash(message.guild)].scheduling == 0:
-            await message.delete()
 
 @professor.event
 async def on_raw_reaction_add(payload):
@@ -383,9 +378,10 @@ async def setChannel(ctx, channelType):
                 await confirmMsg.delete()
                 await confirmReply.delete()
         else:
-            await ctx.message.delete()
             await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
             eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
+
+    await ctx.message.delete()
 
 # --- Events ---
 
@@ -516,6 +512,7 @@ async def schedule(ctx):
 
             eventsDict[hash(ctx.guild)].scheduling -= 1
     else:
+        await ctx.message.delete()
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
 
@@ -541,6 +538,7 @@ async def remove(ctx, *args):
             await ctx.channel.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
+    await ctx.message.delete()
 
 @professor.command(aliases = ["a"])
 async def attend(ctx, *, eventId):
@@ -588,6 +586,7 @@ async def attend(ctx, *, eventId):
                 return not m.pinned
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
+                return
 
     # Attend event and check for success
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True, role=role):
@@ -597,6 +596,7 @@ async def attend(ctx, *, eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
+    await ctx.message.delete()
 
 @professor.command(aliases=["l"])
 async def leave(ctx, *, eventId):
@@ -618,6 +618,7 @@ async def leave(ctx, *, eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
+    await ctx.message.delete()
 
 @professor.command(aliases=["u"])
 async def update(ctx, eventId, toUpdate, *, newInfo):
@@ -639,6 +640,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             await ctx.channel.send(content=infoMessages["invalidUpdateField"], delete_after=15)
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
+    await ctx.message.delete()
 
 # --- Misc ---
 
@@ -813,6 +815,7 @@ async def chill(ctx):
             source.volume = 0.1
         except AttributeError:
             await ctx.author.send(content="You have to be on voice to do that")
+    await ctx.message.delete()
 
 
 
@@ -828,6 +831,7 @@ async def stop(ctx):
                 break
     except:
         await ctx.author.send(content="You have to be on voice to do that")
+    await ctx.message.delete()
 
 @chill.command(aliases=["v"])
 async def volume(ctx, v):
@@ -847,6 +851,7 @@ async def volume(ctx, v):
             await ctx.send("Please give a volume between 0 and 100")
     except TypeError:
         await ctx.send("Please give a volume between 0 and 100")
+    await ctx.message.delete()
 
 # --- Log ---
 @professor.command()
@@ -858,15 +863,9 @@ async def log(ctx):
         embed.add_field(name=e[0], value=e[1], inline=False)
 
     await ctx.author.send(embed=embed,delete_after=300)
+    await ctx.message.delete()
 
 # --- Maintenance ---
-
-@professor.command()
-async def refresh(ctx):
-    with open("messages.json", "r") as f:
-        infoMessages = json.loads(f.read())
-    activity = discord.Game(infoMessages["activity"])
-    await professor.change_presence(activity=activity)
 
 @professor.command()
 async def force_friendly(ctx):
@@ -902,4 +901,4 @@ async def force_friendly(ctx):
 
 
 # Start bot
-professor.run(str(key)) 
+professor.run(str(key))
