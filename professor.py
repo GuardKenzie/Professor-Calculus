@@ -271,7 +271,7 @@ async def on_command_error(ctx, error):
     print(error)
     print(ctx.message.content)
 
-    await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content) + "\n" + error)
+    await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content))
 
 @professor.event
 async def on_message(message):
@@ -280,6 +280,10 @@ async def on_message(message):
 
     # Check if we are in dm
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
+    if guildMessage \
+            and message.channel == eventsDict[hash(message.guild)].channel \
+            and (message.author != professor.user or str(message.type) == "MessageType.pins_add") \
+            await message.delete()
 
 @professor.event
 async def on_raw_reaction_add(payload):
