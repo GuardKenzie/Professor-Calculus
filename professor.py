@@ -74,6 +74,12 @@ with open("reddit", "r") as f:
 # Functions
 # ==========================================
 
+def checkadmin(u):
+    for role in u.roles:
+        if role.permissions.administrator:
+            return True
+    return False
+
 def eventChannelCheck(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
@@ -737,6 +743,19 @@ async def what(ctx):
         await ctx.channel.send(content="f? clowntime", delete_after=deltime)
     elif i == 9:
         await ctx.channel.send(content="f? what", delete_after=deltime)
+
+@professor.command(check=checkadmin)
+async def clean(ctx):
+    def check(m):
+        return m.author == ctx.author and m.content.lower() in ["yes", "no"]
+    checkmsg = await ctx.channel.send(content="Are you sure you want to clear this channel?")
+    rep = await professor.wait_for("message", check=check)
+    if rep.content.lower() == "yes":
+        await ctx.channel.purge()
+    else:
+        await rep.delete()
+        await checkmsg.delete()
+
 
 # --- Salt ---
 
