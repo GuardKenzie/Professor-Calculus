@@ -126,14 +126,17 @@ async def updatePinned(myChannel, guild):
         myMessage = await myChannel.fetch_message(myMessageId)
         await myMessage.edit(content="Notice: all times are in GMT", embed=update)
     except:
-        await myChannel.purge()
-        helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
-        myMessage = await myChannel.send(content="Notice: all times are in GMT", embed=update)
-        await myMessage.add_reaction(leftarrow)
-        await myMessage.add_reaction(rightarrow)
-        eventsDict[guildHash].setMyMessage(myMessage)
-        await myMessage.pin()
-        await helloMessage.pin()
+        try:
+            await myChannel.purge()
+            helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+            myMessage = await myChannel.send(content="Notice: all times are in GMT", embed=update)
+            await myMessage.add_reaction(leftarrow)
+            await myMessage.add_reaction(rightarrow)
+            eventsDict[guildHash].setMyMessage(myMessage)
+            await myMessage.pin()
+            await helloMessage.pin()
+        except discord.Forbidden:
+            await ctx.author.send(content="I need permission to manage messages in my own channel.")
 
 async def friendly_notification(e):
     # Friendly reminder for recurring events
@@ -163,8 +166,12 @@ async def event_notification(event):
     attendants = []
 
     # Create event role
-    eventRole = await channel.guild.create_role(name="event", mentionable=True)
-    mention = eventRole.mention
+    try:
+        eventRole = await channel.guild.create_role(name="event", mentionable=True)
+        mention = eventRole.mention
+    except discord.Forbidden:
+        mention = ""
+        ecentRole = None
 
     # Get names of attendants and give them the event role
     for member in event.people:
@@ -190,7 +197,8 @@ async def event_notification(event):
     message.add_field(name="When?", value = event.date)
     message.add_field(name="Party " + limitstr, value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
-    await eventRole.delete()
+    if not eventRole is None:
+        await eventRole.delete()
 
 async def notification_loop():
     # Wait until bot is ready
@@ -239,7 +247,10 @@ async def on_ready():
         # If I have a channel, purge and post event list
         if myChannel:
             eventsDict[guildHash].channel = myChannel
-            await myChannel.purge(check=purgecheck)
+            try:
+                await myChannel.purge(check=purgecheck)
+            except discord.Forbidden:
+                pass
             await updatePinned(myChannel, guild)
     print()
     if not eventCheckerLoop in asyncio.all_tasks():
@@ -372,7 +383,10 @@ async def setup(ctx):
 @professor.command(checks=[eventChannelCheck])
 async def setChannel(ctx, channelType):
     if channelType not in ["events", "friendly"]:
-        await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except discord.Forbidden:
+            pass
         await ctx.author.send(content="{} is not a valid channel type.".format(channelType))
         return
 
@@ -392,13 +406,19 @@ async def setChannel(ctx, channelType):
                 eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
                 await updatePinned(ctx.channel, ctx.guild)
             else:
-                await confirmMsg.delete()
-                await confirmReply.delete()
+                try:
+                    await confirmMsg.delete()
+                    await confirmReply.delete()
+                except discord.Forbidden:
+                    pass
         else:
             await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
             eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
 
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        pass
 
 # --- Events ---
 
@@ -432,7 +452,10 @@ async def schedule(ctx):
 
             title = replyMsg.content
 
-            await replyMsg.delete()
+            try:
+                await replyMsg.delete()
+            except discord.Forbidden:
+                pass
 
             emb.title = title
             await startEvent.edit(embed=emb)
@@ -445,13 +468,19 @@ async def schedule(ctx):
             # Check if time is ok
             timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
             while timeOk == False:
-                await replyMsg.delete()
+                try:
+                    await replyMsg.delete()
+                except discord.Forbidden:
+                    pass
                 await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
                 replyMsg = await professor.wait_for("message", check=check, timeout=120)
                 timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
 
             time = replyMsg.content
-            await replyMsg.delete()
+            try:
+                await replyMsg.delete()
+            except discord.Forbidden:
+                pass
 
             emb.description = "Time: {} \n Description:".format(time)
             await startEvent.edit(embed=emb)
@@ -462,7 +491,10 @@ async def schedule(ctx):
 
             desc = replyMsg.content
 
-            await replyMsg.delete()
+            try:
+                await replyMsg.delete()
+            except discord.Forbidden:
+                pass
 
             emb.description = "Time: {} \n Description: {}".format(time, desc)
             await startEvent.edit(embed=emb)
@@ -472,7 +504,10 @@ async def schedule(ctx):
             def donecheck(m):
                 return check(m) and m.content.lower() == "done"
             replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
-            await replyMsg.delete()
+            try:
+                await replyMsg.delete()
+            except discord.Forbidden:
+                pass
             emojis = []
             reactionNameMsg = await ctx.channel.send(content="-")
 
@@ -490,27 +525,42 @@ async def schedule(ctx):
                 await reactionNameMsg.edit(content="Please enter a name for {}".format(str(reaction)))
                 nameRep = await professor.wait_for("message", check=check, timeout=120)
                 name = nameRep.content
-                await nameRep.delete()
+                try:
+                    await nameRep.delete()
+                except discord.Forbidden:
+                    pass
 
                 await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
                 limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
                 limit = int(limitRep.content)
-                await limitRep.delete()
+                try:
+                    await limitRep.delete()
+                except discord.Forbidden:
+                    pass
 
                 emojis.append((str(reaction), name, limit))
 
-            await reactionNameMsg.delete()
-            await msg.clear_reactions()
+            try:
+                await reactionNameMsg.delete()
+                await msg.clear_reactions()
+            except discord.Forbidden:
+                pass
 
             # Total limit
             await msg.edit(content="Please enter the total limit of people who can join the event (0 for no limit).")
             limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
             limit = int(limitRep.content)
-            await limitRep.delete()
+            try:
+                await limitRep.delete()
+            except discord.Forbidden:
+                pass
 
             # Delete temp messages
-            await msg.delete()
-            await startEvent.delete()
+            try:
+                await msg.delete()
+                await startEvent.delete()
+            except discord.Forbidden:
+                pass
 
             # Schedule events
             if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
@@ -594,7 +644,10 @@ async def attend(ctx, *, eventId):
                 for emoji in emojis:
                     await reactMsg.add_reaction(emoji)
                 reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
-                await reactMsg.delete()
+                try:
+                    await reactMsg.delete()
+                except discord.Forbidden:
+                    pass
                 role = str(reaction.emoji)
         except asyncio.TimeoutError:
             def pcheck(m):
@@ -725,7 +778,12 @@ async def subwoah(ctx):
         await connection.disconnect()
     except AttributeError:
         await ctx.author.send(content="You need to be connected to voice chat to do that!")
-    await ctx.message.delete()
+    except discord.Forbidden:
+        await ctx.author.send(content="I am not allowed to go on voice and make noise.")
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        pass
 
 @professor.command(checks=[eventChannelCheck], aliases=["trúðagrín"])
 async def clowntime(ctx):
@@ -767,10 +825,16 @@ async def clean(ctx):
     checkmsg = await ctx.channel.send(content="Are you sure you want to clear this channel?")
     rep = await professor.wait_for("message", check=check)
     if rep.content.lower() == "yes":
-        await ctx.channel.purge()
+        try:
+            await ctx.channel.purge()
+        except discord.Forbidden:
+            await ctx.author.send("I don't have permission to clear this channel")
     else:
-        await rep.delete()
-        await checkmsg.delete()
+        try:
+            await rep.delete()
+            await checkmsg.delete()
+        except discord.Forbidden:
+            pass
 
 
 # --- Salt ---
@@ -818,7 +882,10 @@ async def on_voice_state_update(member, before, after):
 async def chill(ctx):
     if ctx.invoked_subcommand is None:
         try:
-            await ctx.message.delete()
+            try:
+                await ctx.message.delete()
+            except discord.Forbidden:
+                pass
             vc = ctx.message.author.voice.channel
             s = await vc.connect()
 
@@ -827,13 +894,21 @@ async def chill(ctx):
             source.volume = 0.1
         except AttributeError:
             await ctx.author.send(content="You have to be on voice to do that")
-    await ctx.message.delete()
+        except discord.Forbidden:
+            await ctx.author.send(content="I don't have permission to join voice chat or to speak on voice chat.")
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        pass
 
 
 
 @chill.command()
 async def stop(ctx):
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        pass
     try:
         authorvc = ctx.message.author.voice.channel
         for i in professor.voice_clients:
@@ -843,11 +918,13 @@ async def stop(ctx):
                 break
     except:
         await ctx.author.send(content="You have to be on voice to do that")
-    await ctx.message.delete()
 
 @chill.command(aliases=["v"])
 async def volume(ctx, v):
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        pass
     try:
         v = int(v)/100
         if v >= 0 and v <= 1:
@@ -863,7 +940,6 @@ async def volume(ctx, v):
             await ctx.send("Please give a volume between 0 and 100")
     except TypeError:
         await ctx.send("Please give a volume between 0 and 100")
-    await ctx.message.delete()
 
 # --- Log ---
 @professor.command()
@@ -875,7 +951,10 @@ async def log(ctx):
         embed.add_field(name=e[0], value=e[1], inline=False)
 
     await ctx.author.send(embed=embed,delete_after=300)
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        pass
 
 # --- Maintenance ---
 
