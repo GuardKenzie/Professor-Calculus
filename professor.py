@@ -637,11 +637,11 @@ async def attend(ctx, *, eventId):
         return user == ctx.author and str(reaction.emoji) in emojis
 
     # Fetch event 
-    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
-    print(event)
-    if event is None:
+    if eventsDict[hash(ctx.guild)] is None:
         await ctx.channel.send(content="Event `{}` does not exist".format(eventId))
         return
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    print(event)
 
     # Check if event is full
     if event.full():
