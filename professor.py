@@ -609,6 +609,9 @@ async def remove(ctx, *args):
         guildHash = hash(ctx.guild)
 
         event = eventsDict[guildHash].getEvent(args[0])
+        if event is None:
+            await ctx.channel.send(content="Event `{}` does not exist".format(eventId))
+            return
 
         # Get actual event id
         eventId = eventsDict[guildHash].getEventId(args[0])
@@ -635,6 +638,9 @@ async def attend(ctx, *, eventId):
 
     # Fetch event 
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if event is None:
+        await ctx.channel.send(content="Event `{}` does not exist".format(eventId))
+        return
 
     # Check if event is full
     if event.full():
@@ -692,6 +698,9 @@ async def leave(ctx, *, eventId):
     authorName = ctx.author.display_name
 
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if event is None:
+        await ctx.channel.send(content="Event `{}` does not exist".format(eventId))
+        return
     try:
         role = event.getRole(ctx.author.id)
     except KeyError:
@@ -715,6 +724,9 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     if isScheduler(ctx):
         if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
             event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+            if event is None:
+                await ctx.channel.send(content="Event `{}` does not exist".format(eventId))
+                return
 
             if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
                 await ctx.channel.send(content=infoMessages["updateSuccess"].format(eventId, toUpdate, newInfo), delete_after=15)
