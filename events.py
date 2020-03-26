@@ -17,30 +17,94 @@ def randomId():
     # Generate random int from 1 to 1000000000
     return random.randint(1,1000000000)
 
-def parseEvent(event):
-        out = {}
-        out["hash"] = event[0]
-        out["id"] = event[1]
-        out["date"] = event[2]
-        out["name"] = event[3]
-        out["description"] = event[4]
-        out["roles"] = json.loads(event[6])
+class event_class():
+    def __init__(self, fetch):
+        self.hash = fetch[0]
+        self.id = fetch[1]
+        self.date = fetch[2]
 
-        parray = json.loads(event[5])
-        parray.sort(key= lambda x : ([x for x,y,z in (out["roles"])] + [""]).index(x[1]))
-        out["rolesdict"] = dict(parray)
-        out["people"] = list(out["rolesdict"].keys())
-        out["limit"] = event[7]
-        out["rolelimits"] = {}
-        for role in out["roles"]:
-            out["rolelimits"][role[0]] = 0
+        self.channel = None
 
-        for p in out["people"]:
-            r = out["rolesdict"][p]
+        weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        self.recurring = True if self.date.split()[0].lower() in weekdays else False
+
+        self.name = fetch[3]
+        self.description = fetch[4]
+        self.roles = json.loads(fetch[6])
+
+        self.rolesdict = json.loads(fetch[5])
+        self.rolesdict.sort(key= lambda x : ([x for x,y,z in (self.roles)] + [""]).index(x[1]))
+        self.rolesdict = dict(self.rolesdict)
+
+        self.people = list(self.rolesdict.keys())
+        self.limit = fetch[7]
+
+        self.rolelimits = {}
+        for role in self.roles:
+            self.rolelimits[role[0]] = 0
+
+        for p in self.people:
+            r = self.rolesdict[p]
             if r:
-                out["rolelimits"][r] += 1
+                self.rolelimits[r] += 1
 
+    def now(self):
+        datenow = datetime.now().strftime("%d/%m/%Y %H:%M")
+        weekdaynow = datetime.now().strftime("%A %H:%M")
+        dates = [datenow, weekdaynow]
+
+        return self.date in dates
+
+    def hour(self):
+        datehour = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
+        weekdayhour = (datetime.now() + timedelta(hours=1)).strftime("%A %H:%M")
+
+        dates = [datehour, weekdayhour]
+
+        return self.date in dates
+
+    def friendly(self):
+        weekdaynow = datetime.now().strftime("%A")
+        timenow = datetime.now().strftime("%H:%M")
+
+        mytime = self.date.split()
+
+        out = mytime[0] == weekdaynow and timenow == "10:00"
         return out
+
+    def getRole(self, userId):
+        return self.rolesdict[userId]
+
+    def full(self):
+        return len(self.people) >= self.limit and self.limit != 0
+
+    def roleFull(self, role):
+        a = 0
+        for r in self.roles:
+            if role == r[0]:
+                a = r
+        return self.rolelimits[a[0]] >= a[2] and a[2] != 0
+
+    def roleName(self, role):
+        a = 0
+        for r in self.roles:
+            if role == r[0]:
+                a = r
+
+        return a[1]
+
+    def roleMax(self, role):
+        a = 0
+        for r in self.roles:
+            if role == r[0]:
+                a = r
+        return a[2]
+
+    def roleAmmount(self, role):
+        return self.rolelimits[role]
+
+    def ammount(self):
+        return len(self.people)
 
 class Events():
     # Events database handler
@@ -134,21 +198,20 @@ class Events():
         # Fetches all events from database and returns
         # Format of out: 
         self.c.execute("SELECT * FROM events WHERE server_hash=?", (self.guildHash,))
-        out = self.c.fetchall()
+        aux = self.c.fetchall()
+        out = []
+        for e in aux:
+            out.append(event_class(e))
         return out
 
     def getEvent(self, eventNumber):
         eventId = self.getEventId(eventNumber)
         self.c.execute("SELECT * FROM events WHERE server_hash=? AND id=?", (self.guildHash,eventId))
-<<<<<<< HEAD
         res = self.c.fetchone()
         if res is None:
             return None
         else:
             return event_class(self.c.fetchone())
-=======
-        return parseEvent(self.c.fetchone())
->>>>>>> parent of 48d8f04... Made events into objects
 
     def getEventId(self, eventNumber):
         # Takes event index and returns id
@@ -160,7 +223,7 @@ class Events():
 
             # Check if eventNumber is out of bounds
             if eventNumber <= len(allEvents) and eventNumber > 0:
-                return allEvents[eventNumber - 1][1]
+                return allEvents[eventNumber - 1].id
             else:
                 return False
 
@@ -279,25 +342,24 @@ class Events():
             # Check if last event
             lastEvent = (event == eventList[-1])
             # Get info
-            event = parseEvent(event)
             attendants = []
 
             # Get display names for attendants and put them in a list
-            for member in event["people"]:
-                attendants.append(event["rolesdict"][member] + " " + guildMembers[member])
+            for member in event.people:
+                attendants.append(event.getRole(member) + " " + guildMembers[member])
 
             # Generate party title
-            limitMessage = "({})".format(len(attendants)) if event["limit"]==0 else "({}/{})".format(len(attendants), event["limit"])
+            limitMessage = "({})".format(len(attendants)) if event.limit == 0 else "({}/{})".format(len(attendants), event.limit)
 
             # Check if noone is attending or no description
             if len(attendants) == 0:
                 attendants = ["Nobody :("]
-            if event["description"] == "":
-                event["description"] = "No description yet."
+            if event.description == "":
+                event.description = "No description yet."
 
             # Create the header
-            fieldName = "{}. {} ({})".format(str(fakeId), event["name"], event["date"])
-            message.add_field(name=fieldName, value=event["description"], inline = True)
+            fieldName = "{}. {} ({})".format(str(fakeId), event.name, event.date)
+            message.add_field(name=fieldName, value=event.description, inline = True)
 
             # Add party
             message.add_field(name="Party {}".format(limitMessage), value="\n".join(attendants))
@@ -312,62 +374,32 @@ class Events():
 
     def checkIfNotification(self, force=False):
         # Generate time string for 1 hour in future and now
-        dateHour = []
-        dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M"))
-        dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%A %H:%M"))
-
-        dateNow = []
-        dateNow.append(datetime.now().strftime("%d/%m/%Y %H:%M"))
-        dateNow.append(datetime.now().strftime("%A %H:%M"))
-
-        timeNow = datetime.now().strftime("%H:%M")
-
-        weekday = datetime.now().strftime("%A")
-
         eventsList = self.getAllEvents()
 
         # Check if notification for now or in an hour
         eventOut =[]
 
         for event in eventsList:
-            event = parseEvent(event)
-            recurringEvent = False
+            event.channel = self.channel
 
             # Get actual day of event
-            eventDay = event["date"].split(" ")[0]
+            eventDay = event.date.split(" ")[0]
 
-            if eventDay.lower() == weekday.lower():
-                recurringEvent = True
-
-                if timeNow == "10:00" or force:
-                    eventOut.append({"event":    event, \
-                            "date":     weekday,
-                            "friendly": True, \
-                            "channelId":  self.getMyChannelId("friendly"),
-                            "guild":    self.channel.guild
-                            })
+            if event.friendly():
+                event.channel = self.channel.guild.get_channel(self.getMyChannelId("friendly"))
+                return event
 
             # If now then remove
-            if event["date"] in dateNow:
-                if not recurringEvent:
-                    self.removeEvent(event["id"])
+            if event.now():
+                if not event.recurring:
+                    self.removeEvent(event.id)
                 else:
-                    self.updateEvent(event["id"], "people", "[]",actualId=True)
-                eventOut.append({"event":    event, \
-                        "color":    discord.Color.red(), \
-                        "date":     dateNow, \
-                        "channel":  self.channel, \
-                        "now":      True, \
-                        "friendly": False })
+                    self.updateEvent(event.id, "people", "[]",actualId=True)
+                eventOut.append(event)
                 #(event, discord.Color.red(), dateNow, self.channel, True)
 
-            elif event["date"] in dateHour:
-                eventOut.append({"event":    event, \
-                        "color":    discord.Color.orange(), \
-                        "date":     dateHour, \
-                        "channel":  self.channel, \
-                        "now":      False, \
-                        "friendly": False })
+            elif event.hour():
+                eventOut.append(event)
                 # (event, discord.Color.orange(), dateHour, self.channel, False)
         return eventOut
 
