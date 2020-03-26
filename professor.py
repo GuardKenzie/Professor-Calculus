@@ -136,11 +136,7 @@ async def updatePinned(myChannel, guild):
             await myMessage.pin()
             await helloMessage.pin()
         except discord.Forbidden:
-            for c in guild.text_channels:
-                try:
-                    await c.send(content="I need permission to manage messages in my own channel.")
-                except:
-                    pass
+            await ctx.author.send(content="I need permission to manage messages in my own channel.")
 
 async def friendly_notification(e):
     # Friendly reminder for recurring events
