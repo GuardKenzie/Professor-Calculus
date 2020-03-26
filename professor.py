@@ -75,6 +75,8 @@ with open("reddit", "r") as f:
 # ==========================================
 
 def checkadmin(ctx):
+    if ctx.author == ctx.guild.owner:
+        return True
     for role in ctx.author.roles:
         if role.permissions.administrator:
             return True
@@ -86,15 +88,12 @@ def eventChannelCheck(ctx):
     else:
         return True
 
-def isScheduler(user):
+def isScheduler(ctx):
     # Check if a user is a scheduler
-    if 'Scheduler' in [role.name for role in user.roles]:
+    if 'Scheduler' in [role.name for role in ctx.author.roles]:
         return True
     else:
-        for role in user.roles:
-            if role.permissions.administrator:
-                return True
-        return False
+        return False or checkadmin(ctx)
 
 def dictFromMembersName(members):
     # Generate dictionary with key: member id and value: display name
@@ -403,7 +402,7 @@ async def schedule(ctx):
             raise asyncio.TimeoutError
         return m.channel == channel and m.author == author
 
-    if isScheduler(author):
+    if isScheduler(ctx):
         def pcheck(m):
             return not m.pinned
         if eventsDict[hash(ctx.guild)].scheduling > 0:
@@ -529,7 +528,7 @@ async def remove(ctx, *args):
     # command syntax: remove [eventId]
 
     # Check if user is scheduler
-    if isScheduler(ctx.author):
+    if isScheduler(ctx):
         guildHash = hash(ctx.guild)
 
         event = eventsDict[guildHash].getEvent(args[0])
@@ -630,7 +629,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     # Command syntax: update [eventId] [to update] [new info]
 
     # Check if usere is scheduler
-    if isScheduler(ctx.author):
+    if isScheduler(ctx):
         if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
             event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
