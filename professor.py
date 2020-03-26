@@ -337,26 +337,14 @@ async def setup(ctx):
     nick = ctx.guild.me.display_name
 
     # Create category and channel
-    try:
-        category = await ctx.guild.create_category("Events")
-    except discord.Forbidden:
-        category=None
-    try:
-        channel = await ctx.guild.create_text_channel("events", category=category)
-    except discord.Forbidden:
-        await ctx.author.send(content="I do not have permission to create an events channel. Setup may not work as intended.")
-        eventsDict[hash(ctx.guild)].channel = None
-        eventsDict[hash(ctx.guild)].myMessage = None
-        return
+    category = await ctx.guild.create_category("Events")
+    channel = await ctx.guild.create_text_channel("events", category=category)
 
     await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
 
     # Create scheduler rank and let owner know
-    try:
-        await ctx.guild.create_role(name="Scheduler")
-        await ctx.author.send(content=infoMessages["schedulerMessage"])
-    except discord.Forbidden:
-        await ctx.author.send(content="I do not have permission to create the `Scheduler` role. Only admins will be able to schedule and edit events. Please manually create a role called `Scheduler` if you want other users to be able to schedule events")
+    await ctx.guild.create_role(name="Scheduler")
+    await ctx.author.send(content=infoMessages["schedulerMessage"])
 
     # Initiate Events class
     eventsDict[hash(ctx.guild)].channel = channel
