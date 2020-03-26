@@ -416,10 +416,11 @@ class Events():
         # Check if I have a channel and return
         self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash,  channelType))
         res = self.c.fetchone()
-        if len(res) > 0:
-            return res[0]
-        else:
-            return 0
+        if not res is None:
+            if len(res) > 0:
+                return res[0]
+            else:
+                return 0
 
     def getLog(self):
         self.c.execute("SELECT log FROM log WHERE server_hash=?;", (self.guildHash, ))

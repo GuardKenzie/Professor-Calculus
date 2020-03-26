@@ -331,7 +331,10 @@ async def setup(ctx):
     # Initiate Events class for guild
 
     # Delete message
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        str(1)
 
     # Get nickname
     nick = ctx.guild.me.display_name
