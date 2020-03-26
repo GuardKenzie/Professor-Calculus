@@ -610,7 +610,7 @@ async def remove(ctx, *args):
 
         event = eventsDict[guildHash].getEvent(args[0])
         if event is None:
-            await ctx.channel.send(content="Event `{}` does not exist".format(args[0]))
+            await ctx.channel.send(content="Event `{}` does not exist".format(eventId))
             return
 
         # Get actual event id
