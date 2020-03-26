@@ -297,6 +297,8 @@ async def on_message(message):
                 await message.delete()
             except discord.errors.NotFound:
                 pass
+            except discord.Forbidden:
+                pass
 
 @professor.event
 async def on_raw_reaction_add(payload):
