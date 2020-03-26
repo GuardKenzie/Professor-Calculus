@@ -139,7 +139,6 @@ async def updatePinned(myChannel, guild):
             for c in guild.text_channels:
                 try:
                     await c.send(content="I need permission to manage messages in my own channel.")
-                    break
                 except:
                     pass
 
