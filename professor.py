@@ -216,7 +216,6 @@ async def notification_loop():
             print(eventOut)
             for e in eventOut:
                 # If there is a notification, send it and update events list
-                print(e.friendly())
                 if e.friendly():
                     await friendly_notification(e)
                 else:
@@ -365,7 +364,7 @@ async def setup(ctx):
     try:
         channel = await ctx.guild.create_text_channel("events", category=category)
     except discord.Forbidden:
-        await ctx.author.send(content="I do not have permission to create an events channel. Setup may not work as intended. Please manually create a channel for events and let me know with the `setchannel` command. I will need permission to manage messages in that channel to function as intended.")
+        await ctx.author.send(content="I do not have permission to create an events channel. Setup may not work as intended.")
         eventsDict[hash(ctx.guild)].channel = None
         eventsDict[hash(ctx.guild)].myMessage = None
         return
