@@ -137,25 +137,29 @@ async def updatePinned(myChannel, guild):
 
 async def friendly_notification(e):
     # Friendly reminder for recurring events
-    eventName = e.name
-    eventDesc = e.description
-    weekday = event.date.split()[0]
-    friendlyChannel = e.channel
+    eventName = e["event"]["name"]
+    eventDesc = e["event"]["description"]
+    weekday = e["date"]
+
+    # Find my friendly channel
+    channelId = e["channelId"]
+    guild = e["guild"]
+
+    # everyone = guild.me.roles[0].mention
+
+    friendlyChannel = guild.get_channel(channelId)
 
     msgContent = "Today is \"{} {}\". \n {} \n Remember to sign up in the events channel!.".format(eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
-async def event_notification(event):
+async def event_notification(e):
     # Parse event
-    date = event.date
-    channel = event.channel
-    now = event.now()
-
-    if now:
-        color = discord.Colour.red()
-    else:
-        color = discord.Colour.orange()
+    event = e["event"]
+    date = e["date"]
+    channel = e["channel"]
+    color = e["color"]
+    now = e["now"]
 
     # everyone = channel.guild.me.roles[0].mention
 
@@ -167,12 +171,14 @@ async def event_notification(event):
     mention = eventRole.mention
 
     # Get names of attendants and give them the event role
-    for member in event.people:
-        attendants.append(str(event.getRole(member)) + " " + str(guildMembers[member].display_name))
+    for member in event["people"]:
+        attendants.append(str(event["rolesdict"][member]) + " " + str(guildMembers[member].display_name))
         await guildMembers[member].add_roles(eventRole)
 
     if len(attendants) == 0:
         attendants = ["Nobody :("]
+    if event["description"] == "":
+        event["description"] = "No description yet."
 
     if now:
         messageTitle = mention + " Event starting now!"
@@ -182,12 +188,12 @@ async def event_notification(event):
         deleteTime = 3600
 
     # Generate message
-    if (event.limit != 0):
-        limitstr = "({}/{})".format(event.ammount(), event.limit)
+    if (event["limit"] != 0):
+        limitstr = "({}/{})".format(len(event["people"]), event["limit"])
     else:
-        limitstr = "({})".format(str(event.ammount()))
-    message = discord.Embed(title = event.name, description = event.description, color=color)
-    message.add_field(name="When?", value = event.date)
+        limitstr = "({})".format(str(len(event["people"])))
+    message = discord.Embed(title = event["name"], description = event["description"], color=color)
+    message.add_field(name="When?", value = event["date"])
     message.add_field(name="Party " + limitstr, value = "\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
     await eventRole.delete()
@@ -201,10 +207,9 @@ async def notification_loop():
         for guild in professor.guilds:
             # Check every guild for notifications
             eventOut = eventsDict[hash(guild)].checkIfNotification()
-            print(eventOut)
             for e in eventOut:
                 # If there is a notification, send it and update events list
-                if e.friendly():
+                if e["friendly"]:
                     await friendly_notification(e)
                 else:
                     await updatePinned(eventsDict[hash(guild)].channel, guild)
@@ -533,8 +538,8 @@ async def remove(ctx, *args):
 
         # Check if event id was found and if removal successful
         if eventId and eventsDict[guildHash].removeEvent(eventId):
-            await ctx.channel.send(content=infoMessages["eventRemoved"].format(event.name), delete_after=15)
-            eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event.name))
+            await ctx.channel.send(content=infoMessages["eventRemoved"].format(event["name"]), delete_after=15)
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event["name"]))
         else:
             await ctx.channel.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
     else:
@@ -555,24 +560,24 @@ async def attend(ctx, *, eventId):
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
     # Check if event is full
-    if event.full():
+    if len(event["people"]) >= event["limit"] and event["limit"] != 0:
         await ctx.channel.send(content="That event is already full!", delete_after=15)
         return
 
     # Get event roles
-    if event.roles != []:
+    if event["roles"] != []:
         try:
-            for role in event.roles:
-                if event.roleFull(role[0]):
+            for role in event["roles"]:
+                if event["rolelimits"][role[0]] >= role[2] and role[2] != 0:
                     continue
                 emojis.append(role[0])
             if len(emojis) == 0:
                 role = ""
             else:
                 rolelist = []
-                for emo,name,cap in event.roles:
-                    limitString = " ({}/{})".format(event.rolelimits[emo], cap) if cap != 0 else ""
-                    rolelist.append(emo + ": " + name + limitString)
+                for u,v,z in event["roles"]:
+                    limitString = " ({}/{})".format(event["rolelimits"][u], z) if z != 0 else ""
+                    rolelist.append(u + ": " + v + limitString)
 
                 rolelist ="\n".join(rolelist)
                 reactMsg = await ctx.channel.send(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
@@ -592,8 +597,8 @@ async def attend(ctx, *, eventId):
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-        await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, event.name), delete_after=15)
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event.name))
+        await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, event["name"]), delete_after=15)
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
@@ -605,7 +610,7 @@ async def leave(ctx, *, eventId):
 
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     try:
-        role = event.getRole(ctx.author.id)
+        role = event["rolesdict"][ctx.author.id]
     except KeyError:
         role = ""
 
@@ -613,8 +618,8 @@ async def leave(ctx, *, eventId):
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, False, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-        await ctx.channel.send(content=infoMessages["leaveSuccess"].format(authorName, event.name), delete_after=15)
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event.name))
+        await ctx.channel.send(content=infoMessages["leaveSuccess"].format(authorName, event["name"]), delete_after=15)
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
         await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
@@ -630,7 +635,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
             if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
                 await ctx.channel.send(content=infoMessages["updateSuccess"].format(eventId, toUpdate, newInfo), delete_after=15)
-                eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` to `{}`.".format(ctx.author.display_name, event.name, toUpdate, newInfo))
+                eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event["name"], toUpdate, event[toUpdate], newInfo))
 
             else:
                 await ctx.channel.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
