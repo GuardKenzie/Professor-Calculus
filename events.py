@@ -207,7 +207,11 @@ class Events():
     def getEvent(self, eventNumber):
         eventId = self.getEventId(eventNumber)
         self.c.execute("SELECT * FROM events WHERE server_hash=? AND id=?", (self.guildHash,eventId))
-        return event_class(self.c.fetchone())
+        res = self.c.fetchone()
+        if res is None:
+            return None
+        else:
+            return event_class(self.c.fetchone())
 
     def getEventId(self, eventNumber):
         # Takes event index and returns id
