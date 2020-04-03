@@ -688,7 +688,7 @@ async def kick(ctx, userToKick: discord.Member = None, eventId):
     # Leave event and check for success
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, uid, False, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name event["name"]))
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name, event["name"]))
     else:
         await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event["name"]))
 
