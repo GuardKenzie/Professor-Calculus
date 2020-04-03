@@ -678,8 +678,9 @@ async def kick(ctx, userToKick: discord.Member, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
 
-    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     uid = userToKick.id
+    print(uid)
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     try:
         role = event["rolesdict"][uid]
     except KeyError:
@@ -700,7 +701,7 @@ async def help(ctx, *, cmd="none"):
     else:
         await ctx.author.send(content="Unrecognised command")
 
-@professor.command(checks=[eventChannelCheck],aliases=["dice", "random", "pick"])
+@professor.command(aliases=["dice", "random", "pick"])
 async def roll(ctx, *, names):
     # Determine a random thing from a list
     await ctx.channel.send(content="And the winner is...")
