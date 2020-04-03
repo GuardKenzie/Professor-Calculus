@@ -673,7 +673,7 @@ async def eyebleach(ctx):
     # embed.set_footer(text="from /r/eyebleach")
     # await ctx.channel.send(content="From https://reddit.com/r/eyebleach", embed=embed)
 
-@professor.command(checks=[eventChannelCheck, checkadmin], aliases=["k", "puntcunt"])
+@professor.command(checks=[checkadmin], aliases=["k", "puntcunt"])
 async def kick(ctx, eventId, userToKick: discord.Member = None):
     # Leave an event
     # Command syntax: leave [eventId]
