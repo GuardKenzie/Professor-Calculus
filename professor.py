@@ -673,6 +673,25 @@ async def eyebleach(ctx):
     # embed.set_footer(text="from /r/eyebleach")
     # await ctx.channel.send(content="From https://reddit.com/r/eyebleach", embed=embed)
 
+@professor.command(checks=[eventChannelCheck, checkadmin], aliases=["k", "puntcunt"])
+async def kick(ctx, userToKick: discord.Member = None, eventId):
+    # Leave an event
+    # Command syntax: leave [eventId]
+
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    uid = userToKick.id
+    try:
+        role = event["rolesdict"][uid]
+    except KeyError:
+        role = ""
+
+    # Leave event and check for success
+    if eventsDict[hash(ctx.guild)].attendEvent(eventId, uid, False, role=role):
+        event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name event["name"]))
+    else:
+        await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event["name"]))
+
 @professor.command()
 async def help(ctx, *, cmd="none"):
     message = helper.helpCmd(prefix, cmd)
