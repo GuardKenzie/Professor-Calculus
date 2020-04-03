@@ -255,7 +255,7 @@ async def on_ready():
 async def on_command_completion(ctx):
     # List of commands for events
     if ctx.guild:
-        eventCommands = ["attend", "leave", "schedule", "remove", "update"]
+        eventCommands = ["attend", "leave", "schedule", "remove", "update", "kick"]
 
         guildHash = hash(ctx.guild)
         members = ctx.guild.members
