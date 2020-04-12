@@ -178,7 +178,6 @@ class Events():
         self.conn.commit()
         return e
 
-
     def attendEvent(self, eventId, userId, attend, role=""):
         # Adds userId to list of attendants for event with id eventId
 
@@ -240,7 +239,7 @@ class Events():
 
         page = self.page
 
-        numberOfPages = math.ceil(len(eventList)/5)
+        numberOfPages = math.ceil(len(eventList) / 5)
 
         # Fix page 0
         if numberOfPages == 0:
@@ -252,11 +251,11 @@ class Events():
 
         # Define bounds for events list if not at last page
         if page != numberOfPages:
-            begin = (page-1)*5
+            begin = (page - 1) * 5
             end = begin + 5
         # if at last page then get all remaining events
         else:
-            begin = (page-1)*5
+            begin = (page - 1) * 5
             end = len(eventList)
 
         # Create embed
@@ -266,7 +265,7 @@ class Events():
         eventList = eventList[begin:end]
 
         # Create line for each event on page
-        fakeId = 1 + (page-1)*5
+        fakeId = 1 + (page - 1) * 5
         for event in eventList:
             # Check if last event
             lastEvent = (event == eventList[-1])
@@ -332,11 +331,11 @@ class Events():
                 recurringEvent = True
 
                 if timeNow == "10:00" or force:
-                    eventOut.append({"event":    event,
-                                     "date":     weekday,
+                    eventOut.append({"event": event,
+                                     "date": weekday,
                                      "friendly": True,
-                                     "channelId":  self.getMyChannelId("friendly"),
-                                     "guild":    self.channel.guild
+                                     "channelId": self.getMyChannelId("friendly"),
+                                     "guild": self.channel.guild
                                      })
 
             # If now then remove
@@ -345,20 +344,20 @@ class Events():
                     self.removeEvent(event["id"])
                 else:
                     self.updateEvent(event["id"], "people", "[]", actualId=True)
-                eventOut.append({"event":    event,
-                                 "color":    discord.Color.red(),
-                                 "date":     dateNow,
-                                 "channel":  self.channel,
-                                 "now":      True,
+                eventOut.append({"event": event,
+                                 "color": discord.Color.red(),
+                                 "date": dateNow,
+                                 "channel": self.channel,
+                                 "now": True,
                                  "friendly": False})
                 # (event, discord.Color.red(), dateNow, self.channel, True)
 
             elif event["date"] in dateHour:
-                eventOut.append({"event":    event,
-                                 "color":    discord.Color.orange(),
-                                 "date":     dateHour,
-                                 "channel":  self.channel,
-                                 "now":      False,
+                eventOut.append({"event": event,
+                                 "color": discord.Color.orange(),
+                                 "date": dateHour,
+                                 "channel": self.channel,
+                                 "now": False,
                                  "friendly": False})
                 # (event, discord.Color.orange(), dateHour, self.channel, False)
         return eventOut
@@ -374,11 +373,11 @@ class Events():
             self.c.execute("INSERT INTO myChannels (guildHash, channelId, channelType) VALUES (?, ?, ?);", (self.guildHash, channelId, channelType))
 
         # Save
-        self.conn.commit();
+        self.conn.commit()
 
     def getMyChannelId(self, channelType):
         # Check if I have a channel and return
-        self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash,  channelType))
+        self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash, channelType))
         res = self.c.fetchone()
         if len(res) > 0:
             return res[0]
@@ -389,7 +388,7 @@ class Events():
         self.c.execute("SELECT log FROM log WHERE server_hash=?;", (self.guildHash, ))
         log = self.c.fetchone()
 
-        if log != None:
+        if log is not None:
             return json.loads(log[0])
         else:
             self.c.execute("INSERT INTO log (server_hash, log) VALUES (?, ?)", (self.guildHash, "[]"))
