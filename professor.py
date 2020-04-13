@@ -955,11 +955,11 @@ async def playFromSoundboard(ctx, name):
             await connection.disconnect()
         except AttributeError:
             await ctx.author.send(content="You need to be connected to voice chat to do that!")
-        await ctx.message.delete()
 
 
 @professor.group(aliases=["sb"])
 async def soundboard(ctx):
+    # Ávaxta emojis
     emojis_avail = ["\U0001F347",
                     "\U0001F348",
                     "\U0001F349",
@@ -977,6 +977,7 @@ async def soundboard(ctx):
                     "\U0001F95D",
                     "\U0001F345",
                     "\U0001F965"]
+    # Cancel emoji
     x = "\U0000274C"
     emoji_dict = {}
 
@@ -984,8 +985,14 @@ async def soundboard(ctx):
         return user == ctx.author and str(reaction.emoji) in (list(emoji_dict.keys()) + [x])
 
     if ctx.invoked_subcommand is None:
+        # Ef engin subcommand þá gera lista
         sounds = soundBoardDict[hash(ctx.guild)].getSounds()
 
+        if sounds == {}:
+            await ctx.channel.send(content="There are no sounds yet. Please add some with the `soundboard add` command.")
+            return
+
+        # Búa til lista og velja emojis
         out = "Available sounds:\n"
         i = 0
         for key in sounds.keys():
@@ -993,6 +1000,7 @@ async def soundboard(ctx):
             emoji_dict[emojis_avail[i]] = str(key)
             i += 1
 
+        # Senda lista og bæta við emojis
         msg = await ctx.channel.send(content=out)
 
         for emoji in emoji_dict.keys():
@@ -1000,28 +1008,42 @@ async def soundboard(ctx):
 
         await msg.add_reaction(x)
 
-        reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
+        # Bíða eftir vali
+        try:
+            reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
+            await msg.delete()
+            await ctx.message.delete()
 
-        if (reaction.emoji != x):
-            await playFromSoundboard(ctx, emoji_dict[reaction.emoji])
+            if (reaction.emoji != x):
+                await playFromSoundboard(ctx, emoji_dict[reaction.emoji])
 
-        await msg.delete()
-        await ctx.message.delete()
-        # Gera velja sound
+        except asyncio.TimeoutError:
+            await msg.delete()
+            await ctx.message.delete()
 
 
 @soundboard.command(aliases=["a"])
 async def add(ctx, name):
+    # Bæta við hljóði í soundboard
     extensions = ["mp3", "wav"]
     attachments = ctx.message.attachments
+    sounds = soundBoardDict[hash(ctx.guild)].getSounds()
 
+    # Checka ef fæll
     if attachments:
         url = attachments[0].url
         filename = attachments[0].filename
 
+        # Checka ef hljóðfæll
         if filename.split(".")[-1].lower() in extensions:
+            # Bæta við
             if soundBoardDict[hash(ctx.guild)].createSound(name, url):
                 await ctx.channel.send("Sound `{}` successfully added.".format(name))
+            elif name in sounds.keys():
+                await ctx.author.send("Could not add sound `{}` because a sound with that name already exists.".format(name))
+            else:
+                await ctx.aythor.send("Could not add sound `{}` for an unknown reason.".format(name))
+
         else:
             await ctx.author.send(content="Invalid file extension.")
     else:
@@ -1030,6 +1052,7 @@ async def add(ctx, name):
 
 @soundboard.command(aliases=["r"])
 async def remove(ctx, name):
+    # Henda hljóði
     if soundBoardDict[hash(ctx.guild)].removeSound(name):
         await ctx.channel.send(content="Sound `{}` successfully removed.".format(name))
     else:
@@ -1038,6 +1061,7 @@ async def remove(ctx, name):
 
 @soundboard.command(aliases=["p"])
 async def play(ctx, name):
+    # Spila hljóð
     await playFromSoundboard(ctx, name)
     await ctx.message.delete()
 

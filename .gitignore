@@ -4,3 +4,4 @@ __pycache__/
 indev/*
 cleaner/*
 reddit
+.flake8
