@@ -840,8 +840,8 @@ async def on_voice_state_update(member, before, after):
 @professor.group()
 async def chill(ctx):
     if ctx.invoked_subcommand is None:
+        await ctx.message.delete()
         try:
-            await ctx.message.delete()
             vc = ctx.message.author.voice.channel
             s = await vc.connect()
 
@@ -850,7 +850,8 @@ async def chill(ctx):
             source.volume = 0.1
         except AttributeError:
             await ctx.author.send(content="You have to be on voice to do that")
-    await ctx.message.delete()
+        except discord.ClientException:
+            await ctx.author.send(content="Sorry, I'm already connected to a voice channel.")
 
 
 @chill.command()
@@ -863,9 +864,8 @@ async def stop(ctx):
                 i.stop()
                 await i.disconnect()
                 break
-    except:
+    except AttributeError:
         await ctx.author.send(content="You have to be on voice to do that")
-    await ctx.message.delete()
 
 
 @chill.command(aliases=["v"])
@@ -956,6 +956,8 @@ async def playFromSoundboard(ctx, name):
             await connection.disconnect()
         except AttributeError:
             await ctx.author.send(content="You need to be connected to voice chat to do that!")
+        except discord.ClientException:
+            await ctx.author.send(content="Sorry, I'm already connected to a voice channel.")
     else:
         await ctx.author.send(content="No such sound `{}`. Notice that sound names are cases sensitive.".format(name))
 
