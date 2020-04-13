@@ -10,6 +10,7 @@ import praw
 import events
 import helper
 import salt.salty as salty
+import soundb
 
 
 # Bot key
@@ -20,6 +21,9 @@ keyFile.close()
 
 # Events dict. Index = guild hash
 eventsDict = {}
+
+# Soundboard dict. Index = guild hash
+soundBoardDict = {}
 
 # Command prefix
 prefixes = ["f? ", "f?", "p? ", "p?"]
@@ -238,6 +242,7 @@ async def on_ready():
         guildHash = hash(guild)
 
         eventsDict[guildHash] = events.Events(guildHash, None)
+        soundBoardDict[guildHash] = soundb.SoundBoard(guildHash)
 
         # Find my channel
         myChannelId = eventsDict[guildHash].getMyChannelId("events")
@@ -284,6 +289,7 @@ async def on_command_error(ctx, error):
 @professor.event
 async def on_message(message):
     # Process command and then delete the message if it wasn't a command in events channel
+    await professor.process_commands(message)
 
     # Check if we are in dm
     guildMessage = isinstance(message.channel, discord.abc.GuildChannel)
@@ -801,7 +807,7 @@ async def salt(ctx):
     await ctx.send("{} has now had {} salty nuggs!".format(username, count))
 
 
-@professor.command(checks=[eventChannelCheck], aliases=["sb"])
+@professor.command(checks=[eventChannelCheck])
 async def saltboard(ctx):
     # Display leaderboard of salt
     board = saltWraper.getCookieBoard(ctx.guild)
@@ -933,26 +939,108 @@ async def force_friendly(ctx):
 
 # --- Soundboard ---
 
-@professor.group()
-async def soudboard(ctx):
+async def playFromSoundboard(ctx, name):
+    sounds = soundBoardDict[hash(ctx.guild)].getSounds()
+    if name in sounds.keys():
+        url = sounds[name]
+
+        try:
+            voiceChannel = ctx.author.voice.channel
+            connection = await voiceChannel.connect()
+
+            source = discord.FFmpegPCMAudio(url)
+            connection.play(source)
+            while connection.is_playing():
+                await asyncio.sleep(0.3)
+            await connection.disconnect()
+        except AttributeError:
+            await ctx.author.send(content="You need to be connected to voice chat to do that!")
+        await ctx.message.delete()
+
+
+@professor.group(aliases=["sb"])
+async def soundboard(ctx):
+    emojis_avail = ["\U0001F347",
+                    "\U0001F348",
+                    "\U0001F349",
+                    "\U0001F34A",
+                    "\U0001F34B",
+                    "\U0001F34C",
+                    "\U0001F34D",
+                    "\U0001F96D",
+                    "\U0001F34E",
+                    "\U0001F34F",
+                    "\U0001F350",
+                    "\U0001F351",
+                    "\U0001F352",
+                    "\U0001F353",
+                    "\U0001F95D",
+                    "\U0001F345",
+                    "\U0001F965"]
+    x = "\U0000274C"
+    emoji_dict = {}
+
+    def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in (list(emoji_dict.keys()) + [x])
+
     if ctx.invoked_subcommand is None:
-        pass
+        sounds = soundBoardDict[hash(ctx.guild)].getSounds()
+
+        out = "Available sounds:\n"
+        i = 0
+        for key in sounds.keys():
+            out = out + "{}\t`{}`\n".format(emojis_avail[i], str(key))
+            emoji_dict[emojis_avail[i]] = str(key)
+            i += 1
+
+        msg = await ctx.channel.send(content=out)
+
+        for emoji in emoji_dict.keys():
+            await msg.add_reaction(emoji)
+
+        await msg.add_reaction(x)
+
+        reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
+
+        if (reaction.emoji != x):
+            await playFromSoundboard(ctx, emoji_dict[reaction.emoji])
+
+        await msg.delete()
+        await ctx.message.delete()
         # Gera velja sound
 
 
-@soudboard.command()
+@soundboard.command(aliases=["a"])
 async def add(ctx, name):
-    pass
+    extensions = ["mp3", "wav"]
+    attachments = ctx.message.attachments
+
+    if attachments:
+        url = attachments[0].url
+        filename = attachments[0].filename
+
+        if filename.split(".")[-1].lower() in extensions:
+            if soundBoardDict[hash(ctx.guild)].createSound(name, url):
+                await ctx.channel.send("Sound `{}` successfully added.".format(name))
+        else:
+            await ctx.author.send(content="Invalid file extension.")
+    else:
+        await ctx.author.send(content="You must attach a sound file to your command message.")
 
 
-@soudboard.command()
+@soundboard.command(aliases=["r"])
 async def remove(ctx, name):
-    ctx.author.send(content="Test")
+    if soundBoardDict[hash(ctx.guild)].removeSound(name):
+        await ctx.channel.send(content="Sound `{}` successfully removed.".format(name))
+    else:
+        await ctx.channel.send(content="Could not remove `{}`. Please verify that the name is correct.".format(name))
 
 
-@soudboard.command()
+@soundboard.command(aliases=["p"])
 async def play(ctx, name):
-    pass
+    await playFromSoundboard(ctx, name)
+    await ctx.message.delete()
+
 
 # Start bot
 professor.run(str(key))
