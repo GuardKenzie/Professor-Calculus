@@ -963,23 +963,11 @@ async def playFromSoundboard(ctx, name):
 @professor.group(aliases=["sb"])
 async def soundboard(ctx):
     # Ávaxta emojis
-    emojis_avail = ["\U0001F347",
-                    "\U0001F348",
-                    "\U0001F349",
-                    "\U0001F34A",
-                    "\U0001F34B",
-                    "\U0001F34C",
-                    "\U0001F34D",
-                    "\U0001F96D",
-                    "\U0001F34E",
-                    "\U0001F34F",
-                    "\U0001F350",
-                    "\U0001F351",
-                    "\U0001F352",
-                    "\U0001F353",
-                    "\U0001F95D",
-                    "\U0001F345",
-                    "\U0001F965"]
+    with open("foodemojis.txt", "r") as f:
+        emojis_avail = f.read().splitlines()
+
+    random.shuffle(emojis_avail)
+
     # Cancel emoji
     x = "\U0000274C"
     emoji_dict = {}
