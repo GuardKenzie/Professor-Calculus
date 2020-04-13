@@ -332,6 +332,7 @@ async def on_raw_reaction_add(payload):
 async def on_guild_join(guild):
     # Print setup message in first text channel we can
     eventsDict[hash(guild)] = events.Events(hash(guild), None)
+    soundBoardDict[guildHash] = soundb.SoundBoard(guildHash)
     for i in guild.text_channels:
         try:
             await i.send(content="Type `" + prefix + "setup` to get started")
