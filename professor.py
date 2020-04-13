@@ -955,6 +955,8 @@ async def playFromSoundboard(ctx, name):
             await connection.disconnect()
         except AttributeError:
             await ctx.author.send(content="You need to be connected to voice chat to do that!")
+    else:
+        await ctx.author.send(content="No such sound `{}`. Notice that sound names are cases sensitive.".format(name))
 
 
 @professor.group(aliases=["sb"])
@@ -1054,9 +1056,10 @@ async def add(ctx, name):
 async def remove(ctx, name):
     # Henda hljóði
     if soundBoardDict[hash(ctx.guild)].removeSound(name):
-        await ctx.channel.send(content="Sound `{}` successfully removed.".format(name))
+        await ctx.channel.send(content="Sound `{}` successfully removed.".format(name), delete_after=60)
     else:
-        await ctx.channel.send(content="Could not remove `{}`. Please verify that the name is correct.".format(name))
+        await ctx.author.send(content="Could not remove `{}`. Please verify that the name is correct.".format(name))
+    await ctx.message.delete()
 
 
 @soundboard.command(aliases=["p"])
