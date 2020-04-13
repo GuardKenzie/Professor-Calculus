@@ -1022,7 +1022,7 @@ async def soundboard(ctx):
             await ctx.message.delete()
 
 
-@soundboard.command(aliases=["a"])
+@soundboard.command(checks=[isScheduler], aliases=["a"])
 async def add(ctx, name):
     # Bæta við hljóði í soundboard
     extensions = ["mp3", "wav"]
@@ -1050,7 +1050,7 @@ async def add(ctx, name):
         await ctx.author.send(content="You must attach a sound file to your command message.")
 
 
-@soundboard.command(aliases=["r"])
+@soundboard.command(checks=[isScheduler], aliases=["r"])
 async def remove(ctx, name):
     # Henda hljóði
     if soundBoardDict[hash(ctx.guild)].removeSound(name):
