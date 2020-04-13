@@ -1019,6 +1019,9 @@ async def add(ctx, name):
     extensions = ["mp3", "wav"]
     attachments = ctx.message.attachments
     sounds = soundBoardDict[hash(ctx.guild)].getSounds()
+    if len(sounds) == 19:
+        await ctx.author.send(content="Could not add sound `{}`. Maximum number of sounds reached. Please delete some before adding more.".format(name))
+        return
 
     # Checka ef fæll
     if attachments:
