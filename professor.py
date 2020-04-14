@@ -986,7 +986,7 @@ async def soundboard(ctx):
             return
 
         # Búa til lista og velja emojis
-        out = "Available sounds:\n"
+        out = ">>> Available sounds:\n"
         i = 0
         for key in sounds.keys():
             out = out + "{}\t`{}`\n".format(emojis_avail[i], str(key))
