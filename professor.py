@@ -753,22 +753,6 @@ async def oj(ctx):
     await ctx.channel.send(file=oj)
 
 
-@professor.command(checks=[eventChannelCheck])
-async def subwoah(ctx):
-    try:
-        voiceChannel = ctx.author.voice.channel
-        connection = await voiceChannel.connect()
-
-        source = discord.FFmpegPCMAudio("res/subwoah.mp3")
-        connection.play(source)
-        while connection.is_playing():
-            await asyncio.sleep(0.3)
-        await connection.disconnect()
-    except AttributeError:
-        await ctx.author.send(content="You need to be connected to voice chat to do that!")
-    await ctx.message.delete()
-
-
 @professor.command(checks=[eventChannelCheck], aliases=["trúðagrín"])
 async def clowntime(ctx):
     await ctx.channel.send(content=":o)")
