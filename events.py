@@ -53,6 +53,7 @@ class Events():
         self.channel = channel
         self.myMessage = ""
         self.myMessageId = None
+        self.myLogMessageId = None
 
         self.conn = sqlite3.connect("events.db")
         self.c = self.conn.cursor()
@@ -62,6 +63,11 @@ class Events():
         myMessageId = self.c.fetchone()
         if myMessageId:
             self.myMessageId = int(myMessageId[0])
+
+        self.c.execute("SELECT messageId FROM myLogMessages WHERE server_hash=?", (guildHash, ))
+        myLogMessageId = self.c.fetchone()
+        if myLogMessageId:
+            self.myLogMessageId = int(myLogMessageId[0])
 
         self.page = 1
 
@@ -408,14 +414,23 @@ class Events():
         self.c.execute("UPDATE log SET log=? WHERE server_hash=?", (json.dumps(newLog), self.guildHash))
         self.conn.commit()
 
-    def setMyMessage(self, message):
-        self.myMessage = message
-        self.myMessageId = message.id
-        self.c.execute("SELECT messageId FROM myMessages WHERE server_hash=?;", (self.guildHash, ))
+    def setMyMessage(self, message, messageType):
+        if messageType == "log":
+            self.myLogMessageId = message.id
+        else:
+            self.myMessage = message
+            self.myMessageId = message.id
+
+        if messageType == "log":
+            table = "myLogMessages"
+        else:
+            table = "myMessages"
+
+        self.c.execute("SELECT messageId FROM {} WHERE server_hash=?;".format(table), (self.guildHash, ))
         res = self.c.fetchone()
         if res:
-            self.c.execute("UPDATE myMessages SET messageId=? WHERE server_hash=?;", (str(message.id), self.guildHash))
+            self.c.execute("UPDATE {} SET messageId=? WHERE server_hash=?;".format(table), (str(message.id), self.guildHash))
         else:
-            self.c.execute("INSERT INTO myMessages VALUES (?, ?);", (str(message.id), self.guildHash))
+            self.c.execute("INSERT INTO {} VALUES (?, ?);".format(table), (str(message.id), self.guildHash))
 
         self.conn.commit()
