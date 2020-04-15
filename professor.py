@@ -148,7 +148,7 @@ async def updatePinned(myChannel, guild):
         await myLogMessage.edit(content="\n".join(mylog))
         await myLogMessage.clear_reactions()
 
-    except discord.errors.NotFound:
+    except (discord.errors.HTTPException, discord.errors.NotFound):
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
         myMessage = await myChannel.send(content="Notice: all times are in GMT", embed=update)
