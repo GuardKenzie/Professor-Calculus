@@ -308,12 +308,12 @@ async def on_raw_reaction_add(payload):
     # Process pages
     guild = professor.get_guild(payload.guild_id)
     channel = guild.get_channel(payload.channel_id)
-    message = await channel.fetch_message(payload.message_id)
 
     myMessageId = eventsDict[hash(guild)].myMessageId
 
     # If react to me and was someone else
-    if message.id == myMessageId and payload.member != professor.user:
+    if payload.message_id == myMessageId and payload.member != professor.user:
+        message = await channel.fetch_message(payload.message_id)
         # Page down if left arrow
         if payload.emoji.name == leftarrow:
             if eventsDict[hash(guild)].page > 1:
