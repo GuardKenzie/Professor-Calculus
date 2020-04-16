@@ -4,6 +4,7 @@ from discord.ext import commands
 import asyncio
 import random
 import sys
+from datetime import datetime
 import praw
 
 # Mine
@@ -117,13 +118,24 @@ def dictFromMembers(members):
 
 
 async def updatePinned(myChannel, guild):
+    def dform(d):
+        d = datetime.strptime(d, "%m/%d/%y %H:%M:%S")
+        return "`" + datetime.strftime(d, "%a. %H:%M") + "`"
+
     # Updates the pinned event list
     guildHash = hash(guild)
     guildMembers = dictFromMembersName(guild.members)
     update = eventsDict[guildHash].generateEventsMessage(guildMembers)
 
+    mylog = eventsDict[guildHash].getLog()
+    mylog = [dform(u) + "\t" + v for u, v in mylog][-3:]
+
+    if mylog:
+        mylog[0] = ">>> " + mylog[0]
+
     # Find the message
     myMessageId = eventsDict[guildHash].myMessageId
+    myLogMessageId = eventsDict[guildHash].myLogMessageId
 
     # Get my nick
     nick = guild.me.display_name
@@ -132,15 +144,24 @@ async def updatePinned(myChannel, guild):
     try:
         myMessage = await myChannel.fetch_message(myMessageId)
         await myMessage.edit(content="Notice: all times are in GMT", embed=update)
-    except:
+        myLogMessage = await myChannel.fetch_message(myLogMessageId)
+        await myLogMessage.edit(content="\n".join(mylog))
+        await myLogMessage.clear_reactions()
+
+    except (discord.errors.HTTPException, discord.errors.NotFound):
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
         myMessage = await myChannel.send(content="Notice: all times are in GMT", embed=update)
+        myLogMessage = await myChannel.send(content="\n".join(mylog))
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
-        eventsDict[guildHash].setMyMessage(myMessage)
+
+        eventsDict[guildHash].setMyMessage(myMessage, "normal")
+        eventsDict[guildHash].setMyMessage(myLogMessage, "log")
+
         await myMessage.pin()
         await helloMessage.pin()
+        await myLogMessage.pin()
 
 
 async def friendly_notification(e):
@@ -526,7 +547,6 @@ async def schedule(ctx):
             if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
                 if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                     await ctx.channel.purge(check=pcheck)
-                await ctx.channel.send(content=infoMessages["eventCreated"].format(title, time), delete_after=15)
                 eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
             else:
                 if ctx.channel == eventsDict[hash(ctx.guild)].channel:
@@ -558,10 +578,9 @@ async def remove(ctx, *args):
 
         # Check if event id was found and if removal successful
         if eventId and eventsDict[guildHash].removeEvent(eventId):
-            await ctx.channel.send(content=infoMessages["eventRemoved"].format(event["name"]), delete_after=15)
             eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event["name"]))
         else:
-            await ctx.channel.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
+            await ctx.author.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
@@ -575,8 +594,8 @@ async def attend(ctx, *, eventId):
 
     emojis = []
 
-    def check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in emojis
+    def check(payload):
+        return payload.member == ctx.author and str(payload.emoji) in emojis
 
     # Fetch event
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
@@ -602,12 +621,14 @@ async def attend(ctx, *, eventId):
                     rolelist.append(u + ": " + v + limitString)
 
                 rolelist ="\n".join(rolelist)
-                reactMsg = await ctx.channel.send(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
+
+                reactMsg = await ctx.channel.fetch_message(eventsDict[hash(ctx.guild)].myLogMessageId)
+                await reactMsg.edit(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
                 for emoji in emojis:
                     await reactMsg.add_reaction(emoji)
-                reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
-                await reactMsg.delete()
-                role = str(reaction.emoji)
+                payload = await professor.wait_for("raw_reaction_add", check=check, timeout=60)
+                # await reactMsg.delete()
+                role = str(payload.emoji)
         except asyncio.TimeoutError:
             def pcheck(m):
                 return not m.pinned
@@ -619,10 +640,9 @@ async def attend(ctx, *, eventId):
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-        await ctx.channel.send(content=infoMessages["attendSuccess"].format(authorName, event["name"]), delete_after=15)
         eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
-        await ctx.channel.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
+        await ctx.author.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
 
 @professor.command(aliases=["l"])
@@ -641,10 +661,9 @@ async def leave(ctx, *, eventId):
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, False, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-        await ctx.channel.send(content=infoMessages["leaveSuccess"].format(authorName, event["name"]), delete_after=15)
         eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
-        await ctx.channel.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
+        await ctx.author.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
 
 @professor.command(aliases=["u"])
@@ -658,13 +677,12 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
             if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
-                await ctx.channel.send(content=infoMessages["updateSuccess"].format(eventId, toUpdate, newInfo), delete_after=15)
                 eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event["name"], toUpdate, event[toUpdate], newInfo))
 
             else:
-                await ctx.channel.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
+                await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
         else:
-            await ctx.channel.send(content=infoMessages["invalidUpdateField"], delete_after=15)
+            await ctx.author.send(content=infoMessages["invalidUpdateField"], delete_after=15)
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
