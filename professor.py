@@ -967,12 +967,6 @@ async def readycheck(ctx, *users: discord.Member):
 
         return out
 
-    def outmsg():
-        out = "Readycheck!\n>>> ".format(checkmark, wait, cross)
-        for user in users:
-            out = out + userDict[user] + "\t\t\t" + user.display_name + "\n"
-        return out
-
     readyCheckMsg = await ctx.channel.send(embed=outmsg2())
 
     await readyCheckMsg.add_reaction(checkmark)
@@ -992,10 +986,6 @@ async def readycheck(ctx, *users: discord.Member):
         try:
             payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
         except asyncio.TimeoutError:
-            return
-
-        if str(payload.emoji) == cross and payload.member == ctx.author:
-            await readyCheckMsg.delete()
             return
 
         userDict[payload.member] = payload.emoji.name
