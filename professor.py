@@ -940,6 +940,82 @@ async def force_friendly(ctx):
         await msg.delete()
 
 
+@professor.command()
+async def readycheck(ctx, *users: discord.Member):
+    checkmark = "\u2705"
+    cross = "\u274C"
+    wait = "\U0001F552"
+
+    dnames = []
+    for user in users:
+        dnames.append(user.display_name)
+
+    userDict = {}
+
+    for user in users:
+        userDict[user] = ""
+
+    def outmsg2():
+        out = discord.Embed(title="Readycheck!")
+
+        field = []
+
+        for user in users:
+            field.append(userDict[user] + " " + user.display_name)
+
+        out.add_field(name="Members", value="\n".join(field))
+
+        return out
+
+    def outmsg():
+        out = "Readycheck!\n>>> ".format(checkmark, wait, cross)
+        for user in users:
+            out = out + userDict[user] + "\t\t\t" + user.display_name + "\n"
+        return out
+
+    readyCheckMsg = await ctx.channel.send(embed=outmsg2())
+
+    await readyCheckMsg.add_reaction(checkmark)
+    await readyCheckMsg.add_reaction(wait)
+    await readyCheckMsg.add_reaction(cross)
+
+    def check(payload):
+        emojis = [checkmark, cross, wait]
+        if payload.emoji.name in emojis and payload.member in users and payload.message_id == readyCheckMsg.id:
+            return True
+        else:
+            return False
+
+    count = 0
+
+    while count < len(users):
+        try:
+            payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
+        except asyncio.TimeoutError:
+            return
+
+        if str(payload.emoji) == cross and payload.member == ctx.author:
+            await readyCheckMsg.delete()
+            return
+
+        userDict[payload.member] = payload.emoji.name
+
+        await readyCheckMsg.edit(embed=outmsg2())
+
+        count = 0
+        for emoji in userDict.values():
+            if emoji == checkmark:
+                count += 1
+
+    await readyCheckMsg.delete()
+    await ctx.message.delete()
+
+    mentionstr = ""
+    for user in users:
+        mentionstr = mentionstr + user.mention + " "
+
+    await ctx.channel.send(content=mentionstr + "\n Everyone is ready")
+
 # --- Soundboard ---
 
 async def playFromSoundboard(ctx, name):
