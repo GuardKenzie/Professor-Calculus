@@ -946,7 +946,7 @@ async def readycheck(ctx, *args):
     cross = "\u274C"
     wait = "\U0001F552"
 
-    if len(args == 0):
+    if len(args) == 0:
         await ctx.author.send(content="Your command `p? readycheck` failed. Too few arguments!")
         return
     elif all(isinstance(x, discord.User) for x in args):
