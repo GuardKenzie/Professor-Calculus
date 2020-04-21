@@ -1018,10 +1018,6 @@ async def readycheck(ctx, *args):
     await ctx.channel.send(content=mentionstr + "\n Everyone is ready")
 
 
-@professor.command()
-async def readycheck(ctx, role: discord.Role):
-    return
-
 # --- Soundboard ---
 
 async def playFromSoundboard(ctx, name):
