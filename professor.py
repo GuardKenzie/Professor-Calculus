@@ -940,22 +940,30 @@ async def force_friendly(ctx):
         await msg.delete()
 
 
+def readycheckRole(role: discord.Role):
+    return role.members
+
+
+def readycheckUsers(*users: discord.User):
+    return users
+
+
 @professor.command()
 async def readycheck(ctx, *args):
     checkmark = "\u2705"
     cross = "\u274C"
     wait = "\U0001F552"
 
-    if len(args) == 0:
-        await ctx.author.send(content="Your command `p? readycheck` failed. Too few arguments!")
-        return
-    elif all(isinstance(x, discord.User) for x in args):
-        users = args
-    elif isinstance(args[0], discord.Role) and len(args) == 1:
-        users = args[0].members
-    else:
-        await ctx.author.send(content="Your command `p? readycheck` failed. Invalid argument!")
-        return
+    users = []
+
+    try:
+        memconv = discord.ext.commands.MemberConverter()
+        for user in args:
+            users.append(await memconv.convert(ctx, user))
+    except discord.ext.commands.CommandError:
+        roleconv = discord.ext.commands.RoleConverter()
+        role = await roleconv.convert(ctx, args[0])
+        users = role.members
 
     dnames = []
     for user in users:
