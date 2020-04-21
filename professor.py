@@ -941,10 +941,21 @@ async def force_friendly(ctx):
 
 
 @professor.command()
-async def readycheck(ctx, *users: discord.Member):
+async def readycheck(ctx, *args):
     checkmark = "\u2705"
     cross = "\u274C"
     wait = "\U0001F552"
+
+    if len(args == 0):
+        await ctx.author.send(content="Your command `p? readycheck` failed. Too few arguments!")
+        return
+    elif all(isinstance(x, discord.User) for x in args):
+        users = args
+    elif isinstance(args[0], discord.Role) and len(args) == 1:
+        users = args[0].members
+    else:
+        await ctx.author.send(content="Your command `p? readycheck` failed. Invalid argument!")
+        return
 
     dnames = []
     for user in users:
@@ -1005,6 +1016,11 @@ async def readycheck(ctx, *users: discord.Member):
         mentionstr = mentionstr + user.mention + " "
 
     await ctx.channel.send(content=mentionstr + "\n Everyone is ready")
+
+
+@professor.command()
+async def readycheck(ctx, role: discord.Role):
+    return
 
 # --- Soundboard ---
 
