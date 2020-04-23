@@ -276,7 +276,6 @@ async def notification_loop():
 
             # Check every guild for notifications
             eventOut = eventsDict[hash(guild)].checkIfNotification()
-            print(eventOut)
             for e in eventOut:
                 # If there is a notification, send it and update events list
                 try:
