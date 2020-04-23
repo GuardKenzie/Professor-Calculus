@@ -86,11 +86,32 @@ def checkadmin(ctx):
     return False
 
 
-def eventChannelCheck(ctx):
-    if isinstance(ctx.channel, discord.abc.GuildChannel):
+def delperm(ctx):
+    return ctx.channel.permissions_for(ctx.guild.me).manage_messages
+
+
+async def notEventChannelCheck(ctx):
+    if isinstance(ctx.channel, discord.abc.GuildChannel) and hash(ctx.guild) in eventsDict.keys():
         return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
     else:
-        return True
+        await ctx.author.send(content="You cannot use this command here.")
+        return False
+
+
+async def eventChannelCheck(ctx):
+    if isinstance(ctx.channel, discord.abc.GuildChannel) and hash(ctx.guild) in eventsDict.keys():
+        if eventsDict[hash(ctx.guild)].channel is None:
+            await ctx.author.send(content="I have not yet been assigned an `events` channel. Please assign me to an `events` channel with the `setChannel` command.")
+            return
+        if ctx.channel.id == eventsDict[hash(ctx.guild)].getMyChannelId("events"):
+            if not delperm(ctx):
+                await ctx.author.send(content="I need permission to manage messages in my events channel.")
+                return False
+            return True
+        else:
+            await ctx.author.send(content="You need to be in the events channel to do that.")
+    else:
+        return False
 
 
 def isScheduler(ctx):
@@ -118,6 +139,9 @@ def dictFromMembers(members):
 
 
 async def updatePinned(myChannel, guild):
+    if myChannel == None:
+        return
+
     def dform(d):
         d = datetime.strptime(d, "%m/%d/%y %H:%M:%S")
         return "`" + datetime.strftime(d, "%a. %H:%M") + "`"
@@ -132,6 +156,8 @@ async def updatePinned(myChannel, guild):
 
     if mylog:
         mylog[0] = ">>> " + mylog[0]
+    else:
+        mylog = [">>> The log is empty"]
 
     # Find the message
     myMessageId = eventsDict[guildHash].myMessageId
@@ -197,13 +223,19 @@ async def event_notification(e):
     attendants = []
 
     # Create event role
-    eventRole = await channel.guild.create_role(name="event", mentionable=True)
-    mention = eventRole.mention
+    try:
+        eventRole = await channel.guild.create_role(name="event", mentionable=True)
+        mention = eventRole.mention
+    except discord.errors.Forbidden:
+        mention = ""
+        eventRole = 0
 
     # Get names of attendants and give them the event role
     for member in event["people"]:
         attendants.append(str(event["rolesdict"][member]) + " " + str(guildMembers[member].display_name))
-        await guildMembers[member].add_roles(eventRole)
+
+        if eventRole != 0:
+            await guildMembers[member].add_roles(eventRole)
 
     if len(attendants) == 0:
         attendants = ["Nobody :("]
@@ -226,7 +258,9 @@ async def event_notification(e):
     message.add_field(name="When?", value=event["date"])
     message.add_field(name="Party " + limitstr, value="\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
-    await eventRole.delete()
+
+    if eventRole != 0:
+        await eventRole.delete()
 
 
 async def notification_loop():
@@ -236,15 +270,23 @@ async def notification_loop():
         # Check every 60s
         await asyncio.sleep(60)
         for guild in professor.guilds:
+
+            if eventsDict[hash(guild)].channel is None:
+                continue
+
             # Check every guild for notifications
             eventOut = eventsDict[hash(guild)].checkIfNotification()
+            print(eventOut)
             for e in eventOut:
                 # If there is a notification, send it and update events list
-                if e["friendly"]:
-                    await friendly_notification(e)
-                else:
-                    await updatePinned(eventsDict[hash(guild)].channel, guild)
-                    await event_notification(e)
+                try:
+                    if e["friendly"]:
+                        await friendly_notification(e)
+                    else:
+                        await updatePinned(eventsDict[hash(guild)].channel, guild)
+                        await event_notification(e)
+                except:
+                    continue
 
 # ==========================================
 # Bot events
@@ -267,7 +309,10 @@ async def on_ready():
 
         # Find my channel
         myChannelId = eventsDict[guildHash].getMyChannelId("events")
-        myChannel = guild.get_channel(myChannelId)
+        if myChannelId != 0:
+            myChannel = guild.get_channel(myChannelId)
+        else:
+            myChannel = 0
 
         print("Cid:\t\t\t{}".format(myChannelId))
 
@@ -294,7 +339,7 @@ async def on_command_completion(ctx):
         guildHash = hash(ctx.guild)
 
         # Update pinned list if command is for event
-        if ctx.command.name in eventCommands:
+        if ctx.command.name in eventCommands and guildHash in eventsDict.keys():
             await updatePinned(eventsDict[guildHash].channel, ctx.guild)
 
 
@@ -322,6 +367,8 @@ async def on_message(message):
             await message.delete()
         except discord.errors.NotFound:
             pass
+        except discord.errors.Forbidden:
+            pass
 
 
 @professor.event
@@ -334,19 +381,22 @@ async def on_raw_reaction_add(payload):
 
     # If react to me and was someone else
     if payload.message_id == myMessageId and payload.member != professor.user:
-        message = await channel.fetch_message(payload.message_id)
-        # Page down if left arrow
-        if payload.emoji.name == leftarrow:
-            if eventsDict[hash(guild)].page > 1:
-                eventsDict[hash(guild)].page -= 1
-            await updatePinned(eventsDict[hash(guild)].channel, guild)
-            await message.remove_reaction(payload.emoji, payload.member)
+        try:
+            message = await channel.fetch_message(payload.message_id)
+            # Page down if left arrow
+            if payload.emoji.name == leftarrow:
+                if eventsDict[hash(guild)].page > 1:
+                    eventsDict[hash(guild)].page -= 1
+                await updatePinned(eventsDict[hash(guild)].channel, guild)
+                await message.remove_reaction(payload.emoji, payload.member)
 
-        # Page up if rightarrow
-        elif payload.emoji.name == rightarrow:
-            eventsDict[hash(guild)].page += 1
-            await updatePinned(eventsDict[hash(guild)].channel, guild)
-            await message.remove_reaction(payload.emoji, payload.member)
+            # Page up if rightarrow
+            elif payload.emoji.name == rightarrow:
+                eventsDict[hash(guild)].page += 1
+                await updatePinned(eventsDict[hash(guild)].channel, guild)
+                await message.remove_reaction(payload.emoji, payload.member)
+        except discord.errors.Forbidden:
+            return
 
 
 @professor.event
@@ -374,43 +424,59 @@ async def setup(ctx):
     # Initiate Events class for guild
 
     # Delete message
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.errors.Forbidden:
+        pass
 
     # Get nickname
     nick = ctx.guild.me.display_name
 
     # Create category and channel
-    category = await ctx.guild.create_category("Events")
-    channel = await ctx.guild.create_text_channel("events", category=category)
+    try:
+        category = await ctx.guild.create_category("Events")
+        channel = await ctx.guild.create_text_channel("events", category=category)
 
-    await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+        await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+
+    except discord.errors.Forbidden:
+        await ctx.author.send(content=infoMessages["cannotCreateEventsChannel"].format(prefix))
 
     # Create scheduler rank and let owner know
-    await ctx.guild.create_role(name="Scheduler")
-    await ctx.author.send(content=infoMessages["schedulerMessage"])
+    try:
+        await ctx.guild.create_role(name="Scheduler")
+        await ctx.author.send(content=infoMessages["schedulerMessage"])
+    except discord.errors.Forbidden:
+        await ctx.author.send(content=infoMessages["cannotCreateSchedulerRole"])
 
     # Initiate Events class
-    eventsDict[hash(ctx.guild)].channel = channel
-    eventsDict[hash(ctx.guild)].myMessage = None
-    eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
+    try:
+        eventsDict[hash(ctx.guild)].channel = channel
+        eventsDict[hash(ctx.guild)].myMessage = None
+        eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
+    except NameError:
+        return
 
     # Update pinned
     await updatePinned(channel, ctx.guild)
 
 
-@professor.command(checks=[eventChannelCheck])
+@professor.command(checks=[notEventChannelCheck])
 async def setChannel(ctx, channelType):
     if channelType not in ["events", "friendly"]:
-        await ctx.message.delete()
         await ctx.author.send(content="{} is not a valid channel type.".format(channelType))
         return
 
-    if ctx.author == ctx.guild.owner or ctx.author.id == "197471216594976768":
+    if checkadmin(ctx):
 
         def check(m):
             return (m.content == "yes" or m.content == "no") and m.channel == ctx.channel and m.author == ctx.author
 
         if (channelType == "events"):
+            if not delperm(ctx):
+                await ctx.author.send(content=infoMessages["cannotManageMessages"])
+                return
+
             confirmMsg = await ctx.channel.send(content=infoMessages["confirmEventsChannel"])
             confirmReply = await professor.wait_for("message", check=check)
             confirm = confirmReply.content == "yes"
@@ -427,12 +493,15 @@ async def setChannel(ctx, channelType):
             await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
             eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
 
-    await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except (discord.errors.Forbidden, discord.errors.NotFound):
+            pass
 
 # --- Events ---
 
 
-@professor.command(aliases=["s"])
+@professor.command(aliases=["s"], checks=[eventChannelCheck])
 async def schedule(ctx):
     channel = ctx.channel
     author = ctx.author
@@ -562,7 +631,7 @@ async def schedule(ctx):
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
 
-@professor.command(aliases=["r"])
+@professor.command(aliases=["r"], checks=[eventChannelCheck])
 async def remove(ctx, *args):
     # Remove an event
     # command syntax: remove [eventId]
@@ -585,7 +654,7 @@ async def remove(ctx, *args):
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
 
-@professor.command(aliases=["a"])
+@professor.command(aliases=["a"], checks=[eventChannelCheck])
 async def attend(ctx, *, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
@@ -645,7 +714,7 @@ async def attend(ctx, *, eventId):
         await ctx.author.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
 
-@professor.command(aliases=["l"])
+@professor.command(aliases=["l"], checks=[eventChannelCheck])
 async def leave(ctx, *, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
@@ -666,7 +735,7 @@ async def leave(ctx, *, eventId):
         await ctx.author.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
 
-@professor.command(aliases=["u"])
+@professor.command(aliases=["u"], checks=[eventChannelCheck])
 async def update(ctx, eventId, toUpdate, *, newInfo):
     # Updates eventId description or name to newInfo
     # Command syntax: update [eventId] [to update] [new info]
@@ -686,10 +755,32 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     else:
         await ctx.author.send(content=infoMessages["userNotScheduler"])
 
+
+@professor.command(checks=[checkadmin, eventChannelCheck], aliases=["k", "puntcunt"])
+async def kick(ctx, userToKick: discord.Member, eventId):
+    # Leave an event
+    # Command syntax: leave [eventId]
+
+    uid = userToKick.id
+    print(uid)
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    try:
+        role = event["rolesdict"][uid]
+    except KeyError:
+        role = ""
+
+    # Leave event and check for success
+    if eventsDict[hash(ctx.guild)].attendEvent(eventId, uid, False, role=role):
+        event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name, event["name"]))
+    else:
+        await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event["name"]))
+
+
 # --- Misc ---
 
 
-@professor.command(checks=[eventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
+@professor.command(checks=[notEventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
 async def eyebleach(ctx):
     subreddit = reddit.subreddit("eyebleach")
 
@@ -717,27 +808,6 @@ async def eyebleach(ctx):
     # await ctx.channel.send(content="From https://reddit.com/r/eyebleach", embed=embed)
 
 
-@professor.command(checks=[checkadmin], aliases=["k", "puntcunt"])
-async def kick(ctx, userToKick: discord.Member, eventId):
-    # Leave an event
-    # Command syntax: leave [eventId]
-
-    uid = userToKick.id
-    print(uid)
-    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
-    try:
-        role = event["rolesdict"][uid]
-    except KeyError:
-        role = ""
-
-    # Leave event and check for success
-    if eventsDict[hash(ctx.guild)].attendEvent(eventId, uid, False, role=role):
-        event = eventsDict[hash(ctx.guild)].getEvent(eventId)
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name, event["name"]))
-    else:
-        await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event["name"]))
-
-
 @professor.command()
 async def help(ctx, *, cmd="none"):
     message = helper.helpCmd(prefix, cmd)
@@ -759,19 +829,19 @@ async def roll(ctx, *, names):
     await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
 
 
-@professor.command(checks=[eventChannelCheck])
+@professor.command(checks=[notEventChannelCheck])
 async def sorry(ctx):
     await ctx.channel.send(content="Oh, that's alright {}. Don't worry about it ^^".format(ctx.author.display_name))
 
 
-@professor.command(checks=[eventChannelCheck], aliases=["orangejuice", "applejuice", "juice", "akidrugs"])
+@professor.command(checks=[notEventChannelCheck], aliases=["orangejuice", "applejuice", "juice", "akidrugs"])
 async def oj(ctx):
     with open("res/oj.png", "rb") as f:
         oj = discord.File(f, filename="High quality oj.png")
     await ctx.channel.send(file=oj)
 
 
-@professor.command(checks=[eventChannelCheck], aliases=["trúðagrín"])
+@professor.command(checks=[notEventChannelCheck], aliases=["trúðagrín"])
 async def clowntime(ctx):
     await ctx.channel.send(content=":o)")
 
@@ -789,7 +859,7 @@ async def clean(ctx):
         await checkmsg.delete()
 
 
-@professor.command(checks=[eventChannelCheck], aliases=["raidfrens", "plsrespec"])
+@professor.command(checks=[notEventChannelCheck], aliases=["raidfrens", "plsrespec"])
 async def respecraid(ctx):
     with open("res/raidfrens.png", "rb") as f:
         frens = discord.File(f, filename="raidfrens.png")
@@ -798,7 +868,7 @@ async def respecraid(ctx):
 # --- Salt ---
 
 
-@professor.command(checks=[eventChannelCheck])
+@professor.command(checks=[notEventChannelCheck])
 async def salt(ctx):
     # Get a random nugg and increment count
     username = ctx.author.display_name
@@ -810,7 +880,7 @@ async def salt(ctx):
     await ctx.send("{} has now had {} salty nuggs!".format(username, count))
 
 
-@professor.command(checks=[eventChannelCheck])
+@professor.command(checks=[notEventChannelCheck])
 async def saltboard(ctx):
     # Display leaderboard of salt
     board = saltWraper.getCookieBoard(ctx.guild)
@@ -839,10 +909,9 @@ async def on_voice_state_update(member, before, after):
             break
 
 
-@professor.group()
+@professor.group(checks=[notEventChannelCheck])
 async def chill(ctx):
     if ctx.invoked_subcommand is None:
-        await ctx.message.delete()
         try:
             vc = ctx.message.author.voice.channel
             s = await vc.connect()
@@ -854,11 +923,15 @@ async def chill(ctx):
             await ctx.author.send(content="You have to be on voice to do that")
         except discord.ClientException:
             await ctx.author.send(content="Sorry, I'm already connected to a voice channel.")
+        except discord.errors.Forbidden:
+            await ctx.author.send(content="I do not have permission to use voice chat.")
+
+    if delperm(ctx):
+        await ctx.message.delete()
 
 
 @chill.command()
 async def stop(ctx):
-    await ctx.message.delete()
     try:
         authorvc = ctx.message.author.voice.channel
         for i in professor.voice_clients:
@@ -888,7 +961,6 @@ async def volume(ctx, v):
             await ctx.send("Please give a volume between 0 and 100")
     except TypeError:
         await ctx.send("Please give a volume between 0 and 100")
-    await ctx.message.delete()
 
 # --- Log ---
 
@@ -902,7 +974,9 @@ async def log(ctx):
         embed.add_field(name=e[0], value=e[1], inline=False)
 
     await ctx.author.send(embed=embed, delete_after=300)
-    await ctx.message.delete()
+
+    if delperm(ctx):
+        await ctx.message.delete()
 
 # --- Maintenance ---
 
@@ -940,41 +1014,44 @@ async def force_friendly(ctx):
         await msg.delete()
 
 
-def readycheckRole(role: discord.Role):
-    return role.members
-
-
-def readycheckUsers(*users: discord.User):
-    return users
-
-
 @professor.command()
 async def readycheck(ctx, *args):
+    # Emojis
     checkmark = "\u2705"
     cross = "\u274C"
     wait = "\U0001F552"
 
     users = []
 
+    usingRole = True
+
+    # Convert arguments to members or role
     try:
+        # Try to convert to members
         memconv = discord.ext.commands.MemberConverter()
         for user in args:
             users.append(await memconv.convert(ctx, user))
+        usingRole = False
+
     except discord.ext.commands.CommandError:
+        # If args are not members, try to convert to a role
         roleconv = discord.ext.commands.RoleConverter()
         role = await roleconv.convert(ctx, args[0])
         users = role.members
 
+    # Get the display names of all the users
     dnames = []
     for user in users:
         dnames.append(user.display_name)
 
+    # Initialize dictionary for status of each user
     userDict = {}
 
     for user in users:
         userDict[user] = ""
 
-    def outmsg2():
+    def outmsg():
+        # Function to generate the ready check embed list
         out = discord.Embed(title="Readycheck!")
 
         field = []
@@ -986,42 +1063,60 @@ async def readycheck(ctx, *args):
 
         return out
 
-    readyCheckMsg = await ctx.channel.send(embed=outmsg2())
+    # Post the readycheck
+    readyCheckMsg = await ctx.channel.send(embed=outmsg())
 
+    # Add reactions to the message
     await readyCheckMsg.add_reaction(checkmark)
     await readyCheckMsg.add_reaction(wait)
     await readyCheckMsg.add_reaction(cross)
 
     def check(payload):
+        # Check if reaction is of a valid type
+        # and that the user who reacted is in the list of users
         emojis = [checkmark, cross, wait]
         if payload.emoji.name in emojis and payload.member in users and payload.message_id == readyCheckMsg.id:
             return True
         else:
             return False
 
+    # Loop until everyone is ready
     count = 0
 
     while count < len(users):
         try:
+            # Wait for a reaction
             payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
         except asyncio.TimeoutError:
-            return
+            # After 24h timeout and try to delete the readycheck
+            try:
+                await readyCheckMsg.delete()
+            except discord.errors.NotFound:
+                return
 
+        # Set the status of the member who reacted to the emoji reacted with
         userDict[payload.member] = payload.emoji.name
 
-        await readyCheckMsg.edit(embed=outmsg2())
+        # Update message
+        await readyCheckMsg.edit(embed=outmsg())
 
+        # Count how many members are ready
         count = 0
         for emoji in userDict.values():
             if emoji == checkmark:
                 count += 1
 
-    await readyCheckMsg.delete()
-    await ctx.message.delete()
+    # Delete command and readycheck list and let people know everyone is ready
+    if delperm(ctx):
+        await readyCheckMsg.delete()
+        await ctx.message.delete()
 
-    mentionstr = ""
-    for user in users:
-        mentionstr = mentionstr + user.mention + " "
+    if not usingRole:
+        mentionstr = ""
+        for user in users:
+            mentionstr = mentionstr + user.mention + " "
+    else:
+        mentionstr = role.mention
 
     await ctx.channel.send(content=mentionstr + "\n Everyone is ready")
 
@@ -1046,6 +1141,8 @@ async def playFromSoundboard(ctx, name):
             await ctx.author.send(content="You need to be connected to voice chat to do that!")
         except discord.ClientException:
             await ctx.author.send(content="Sorry, I'm already connected to a voice channel.")
+        except discord.errors.Forbidden:
+            await ctx.author.send(content="I do not have permission to use voice chat.")
     else:
         await ctx.author.send(content="No such sound `{}`. Notice that sound names are cases sensitive.".format(name))
 
@@ -1092,15 +1189,17 @@ async def soundboard(ctx):
         # Bíða eftir vali
         try:
             reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
-            await msg.delete()
-            await ctx.message.delete()
+            if delperm(ctx):
+                await msg.delete()
+                await ctx.message.delete()
 
             if (reaction.emoji != x):
                 await playFromSoundboard(ctx, emoji_dict[reaction.emoji])
 
         except asyncio.TimeoutError:
-            await msg.delete()
-            await ctx.message.delete()
+            if delperm(ctx):
+                await msg.delete()
+                await ctx.message.delete()
 
 
 @soundboard.command(checks=[isScheduler], aliases=["a"])
@@ -1141,14 +1240,17 @@ async def remove(ctx, name):
         await ctx.channel.send(content="Sound `{}` successfully removed.".format(name), delete_after=60)
     else:
         await ctx.author.send(content="Could not remove `{}`. Please verify that the name is correct.".format(name))
-    await ctx.message.delete()
+    if delperm(ctx):
+        await ctx.message.delete()
 
 
 @soundboard.command(aliases=["p"])
 async def play(ctx, name):
     # Spila hljóð
     await playFromSoundboard(ctx, name)
-    await ctx.message.delete()
+
+    if delperm(ctx):
+        await ctx.message.delete()
 
 
 # Start bot

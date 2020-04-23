@@ -373,7 +373,7 @@ class Events():
         self.c.execute("SELECT * FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash, channelType))
 
         # Check if I have a channel id
-        if len(self.c.fetchall()) > 0:
+        if self.c.fetchone():
             self.c.execute("UPDATE myChannels SET channelId=? WHERE guildHash=? AND channelType=?;", (channelId, self.guildHash, channelType))
         else:
             self.c.execute("INSERT INTO myChannels (guildHash, channelId, channelType) VALUES (?, ?, ?);", (self.guildHash, channelId, channelType))
@@ -385,7 +385,7 @@ class Events():
         # Check if I have a channel and return
         self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash, channelType))
         res = self.c.fetchone()
-        if len(res) > 0:
+        if res is not None:
             return res[0]
         else:
             return 0
