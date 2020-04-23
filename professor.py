@@ -374,25 +374,51 @@ async def setup(ctx):
     # Initiate Events class for guild
 
     # Delete message
-    await ctx.message.delete()
+    try:
+        await ctx.message.delete()
+    except discord.errors.Forbidden:
+        pass
 
     # Get nickname
     nick = ctx.guild.me.display_name
 
     # Create category and channel
-    category = await ctx.guild.create_category("Events")
-    channel = await ctx.guild.create_text_channel("events", category=category)
+    try:
+        category = await ctx.guild.create_category("Events")
+        channel = await ctx.guild.create_text_channel("events", category=category)
 
-    await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+        await channel.send(content=infoMessages["helloMessage"].format(nick, prefix))
+
+    except discord.errors.Forbidden:
+        await ctx.author.send(content="I do not have permission to create my \
+                                       events channel. Please manually create \
+                                       a channel for events and set it as my \
+                                       channel with `{} setChannel events`. \
+                                       Make sure I have permission to manage \
+                                       messages in my events channel.".format(prefix))
 
     # Create scheduler rank and let owner know
-    await ctx.guild.create_role(name="Scheduler")
-    await ctx.author.send(content=infoMessages["schedulerMessage"])
+    try:
+        await ctx.guild.create_role(name="Scheduler")
+        await ctx.author.send(content=infoMessages["schedulerMessage"])
+    except discord.errors.Forbidden:
+        await ctx.author.send(content="I do not have permission to create \
+                                       roles. If you want certain users \
+                                       (other than ones with the \
+                                       `administrator` permission) to be \
+                                       able to manage events, please \
+                                       manually create a role called \
+                                       `Scheduler` and assign it to any \
+                                       users who should be able to manage\
+                                       events.")
 
     # Initiate Events class
-    eventsDict[hash(ctx.guild)].channel = channel
-    eventsDict[hash(ctx.guild)].myMessage = None
-    eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
+    try:
+        eventsDict[hash(ctx.guild)].channel = channel
+        eventsDict[hash(ctx.guild)].myMessage = None
+        eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, "events")
+    except NameError:
+        return
 
     # Update pinned
     await updatePinned(channel, ctx.guild)
@@ -401,11 +427,14 @@ async def setup(ctx):
 @professor.command(checks=[eventChannelCheck])
 async def setChannel(ctx, channelType):
     if channelType not in ["events", "friendly"]:
-        await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except discord.errors.Forbidden:
+            pass
         await ctx.author.send(content="{} is not a valid channel type.".format(channelType))
         return
 
-    if ctx.author == ctx.guild.owner or ctx.author.id == "197471216594976768":
+    if checkadmin(ctx):
 
         def check(m):
             return (m.content == "yes" or m.content == "no") and m.channel == ctx.channel and m.author == ctx.author
