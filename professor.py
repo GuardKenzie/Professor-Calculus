@@ -950,31 +950,42 @@ def readycheckUsers(*users: discord.User):
 
 @professor.command()
 async def readycheck(ctx, *args):
+    # Emojis
     checkmark = "\u2705"
     cross = "\u274C"
     wait = "\U0001F552"
 
     users = []
 
+    usingRole = True
+
+    # Convert arguments to members or role
     try:
+        # Try to convert to members
         memconv = discord.ext.commands.MemberConverter()
         for user in args:
             users.append(await memconv.convert(ctx, user))
+        usingRole = False
+
     except discord.ext.commands.CommandError:
+        # If args are not members, try to convert to a role
         roleconv = discord.ext.commands.RoleConverter()
         role = await roleconv.convert(ctx, args[0])
         users = role.members
 
+    # Get the display names of all the users
     dnames = []
     for user in users:
         dnames.append(user.display_name)
 
+    # Initialize dictionary for status of each user
     userDict = {}
 
     for user in users:
         userDict[user] = ""
 
-    def outmsg2():
+    def outmsg():
+        # Function to generate the ready check embed list
         out = discord.Embed(title="Readycheck!")
 
         field = []
@@ -986,42 +997,59 @@ async def readycheck(ctx, *args):
 
         return out
 
-    readyCheckMsg = await ctx.channel.send(embed=outmsg2())
+    # Post the readycheck
+    readyCheckMsg = await ctx.channel.send(embed=outmsg())
 
+    # Add reactions to the message
     await readyCheckMsg.add_reaction(checkmark)
     await readyCheckMsg.add_reaction(wait)
     await readyCheckMsg.add_reaction(cross)
 
     def check(payload):
+        # Check if reaction is of a valid type
+        # and that the user who reacted is in the list of users
         emojis = [checkmark, cross, wait]
         if payload.emoji.name in emojis and payload.member in users and payload.message_id == readyCheckMsg.id:
             return True
         else:
             return False
 
+    # Loop until everyone is ready
     count = 0
 
     while count < len(users):
         try:
+            # Wait for a reaction
             payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
         except asyncio.TimeoutError:
-            return
+            # After 24h timeout and try to delete the readycheck
+            try:
+                await readyCheckMsg.delete()
+            except discord.errors.NotFound:
+                return
 
+        # Set the status of the member who reacted to the emoji reacted with
         userDict[payload.member] = payload.emoji.name
 
-        await readyCheckMsg.edit(embed=outmsg2())
+        # Update message
+        await readyCheckMsg.edit(embed=outmsg())
 
+        # Count how many members are ready
         count = 0
         for emoji in userDict.values():
             if emoji == checkmark:
                 count += 1
 
+    # Delete command and readycheck list and let people know everyone is ready
     await readyCheckMsg.delete()
     await ctx.message.delete()
 
-    mentionstr = ""
-    for user in users:
-        mentionstr = mentionstr + user.mention + " "
+    if not usingRole:
+        mentionstr = ""
+        for user in users:
+            mentionstr = mentionstr + user.mention + " "
+    else:
+        mentionstr = role.mention
 
     await ctx.channel.send(content=mentionstr + "\n Everyone is ready")
 
