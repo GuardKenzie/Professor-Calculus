@@ -139,7 +139,7 @@ def dictFromMembers(members):
 
 
 async def updatePinned(myChannel, guild):
-    if myChannel == None:
+    if myChannel is None:
         return
 
     def dform(d):
@@ -212,7 +212,6 @@ async def friendly_notification(e):
 async def event_notification(e):
     # Parse event
     event = e["event"]
-    date = e["date"]
     channel = e["channel"]
     color = e["color"]
     now = e["now"]
@@ -657,7 +656,6 @@ async def remove(ctx, *args):
 async def attend(ctx, *, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
-    authorName = ctx.author.display_name
     role = ""
 
     emojis = []
@@ -684,11 +682,11 @@ async def attend(ctx, *, eventId):
                 role = ""
             else:
                 rolelist = []
-                for u,v,z in event["roles"]:
+                for u, v, z in event["roles"]:
                     limitString = " ({}/{})".format(event["rolelimits"][u], z) if z != 0 else ""
                     rolelist.append(u + ": " + v + limitString)
 
-                rolelist ="\n".join(rolelist)
+                rolelist = "\n".join(rolelist)
 
                 reactMsg = await ctx.channel.fetch_message(eventsDict[hash(ctx.guild)].myLogMessageId)
                 await reactMsg.edit(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
@@ -717,7 +715,6 @@ async def attend(ctx, *, eventId):
 async def leave(ctx, *, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
-    authorName = ctx.author.display_name
 
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     try:
@@ -1250,6 +1247,19 @@ async def play(ctx, name):
 
     if delperm(ctx):
         await ctx.message.delete()
+
+
+@soundboard.command(aliases=["rn"])
+async def rename(ctx, oldname, newname):
+    result = soundBoardDict[hash(ctx.guild)].renameSound(oldname, newname)
+    if result == 1:
+        await ctx.channel.send(content="Sound `{}` renamed to `{}`.".format(oldname, newname), delete_after=60)
+    elif result == -1:
+        await ctx.author.send(content="Unknown sound: `{}`. Notice that sound names are case sensitive.".format(oldname))
+    elif result == -2:
+        await ctx.author.send(content="The sound `{}` already exists.".format(newname))
+    else:
+        await ctx.author.send(content="Could not rename sound `{}` to `{}` for an unknown reason.".format(oldname, newname))
 
 
 # Start bot

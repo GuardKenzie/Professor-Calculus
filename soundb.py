@@ -48,3 +48,23 @@ class SoundBoard():
         self.updateDict()
 
         return True
+
+    def renameSound(self, oldname, newname):
+        if oldname in self.soundDict.keys() and newname not in self.soundDict.keys():
+            # Oldname exists and newname does not
+            aux = self.soundDict[oldname]
+            del self.soundDict[oldname]
+            self.soundDict[newname] = aux
+            return 1
+
+        elif newname in self.soundDict.keys():
+            # Error code if newname already exists
+            return -2
+
+        elif oldname not in self.soundDict.keys():
+            # Error code if oldname already exists
+            return -1
+
+        else:
+            # You should not reach this point
+            return 0
