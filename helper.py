@@ -26,6 +26,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="soundboard add", value="Add a new sound.", inline=False)
         msg.add_field(name="soundboard remove", value="Remove a sound.", inline=False)
         msg.add_field(name="soundboard play", value="Play a sound.", inline=False)
+        msg.add_field(name="soundboard rename", value="Rename a sound.", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule")
@@ -106,6 +107,9 @@ def helpCmd(prefix, cmd):
         elif cmd == "soundboard play":
             msg = discord.Embed(title="soundboard play [name]")
             msg.add_field(name="[name]", value="The name of the sound to play.", inline=False)
+        elif cmd == "soundboard play":
+            msg = discord.Embed(title="soundboard rename [oldname] [newname]")
+            msg.add_field(name="\u200b", value="Renames the sound `[oldname]` to `[newname]`.", inline=False)
         else:
             return -1
     return msg
