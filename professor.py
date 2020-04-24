@@ -6,6 +6,10 @@ import random
 import sys
 from datetime import datetime
 import praw
+import wolframalpha
+import urllib.request
+import io
+from PIL import Image
 
 # Mine
 import events
@@ -71,6 +75,11 @@ with open("reddit", "r") as f:
     reddit = praw.Reddit(client_id=r_id,
                          client_secret=r_secret,
                          user_agent=r_ua)
+
+# Wolfram
+with open("wolfram", "r") as f:
+    wa_app_id = f.readline().strip()
+    wolf = wolframalpha.Client(wa_app_id)
 
 # ==========================================
 # Functions
@@ -860,6 +869,44 @@ async def respecraid(ctx):
     with open("res/raidfrens.png", "rb") as f:
         frens = discord.File(f, filename="raidfrens.png")
     await ctx.channel.send(file=frens, content="raid frens pls respec")
+
+
+@professor.command()
+async def calculate(ctx, *, query):
+    # Get the results of the query
+    res = wolf.query(query)
+    if res.success == "true":
+        for pod in res.pods:
+            if pod.primary:
+                for sub in pod.subpods:
+                    if "img" in sub.keys():
+                        img = sub["img"]["@src"]
+
+        # Read the primary image
+        img = io.BytesIO(urllib.request.urlopen(img).read())
+
+        # Add a border to the image
+        img = Image.open(img)
+
+        width, height = img.size
+
+        bg = Image.new("RGB", (width + 30, height + 30), (255, 255, 255))
+        bg.paste(img, (15, 15))
+
+        img = io.BytesIO()
+
+        bg.save(img, "PNG")
+        img.seek(0)
+
+        # Read the image to a discord file object
+        img = discord.File(img, filename="result.png")
+
+        # Send results
+        await ctx.channel.send(content=query.capitalize(), file=img)
+
+    else:
+        await ctx.author.send(content="Your query `{}` failed for some reason. Maybe wolfram alpha does not unterstand your query.".format(query))
+
 
 # --- Salt ---
 
