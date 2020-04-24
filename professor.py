@@ -874,24 +874,49 @@ async def respecraid(ctx):
 @professor.command()
 async def calculate(ctx, *, query):
     # Get the results of the query
+
+    primarypods = []
+    imageUrlArray = []
+
     res = wolf.query(query)
     if res.success == "true":
         for pod in res.pods:
             if pod.primary:
-                for sub in pod.subpods:
-                    if "img" in sub.keys():
-                        img = sub["img"]["@src"]
+                primarypods.append(pod)
+
+        for pod in primarypods:
+            for sub in pod.subpods:
+                if "img" in sub.keys():
+                    imageUrlArray.append(sub["img"]["@src"])
+
+        images = []
+        widths = []
+        heights = []
 
         # Read the primary image
-        img = io.BytesIO(urllib.request.urlopen(img).read())
+        for url in imageUrlArray:
+            img = io.BytesIO(urllib.request.urlopen(url).read())
 
-        # Add a border to the image
-        img = Image.open(img)
+            # Add a border to the image
+            img = Image.open(img)
 
-        width, height = img.size
+            width, height = img.size
 
-        bg = Image.new("RGB", (width + 30, height + 30), (255, 255, 255))
-        bg.paste(img, (15, 15))
+            widths.append(width + 30)
+            heights.append(height + 30)
+
+            bg = Image.new("RGB", (width + 30, height + 15), (255, 255, 255))
+            bg.paste(img, (15, 15))
+            images.append(bg)
+
+        bg = Image.new("RGB", (max(widths), sum(heights)), (255, 255, 255))
+
+        i = 0
+        h = 0
+        while i < len(images):
+            bg.paste(images[i], (0, h))
+            h += heights[i]
+            i += 1
 
         img = io.BytesIO()
 
