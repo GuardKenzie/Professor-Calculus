@@ -884,6 +884,10 @@ async def calculate(ctx, *, query):
             if pod.primary:
                 primarypods.append(pod)
 
+        if len(primarypods) == 0:
+            for pod in res.pods:
+                primarypods.append(pod)
+
         for pod in primarypods:
             for sub in pod.subpods:
                 if "img" in sub.keys():
