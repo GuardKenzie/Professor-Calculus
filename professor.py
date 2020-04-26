@@ -336,16 +336,10 @@ async def on_ready():
         if schedulerRoleId != 0:
             schedulerRole = guild.get_role(schedulerRoleId)
         else:
-            for r in guild.roles:
-                if str(r) == "Scheduler":
-                    schedulerRole = r
-                    eventsDict[hash(guild)].setSchedulerRole(r)
-
             schedulerRole = None
 
         if schedulerRole:
             eventsDict[guildHash].schedulerRole = schedulerRole
-            print(str(schedulerRole))
 
     print()
     if eventCheckerLoop not in asyncio.all_tasks():
