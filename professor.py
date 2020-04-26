@@ -302,6 +302,7 @@ async def on_ready():
     print("User:\t\t\t{}".format(professor.user))
     # Set activity
     print("Activity:\t\t{}".format(activity))
+    print()
 
     # Initiate Events class for each guild
     for guild in professor.guilds:

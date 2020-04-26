@@ -20,7 +20,7 @@ class SoundBoard():
             self.cursor.execute("INSERT INTO soundboard VALUES ('{}', ?)", (guildHash,))
             self.soundDict = {}
             self.conn.commit()
-        print("Soundboard for {} online".format(guildHash))
+        print("Soundboard:\t\tonline for {}".format(guildHash))
 
     def getSounds(self):
         # Return dictionary

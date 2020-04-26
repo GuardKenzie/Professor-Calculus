@@ -73,7 +73,7 @@ class Events():
         self.page = 1
 
         self.scheduling = 0
-        print("Events for {} online".format(guildHash))
+        print("Events:\t\t\tonline for {}".format(guildHash))
 
     def dateFormat(self, date):
         # checks if date is in format D/M/Y h:m

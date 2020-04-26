@@ -18,8 +18,9 @@ import discord
 # Channel:  cc
 # Role:     cr
 #
-# --- Setup ---
-# Setup:    is
+# --- Maintenance ---
+# Setup:    ms
+# Clean:    mc
 
 permissionResolver = {"schedule": "es",
                       "remove": "er",
@@ -29,7 +30,8 @@ permissionResolver = {"schedule": "es",
                       "soundboard remove": "sr",
                       "configure channel": "cc",
                       "configure role": "cr",
-                      "setup": "is"
+                      "setup": "ms",
+                      "clean": "mc"
                       }
 
 
@@ -41,7 +43,7 @@ def resolveCommand(command):
 
 
 def resolvePermission(permission):
-    reversePermissionResolver = {v: u for u,v in permissionResolver.items()}
+    reversePermissionResolver = {v: u for u, v in permissionResolver.items()}
 
     if permission in reversePermissionResolver.keys():
         return reversePermissionResolver[permission]
@@ -65,7 +67,7 @@ class Permissions:
             self.c.execute("INSERT INTO permissions VALUES (?, ?)", (json.dumps({}), self.guildHash))
             self.conn.commit()
         self.permissionsDict = {int(u): v for u, v in self.permissionsDict.items()}
-        print("Permissions for {} online".format(guildHash))
+        print("Permissions:\t\tonline for {}".format(guildHash))
 
     def getPermissions(self, roleId):
         perms = self.permissionsDict
