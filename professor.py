@@ -480,7 +480,7 @@ async def setup(ctx):
     await updatePinned(channel, ctx.guild)
 
 
-@professor.group(aliases=["config", "conf"])
+@professor.group(aliases=["config", "conf"], checks=[checkadmin])
 async def configure(ctx):
     if ctx.invoked_subcommand is None:
         guildHash = hash(ctx.guild)
@@ -492,10 +492,10 @@ async def configure(ctx):
         roleName = str(role)
 
         embed = discord.Embed(title="Current settings")
-        embed.add_field(name="My events channel", value=channelName)
-        embed.add_field(name="Scheduler role", value=roleName)
+        embed.add_field(name="My events channel", value=channelName, inline=False)
+        embed.add_field(name="Scheduler role", value=roleName, inline=False)
 
-        await ctx.channel.send(embed=embed)
+        await ctx.author.send(embed=embed, color=accent_colour)
 
 
 @configure.command(checks=[notEventChannelCheck])
