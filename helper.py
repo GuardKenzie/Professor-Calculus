@@ -12,7 +12,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="kick", value="Kicks a user from an event", inline=False)
         msg.add_field(name="configure", value="Sets the event or weekday channel", inline=False)
         msg.add_field(name="configure channel", value="Sets the event or weekday channel", inline=False)
-        msg.add_field(name="configure role", value="Sets the bot moderator role", inline=False)
+        msg.add_field(name="configure role", value="Configure bot permissions for a role", inline=False)
         msg.add_field(name="roll", value="Select a random person from a list", inline=False)
         msg.add_field(name="salt", value="Get a salty nugg.", inline=False)
         msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
@@ -67,7 +67,7 @@ def helpCmd(prefix, cmd):
             msg.add_field(name="[channelType]", value="events for events channel or friendly for weekday announcements", inline=False)
         elif cmd == "configure role":
             msg = discord.Embed(title="configure role [@role]")
-            msg.add_field(name="[@role]", value="the role to set as the new bot moderator role", inline=False)
+            msg.add_field(name="[@role]", value="the role you want to change bot permissions for", inline=False)
         elif cmd == "roll":
             msg = discord.Embed(title="roll [list of names]")
             msg.add_field(name="[list of names]", value="A list of names seperated with a ', '", inline=False)

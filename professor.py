@@ -16,6 +16,7 @@ import events
 import helper
 import salt.salty as salty
 import soundb
+import permissions
 
 
 # Bot key
@@ -29,6 +30,9 @@ eventsDict = {}
 
 # Soundboard dict. Index = guild hash
 soundBoardDict = {}
+
+# Permissions dict. Index = guild hash
+permissionsDict = {}
 
 # Command prefix
 prefixes = ["f? ", "f?", "p? ", "p?"]
@@ -86,13 +90,13 @@ with open("wolfram", "r") as f:
 # ==========================================
 
 
-def checkadmin(ctx):
-    if ctx.author == ctx.guild.owner:
-        return True
-    for role in ctx.author.roles:
-        if role.permissions.administrator:
-            return True
-    return False
+@professor.check
+async def permissioncheck(ctx):
+    check = permissionsDict[hash(ctx.guild)].hasPermission(ctx)
+    if not check:
+        await ctx.author.send(content="You do not have permission to do execute the command `{}`.".format(ctx.message.content))
+
+    return check
 
 
 def delperm(ctx):
@@ -121,14 +125,6 @@ async def eventChannelCheck(ctx):
             await ctx.author.send(content="You need to be in the events channel to do that.")
     else:
         return False
-
-
-def isScheduler(ctx):
-    # Check if a user is a scheduler
-    if eventsDict[hash(ctx.guild)].schedulerRole in ctx.author.roles:
-        return True
-    else:
-        return False or checkadmin(ctx)
 
 
 def dictFromMembersName(members):
@@ -332,14 +328,16 @@ async def on_ready():
             await myChannel.purge(check=purgecheck)
             await updatePinned(myChannel, guild)
 
-        schedulerRoleId = eventsDict[guildHash].getSchedulerRole()
-        if schedulerRoleId != 0:
-            schedulerRole = guild.get_role(schedulerRoleId)
-        else:
-            schedulerRole = None
+        # schedulerRoleId = eventsDict[guildHash].getSchedulerRole()
+        # if schedulerRoleId != 0:
+        #    schedulerRole = guild.get_role(schedulerRoleId)
+        # else:
+        #    schedulerRole = None
 
-        if schedulerRole:
-            eventsDict[guildHash].schedulerRole = schedulerRole
+        # if schedulerRole:
+        #    eventsDict[guildHash].schedulerRole = schedulerRole
+
+        permissionsDict[hash(guild)] = permissions.Permissions(hash(guild))
 
     print()
     if eventCheckerLoop not in asyncio.all_tasks():
@@ -421,6 +419,7 @@ async def on_guild_join(guild):
     # Print setup message in first text channel we can
     eventsDict[hash(guild)] = events.Events(hash(guild), None)
     soundBoardDict[hash(guild)] = soundb.SoundBoard(hash(guild))
+    permissionsDict[hash(guild)] = permissions.Permissions(hash(guild))
     for i in guild.text_channels:
         try:
             await i.send(content="Type `" + prefix + "setup` to get started")
@@ -435,7 +434,7 @@ async def on_guild_join(guild):
 
 # --- Setup and stuff ---
 
-@professor.command(checks=[checkadmin])
+@professor.command()
 async def setup(ctx):
     # Create events channel in professor category
     # Initiate Events class for guild
@@ -476,7 +475,7 @@ async def setup(ctx):
 
 # --- Configuration ---
 
-@professor.group(aliases=["config", "conf"], checks=[checkadmin])
+@professor.group(aliases=["config", "conf"])
 async def configure(ctx):
     if ctx.invoked_subcommand is None:
         guildHash = hash(ctx.guild)
@@ -503,42 +502,123 @@ async def channel(ctx, channelType):
         await ctx.author.send(content="{} is not a valid channel type.".format(channelType))
         return
 
-    if checkadmin(ctx):
+    def check(m):
+        return (m.content == "yes" or m.content == "no") and m.channel == ctx.channel and m.author == ctx.author
 
-        def check(m):
-            return (m.content == "yes" or m.content == "no") and m.channel == ctx.channel and m.author == ctx.author
+    if (channelType == "events"):
+        if not delperm(ctx):
+            await ctx.author.send(content=infoMessages["cannotManageMessages"])
+            return
 
-        if (channelType == "events"):
-            if not delperm(ctx):
-                await ctx.author.send(content=infoMessages["cannotManageMessages"])
-                return
+        confirmMsg = await ctx.channel.send(content=infoMessages["confirmEventsChannel"])
+        confirmReply = await professor.wait_for("message", check=check)
+        confirm = confirmReply.content == "yes"
 
-            confirmMsg = await ctx.channel.send(content=infoMessages["confirmEventsChannel"])
-            confirmReply = await professor.wait_for("message", check=check)
-            confirm = confirmReply.content == "yes"
-
-            if confirm:
-                eventsDict[hash(ctx.guild)].channel = ctx.channel
-                eventsDict[hash(ctx.guild)].myMessage = None
-                eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
-                await updatePinned(ctx.channel, ctx.guild)
-            else:
-                await confirmMsg.delete()
-                await confirmReply.delete()
-        else:
-            await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
+        if confirm:
+            eventsDict[hash(ctx.guild)].channel = ctx.channel
+            eventsDict[hash(ctx.guild)].myMessage = None
             eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
+            await updatePinned(ctx.channel, ctx.guild)
+        else:
+            await confirmMsg.delete()
+            await confirmReply.delete()
+    else:
+        await ctx.channel.send(content="Channel registered as {}".format(channelType), delete_after=20)
+        eventsDict[hash(ctx.guild)].setMyChannelId(ctx.channel.id, channelType)
 
-        try:
-            await ctx.message.delete()
-        except (discord.errors.Forbidden, discord.errors.NotFound):
-            pass
+    try:
+        await ctx.message.delete()
+    except (discord.errors.Forbidden, discord.errors.NotFound):
+        pass
 
 
-@configure.command(checks=[checkadmin])
+@configure.command()
 async def role(ctx, role: discord.Role):
-    eventsDict[hash(ctx.guild)].setSchedulerRole(role)
-    await ctx.channel.send(content="Scheduler role set to `{}`.".format(str(role)), delete_after=60)
+    cross = "\u274C"
+    availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr"]
+    rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
+
+    with open("foodemojis.txt", "r") as f:
+        emojis_avail = f.read().splitlines()
+
+    done = False
+
+    initial = True
+
+    message = await ctx.channel.send(content="-")
+
+    while not done:
+        embed = discord.Embed(title="Permissions for {}".format(role.name), color=accent_colour)
+        eventsPermissions = {}
+        configurePermissions = {}
+        soundboardPermissions = {}
+
+        for p in permissions.permissionResolver.values():
+            commandName = permissions.resolvePermission(p).split()[-1]
+            if p[0] == "e":
+                eventsPermissions[commandName] = p in rolePerms
+            elif p[0] == "s":
+                soundboardPermissions[commandName] = p in rolePerms
+            elif p[0] == "c":
+                configurePermissions[commandName] = p in rolePerms
+
+        def genstr(d, currentemoji):
+            out = ""
+            for i in d.items():
+                out += emojis_avail[currentemoji] + " " + str(i[0]) + ": " + str(i[1]) + "\n"
+                currentemoji += 1
+
+            return out
+
+        currentemoji = 0
+
+        embed.add_field(name="Events", value=genstr(eventsPermissions, currentemoji), inline=False)
+        currentemoji += len(eventsPermissions)
+
+        embed.add_field(name="Soundboard", value=genstr(soundboardPermissions, currentemoji), inline=False)
+        currentemoji += len(soundboardPermissions)
+
+        embed.add_field(name="Configure", value=genstr(configurePermissions, currentemoji), inline=False)
+        currentemoji += len(configurePermissions)
+
+        await message.edit(content="", embed=embed)
+
+        if initial:
+            for k in range(currentemoji):
+                await message.add_reaction(emojis_avail[k])
+
+            await message.add_reaction(cross)
+            initial = False
+
+        def check(payload):
+            emojiok = payload.emoji.name in (emojis_avail[:currentemoji] + [cross])
+            memberok = payload.member == ctx.author
+            messageok = payload.message_id == message.id
+
+            if emojiok and memberok and messageok:
+                return True
+            else:
+                return False
+
+        payload = await professor.wait_for("raw_reaction_add", check=check, timeout=300)
+
+        if payload.emoji.name == cross:
+            done = True
+            break
+        else:
+            if delperm(ctx):
+                await message.remove_reaction(payload.emoji, ctx.author)
+
+            p = availablePerms[emojis_avail.index(payload.emoji.name)]
+            if p in rolePerms:
+                del rolePerms[rolePerms.index(p)]
+            else:
+                rolePerms.append(p)
+
+    permissionsDict[hash(ctx.guild)].setPermissions(role.id, rolePerms)
+    if delperm(ctx):
+        await message.delete()
+
 
 # --- Events ---
 
@@ -553,124 +633,121 @@ async def schedule(ctx):
             raise asyncio.TimeoutError
         return m.channel == channel and m.author == author
 
-    if isScheduler(ctx):
-        def pcheck(m):
-            return not m.pinned
-        if eventsDict[hash(ctx.guild)].scheduling > 0:
-            await ctx.author.send(content="Someone else is scheduling an event. Please wait until they are done.")
-            return
-        try:
-            # Announce that we are scheduling
-            eventsDict[hash(ctx.guild)].scheduling += 1
+    def pcheck(m):
+        return not m.pinned
+    if eventsDict[hash(ctx.guild)].scheduling > 0:
+        await ctx.author.send(content="Someone else is scheduling an event. Please wait until they are done.")
+        return
+    try:
+        # Announce that we are scheduling
+        eventsDict[hash(ctx.guild)].scheduling += 1
 
-            emb = discord.Embed(title="Title ", description="Time: \n Description:")
+        emb = discord.Embed(title="Title ", description="Time: \n Description:")
 
-            startEvent = await channel.send(content="Scheduling started. Type `cancel` to cancel", embed=emb)
+        startEvent = await channel.send(content="Scheduling started. Type `cancel` to cancel", embed=emb)
 
-            # Title
-            msg = await channel.send(content=infoMessages["eventTitle"])
-            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+        # Title
+        msg = await channel.send(content=infoMessages["eventTitle"])
+        replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
-            title = replyMsg.content
+        title = replyMsg.content
 
+        await replyMsg.delete()
+
+        emb.title = title
+        await startEvent.edit(embed=emb)
+
+        # Time
+        await msg.edit(content=infoMessages["eventTime"])
+        replyMsg = await professor.wait_for("message", check=check, timeout=120)
+
+        # Check if time is ok
+        timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
+        while timeOk is False:
             await replyMsg.delete()
-
-            emb.title = title
-            await startEvent.edit(embed=emb)
-
-            # Time
-            await msg.edit(content=infoMessages["eventTime"])
+            await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
-
-            # Check if time is ok
             timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
-            while timeOk is False:
-                await replyMsg.delete()
-                await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
-                replyMsg = await professor.wait_for("message", check=check, timeout=120)
-                timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
 
-            time = replyMsg.content
-            await replyMsg.delete()
+        time = replyMsg.content
+        await replyMsg.delete()
 
-            emb.description = "Time: {} \n Description:".format(time)
-            await startEvent.edit(embed=emb)
+        emb.description = "Time: {} \n Description:".format(time)
+        await startEvent.edit(embed=emb)
 
-            # Desc
-            await msg.edit(content=infoMessages["eventDesc"])
-            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+        # Desc
+        await msg.edit(content=infoMessages["eventDesc"])
+        replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
-            desc = replyMsg.content
+        desc = replyMsg.content
 
-            await replyMsg.delete()
+        await replyMsg.delete()
 
-            emb.description = "Time: {} \n Description: {}".format(time, desc)
-            await startEvent.edit(embed=emb)
+        emb.description = "Time: {} \n Description: {}".format(time, desc)
+        await startEvent.edit(embed=emb)
 
-            # Roles
-            await msg.edit(content="React to this message with any event specific roles. Type `done` when done.")
+        # Roles
+        await msg.edit(content="React to this message with any event specific roles. Type `done` when done.")
 
-            def donecheck(m):
-                return check(m) and m.content.lower() == "done"
+        def donecheck(m):
+            return check(m) and m.content.lower() == "done"
 
-            replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
-            await replyMsg.delete()
-            emojis = []
-            reactionNameMsg = await ctx.channel.send(content="-")
+        replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
+        await replyMsg.delete()
+        emojis = []
+        reactionNameMsg = await ctx.channel.send(content="-")
 
-            msg = await ctx.channel.fetch_message(msg.id)
+        msg = await ctx.channel.fetch_message(msg.id)
 
-            def checklimit(m):
-                try:
-                    int(m.content)
-                    out = check(m)
-                    return out
-                except ValueError:
-                    return False
+        def checklimit(m):
+            try:
+                int(m.content)
+                out = check(m)
+                return out
+            except ValueError:
+                return False
 
-            for reaction in msg.reactions:
-                await reactionNameMsg.edit(content="Please enter a name for {}".format(str(reaction)))
-                nameRep = await professor.wait_for("message", check=check, timeout=120)
-                name = nameRep.content
-                await nameRep.delete()
+        for reaction in msg.reactions:
+            await reactionNameMsg.edit(content="Please enter a name for {}".format(str(reaction)))
+            nameRep = await professor.wait_for("message", check=check, timeout=120)
+            name = nameRep.content
+            await nameRep.delete()
 
-                await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
-                limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
-                limit = int(limitRep.content)
-                await limitRep.delete()
-
-                emojis.append((str(reaction), name, limit))
-
-            await reactionNameMsg.delete()
-            await msg.clear_reactions()
-
-            # Total limit
-            await msg.edit(content="Please enter the total limit of people who can join the event (0 for no limit).")
+            await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
             limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
             limit = int(limitRep.content)
             await limitRep.delete()
 
-            # Delete temp messages
-            await msg.delete()
-            await startEvent.delete()
+            emojis.append((str(reaction), name, limit))
 
-            # Schedule events
-            if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
-                if ctx.channel == eventsDict[hash(ctx.guild)].channel:
-                    await ctx.channel.purge(check=pcheck)
-                eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
-            else:
-                if ctx.channel == eventsDict[hash(ctx.guild)].channel:
-                    await ctx.channel.purge(check=pcheck)
-                await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
-            eventsDict[hash(ctx.guild)].scheduling -= 1
-        except asyncio.TimeoutError:
+        await reactionNameMsg.delete()
+        await msg.clear_reactions()
+
+        # Total limit
+        await msg.edit(content="Please enter the total limit of people who can join the event (0 for no limit).")
+        limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+        limit = int(limitRep.content)
+        await limitRep.delete()
+
+        # Delete temp messages
+        await msg.delete()
+        await startEvent.delete()
+
+        # Schedule events
+        if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
+        else:
+            if ctx.channel == eventsDict[hash(ctx.guild)].channel:
+                await ctx.channel.purge(check=pcheck)
+            await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
+        eventsDict[hash(ctx.guild)].scheduling -= 1
+    except asyncio.TimeoutError:
+        if ctx.channel == eventsDict[hash(ctx.guild)].channel:
+            await ctx.channel.purge(check=pcheck)
 
-            eventsDict[hash(ctx.guild)].scheduling -= 1
-    else:
-        await ctx.author.send(content=infoMessages["userNotScheduler"])
+        eventsDict[hash(ctx.guild)].scheduling -= 1
 
 
 @professor.command(aliases=["r"], checks=[eventChannelCheck])
@@ -679,21 +756,18 @@ async def remove(ctx, *args):
     # command syntax: remove [eventId]
 
     # Check if user is scheduler
-    if isScheduler(ctx):
-        guildHash = hash(ctx.guild)
+    guildHash = hash(ctx.guild)
 
-        event = eventsDict[guildHash].getEvent(args[0])
+    event = eventsDict[guildHash].getEvent(args[0])
 
-        # Get actual event id
-        eventId = eventsDict[guildHash].getEventId(args[0])
+    # Get actual event id
+    eventId = eventsDict[guildHash].getEventId(args[0])
 
-        # Check if event id was found and if removal successful
-        if eventId and eventsDict[guildHash].removeEvent(eventId):
-            eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event["name"]))
-        else:
-            await ctx.author.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
+    # Check if event id was found and if removal successful
+    if eventId and eventsDict[guildHash].removeEvent(eventId):
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event["name"]))
     else:
-        await ctx.author.send(content=infoMessages["userNotScheduler"])
+        await ctx.author.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
 
 
 @professor.command(aliases=["a"], checks=[eventChannelCheck])
@@ -781,22 +855,19 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     # Command syntax: update [eventId] [to update] [new info]
 
     # Check if usere is scheduler
-    if isScheduler(ctx):
-        if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
-            event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
+        event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-            if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
-                eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event["name"], toUpdate, event[toUpdate], newInfo))
+        if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event["name"], toUpdate, event[toUpdate], newInfo))
 
-            else:
-                await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
         else:
-            await ctx.author.send(content=infoMessages["invalidUpdateField"], delete_after=15)
+            await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
     else:
-        await ctx.author.send(content=infoMessages["userNotScheduler"])
+        await ctx.author.send(content=infoMessages["invalidUpdateField"], delete_after=15)
 
 
-@professor.command(checks=[checkadmin, eventChannelCheck], aliases=["k", "puntcunt"])
+@professor.command(checks=[eventChannelCheck], aliases=["k", "puntcunt"])
 async def kick(ctx, userToKick: discord.Member, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
@@ -886,7 +957,7 @@ async def clowntime(ctx):
     await ctx.channel.send(content=":o)")
 
 
-@professor.command(checks=[checkadmin])
+@professor.command()
 async def clean(ctx):
     def check(m):
         return m.author == ctx.author and m.content.lower() in ["yes", "no"]
@@ -1039,6 +1110,8 @@ async def chill(ctx):
 
 @chill.command()
 async def stop(ctx):
+    print(ctx.command.name)
+    print(ctx.command.parent.name)
     try:
         authorvc = ctx.message.author.voice.channel
         for i in professor.voice_clients:
@@ -1309,7 +1382,7 @@ async def soundboard(ctx):
                 await ctx.message.delete()
 
 
-@soundboard.command(checks=[isScheduler], aliases=["a"])
+@soundboard.command(aliases=["a"])
 async def add(ctx, name):
     # Bæta við hljóði í soundboard
     extensions = ["mp3", "wav"]
@@ -1340,7 +1413,7 @@ async def add(ctx, name):
         await ctx.author.send(content="You must attach a sound file to your command message.")
 
 
-@soundboard.command(checks=[isScheduler], aliases=["r"])
+@soundboard.command(aliases=["r"])
 async def remove(ctx, name):
     # Henda hljóði
     if soundBoardDict[hash(ctx.guild)].removeSound(name):
