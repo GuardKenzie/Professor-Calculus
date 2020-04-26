@@ -306,6 +306,7 @@ async def on_ready():
     # Initiate Events class for each guild
     for guild in professor.guilds:
         guildHash = hash(guild)
+        print("Guild:\t\t\t{}".format(guildHash))
 
         eventsDict[guildHash] = events.Events(guildHash)
         soundBoardDict[guildHash] = soundb.SoundBoard(guildHash)
@@ -316,8 +317,6 @@ async def on_ready():
             myChannel = guild.get_channel(myChannelId)
         else:
             myChannel = None
-
-        print("Cid:\t\t\t{}".format(myChannelId))
 
         def purgecheck(m):
             return not m.pinned
@@ -338,8 +337,7 @@ async def on_ready():
         #    eventsDict[guildHash].schedulerRole = schedulerRole
 
         permissionsDict[hash(guild)] = permissions.Permissions(hash(guild))
-
-    print()
+        print()
     if eventCheckerLoop not in asyncio.all_tasks():
         print("Starting event checking loop")
         eventCheckerLoop = professor.loop.create_task(notification_loop())
