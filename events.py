@@ -48,12 +48,13 @@ class Events():
     # Events database handler
     # Format for table 'events':
     # server_hash str, id int, date str, name str, description str, people str
-    def __init__(self, guildHash, channel):
+    def __init__(self, guildHash, channel=None, role=None):
         self.guildHash = guildHash
         self.channel = channel
         self.myMessage = ""
         self.myMessageId = None
         self.myLogMessageId = None
+        self.schedulerRole = role
 
         self.conn = sqlite3.connect("events.db")
         self.c = self.conn.cursor()
@@ -433,4 +434,24 @@ class Events():
         else:
             self.c.execute("INSERT INTO {} VALUES (?, ?);".format(table), (str(message.id), self.guildHash))
 
+        self.conn.commit()
+
+    def getSchedulerRole(self):
+        self.c.execute("SELECT schedulerRoleId FROM schedulerRoles WHERE server_hash=?", (self.guildHash, ))
+        res = self.c.fetchone()
+        if res is not None:
+            return res[0]
+        else:
+            return 0
+
+    def setSchedulerRole(self, role):
+        roleId = role.id
+        self.schedulerRole = role
+
+        self.c.execute("SELECT schedulerRoleId FROM schedulerRoles WHERE server_hash=?;", (self.guildHash, ))
+        res = self.c.fetchone()
+        if res is not None:
+            self.c.execute("UPDATE schedulerRoles SET schedulerRoleId=? WHERE server_hash=?;", (roleId, self.guildHash))
+        else:
+            self.c.execute("INSERT INTO schedulerRoles VALUES (?, ?);", (roleId, self.guildHash))
         self.conn.commit()

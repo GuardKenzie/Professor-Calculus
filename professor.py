@@ -125,7 +125,7 @@ async def eventChannelCheck(ctx):
 
 def isScheduler(ctx):
     # Check if a user is a scheduler
-    if 'Scheduler' in [role.name for role in ctx.author.roles]:
+    if eventsDict[hash(ctx.guild)].schedulerRole in ctx.author.roles:
         return True
     else:
         return False or checkadmin(ctx)
@@ -213,7 +213,7 @@ async def friendly_notification(e):
 
     friendlyChannel = guild.get_channel(channelId)
 
-    msgContent = "Today is \"{} {}\". \n {} \n Remember to sign up in the events channel!.".format(eventName, weekday, eventDesc)
+    msgContent = "Today is \"{} {}\". \n {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
@@ -311,7 +311,7 @@ async def on_ready():
     for guild in professor.guilds:
         guildHash = hash(guild)
 
-        eventsDict[guildHash] = events.Events(guildHash, None)
+        eventsDict[guildHash] = events.Events(guildHash)
         soundBoardDict[guildHash] = soundb.SoundBoard(guildHash)
 
         # Find my channel
@@ -319,7 +319,7 @@ async def on_ready():
         if myChannelId != 0:
             myChannel = guild.get_channel(myChannelId)
         else:
-            myChannel = 0
+            myChannel = None
 
         print("Cid:\t\t\t{}".format(myChannelId))
 
@@ -331,6 +331,22 @@ async def on_ready():
             eventsDict[guildHash].channel = myChannel
             await myChannel.purge(check=purgecheck)
             await updatePinned(myChannel, guild)
+
+        schedulerRoleId = eventsDict[guildHash].getSchedulerRole()
+        if schedulerRoleId != 0:
+            schedulerRole = guild.get_role(schedulerRoleId)
+        else:
+            for r in guild.roles:
+                if str(r) == "Scheduler":
+                    schedulerRole = r
+                    eventsDict[hash(guild)].setSchedulerRole(r)
+
+            schedulerRole = None
+
+        if schedulerRole:
+            eventsDict[guildHash].schedulerRole = schedulerRole
+            print(str(schedulerRole))
+
     print()
     if eventCheckerLoop not in asyncio.all_tasks():
         print("Starting event checking loop")
@@ -449,12 +465,8 @@ async def setup(ctx):
     except discord.errors.Forbidden:
         await ctx.author.send(content=infoMessages["cannotCreateEventsChannel"].format(prefix))
 
-    # Create scheduler rank and let owner know
-    try:
-        await ctx.guild.create_role(name="Scheduler")
-        await ctx.author.send(content=infoMessages["schedulerMessage"])
-    except discord.errors.Forbidden:
-        await ctx.author.send(content=infoMessages["cannotCreateSchedulerRole"])
+    # Let owner know about configuring role
+    await ctx.author.send(content=infoMessages["schedulerMessage"].format(prefix))
 
     # Initiate Events class
     try:
@@ -468,8 +480,26 @@ async def setup(ctx):
     await updatePinned(channel, ctx.guild)
 
 
-@professor.command(checks=[notEventChannelCheck])
-async def setChannel(ctx, channelType):
+@professor.group(aliases=["config", "conf"])
+async def configure(ctx):
+    if ctx.invoked_subcommand is None:
+        guildHash = hash(ctx.guild)
+
+        channel = eventsDict[guildHash].channel
+        channelName = str(channel)
+
+        role = eventsDict[guildHash].schedulerRole
+        roleName = str(role)
+
+        embed = discord.Embed(title="Current settings")
+        embed.add_field(name="My events channel", value=channelName)
+        embed.add_field(name="Scheduler role", value=roleName)
+
+        await ctx.channel.send(embed=embed)
+
+
+@configure.command(checks=[notEventChannelCheck])
+async def channel(ctx, channelType):
     if channelType not in ["events", "friendly"]:
         await ctx.author.send(content="{} is not a valid channel type.".format(channelType))
         return
@@ -504,6 +534,12 @@ async def setChannel(ctx, channelType):
             await ctx.message.delete()
         except (discord.errors.Forbidden, discord.errors.NotFound):
             pass
+
+
+@configure.command(checks=[checkadmin])
+async def role(ctx, role: discord.Role):
+    eventsDict[hash(ctx.guild)].setSchedulerRole(role)
+    await ctx.channel.send(content="Scheduler role set to `{}`.".format(str(role)), delete_after=60)
 
 # --- Events ---
 
