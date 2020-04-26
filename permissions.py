@@ -65,6 +65,7 @@ class Permissions:
             self.c.execute("INSERT INTO permissions VALUES (?, ?)", (json.dumps({}), self.guildHash))
             self.conn.commit()
         self.permissionsDict = {int(u): v for u, v in self.permissionsDict.items()}
+        print("Permissions for {} online".format(guildHash))
 
     def getPermissions(self, roleId):
         perms = self.permissionsDict
