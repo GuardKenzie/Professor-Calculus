@@ -110,7 +110,7 @@ async def notEventChannelCheck(ctx):
 async def eventChannelCheck(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel) and hash(ctx.guild) in eventsDict.keys():
         if eventsDict[hash(ctx.guild)].channel is None:
-            await ctx.author.send(content="I have not yet been assigned an `events` channel. Please assign me to an `events` channel with the `setChannel` command.")
+            await ctx.author.send(content="I have not yet been assigned an `events` channel. Please assign me to an `events` channel with the `configure channel events` command.")
             return
         if ctx.channel.id == eventsDict[hash(ctx.guild)].getMyChannelId("events"):
             if not delperm(ctx):
