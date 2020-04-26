@@ -480,6 +480,8 @@ async def setup(ctx):
     await updatePinned(channel, ctx.guild)
 
 
+# --- Configuration ---
+
 @professor.group(aliases=["config", "conf"], checks=[checkadmin])
 async def configure(ctx):
     if ctx.invoked_subcommand is None:
@@ -491,11 +493,14 @@ async def configure(ctx):
         role = eventsDict[guildHash].schedulerRole
         roleName = str(role)
 
-        embed = discord.Embed(title="Current settings")
+        embed = discord.Embed(title="Current settings", color=accent_colour)
         embed.add_field(name="My events channel", value=channelName, inline=False)
         embed.add_field(name="Scheduler role", value=roleName, inline=False)
 
-        await ctx.author.send(embed=embed, color=accent_colour)
+        await ctx.author.send(embed=embed)
+
+    if delperm(ctx):
+        await ctx.message.delete()
 
 
 @configure.command(checks=[notEventChannelCheck])
