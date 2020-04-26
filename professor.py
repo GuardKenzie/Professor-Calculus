@@ -476,19 +476,7 @@ async def setup(ctx):
 @professor.group(aliases=["config", "conf"])
 async def configure(ctx):
     if ctx.invoked_subcommand is None:
-        guildHash = hash(ctx.guild)
-
-        channel = eventsDict[guildHash].channel
-        channelName = str(channel)
-
-        role = eventsDict[guildHash].schedulerRole
-        roleName = str(role)
-
-        embed = discord.Embed(title="Current settings", color=accent_colour)
-        embed.add_field(name="My events channel", value=channelName, inline=False)
-        embed.add_field(name="Scheduler role", value=roleName, inline=False)
-
-        await ctx.author.send(embed=embed)
+        await ctx.author.send(content="This command requires a valid subcommand.")
 
     if delperm(ctx):
         await ctx.message.delete()
