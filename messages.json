@@ -1,6 +1,6 @@
 {
   "helloMessage":           "Hello! I'm {0}. Nice to meet you!\nThis is my events channel. Here I will post notifications for upcoming guild events!\n Some useful commands are:\n `{1} attend #` to sign up for event #\n `{1} leave #` to leave event #\n \n For all commands and more details type `{1} help`.",
-  "schedulerMessage":       "You can set the bot moderator role with the command `{}configure role [@role]`. Users with the administrator permission do not need the bot moderator role.",
+  "schedulerMessage":       "You can give roles special permissions with the `p? configure role` command. Users with the discord administrator permission do not need additional permissions.",
 
   "eventCreated":           "Event `{}` at `{}` successfully booked!",
   "eventCreationFailed":    "Failed to schedule event. Maybe check `{} help` and try again.",
