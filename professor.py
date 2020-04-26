@@ -873,7 +873,6 @@ async def kick(ctx, userToKick: discord.Member, eventId):
     # Command syntax: leave [eventId]
 
     uid = userToKick.id
-    print(uid)
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     try:
         role = event["rolesdict"][uid]
@@ -1110,8 +1109,6 @@ async def chill(ctx):
 
 @chill.command()
 async def stop(ctx):
-    print(ctx.command.name)
-    print(ctx.command.parent.name)
     try:
         authorvc = ctx.message.author.voice.channel
         for i in professor.voice_clients:
