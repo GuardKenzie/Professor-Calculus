@@ -477,6 +477,7 @@ async def configure(ctx):
         for role in ctx.guild.roles:
             # Get permissions for role
             perms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
+            perms.sort()
 
             # Check if there are any permissions
             if perms == []:
