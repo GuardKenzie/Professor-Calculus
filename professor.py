@@ -85,6 +85,12 @@ with open("wolfram", "r") as f:
     wa_app_id = f.readline().strip()
     wolf = wolframalpha.Client(wa_app_id)
 
+
+# dummy parameter for discord.ext.commands.errors.MissingRequiredArgumentError
+class dummyparam:
+    def __init__(self, name):
+        self.name = name
+
 # ==========================================
 # Functions
 # ==========================================
@@ -426,7 +432,7 @@ async def on_command_error(ctx, error):
     print("Command:\t{}".format(ctx.message.content))
     print("Error:\t\t{}".format(error))
     if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
-        await ctx.author.send(content="There was an error executing your command `{}`. \n {}".format(ctx.message.content, error))
+        await ctx.author.send(content="There was an error executing your command `{}`. Incorrect number of arguments passed.".format(ctx.message.content))
     elif isinstance(error, discord.ext.commands.errors.CommandNotFound):
         await ctx.author.send(content="The command `{}` is unknown.".format(ctx.message.content))
     elif isinstance(error, discord.ext.commands.errors.CheckFailure):
@@ -784,17 +790,16 @@ async def schedule(ctx):
 
 
 @professor.command(aliases=["r"], checks=[eventChannelCheck])
-async def remove(ctx, *args):
+async def remove(ctx, fakeId):
     # Remove an event
     # command syntax: remove [eventId]
 
-    # Check if user is scheduler
     guildHash = hash(ctx.guild)
 
-    event = eventsDict[guildHash].getEvent(args[0])
+    event = eventsDict[guildHash].getEvent(fakeId)
 
     # Get actual event id
-    eventId = eventsDict[guildHash].getEventId(args[0])
+    eventId = eventsDict[guildHash].getEventId(fakeId)
 
     # Check if event id was found and if removal successful
     if eventId and eventsDict[guildHash].removeEvent(eventId):
@@ -804,7 +809,7 @@ async def remove(ctx, *args):
 
 
 @professor.command(aliases=["a"], checks=[eventChannelCheck])
-async def attend(ctx, *, eventId):
+async def attend(ctx, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
     role = ""
@@ -863,7 +868,7 @@ async def attend(ctx, *, eventId):
 
 
 @professor.command(aliases=["l"], checks=[eventChannelCheck])
-async def leave(ctx, *, eventId):
+async def leave(ctx, eventId):
     # Leave an event
     # Command syntax: leave [eventId]
 
@@ -963,10 +968,12 @@ async def help(ctx, *, cmd="none"):
 @professor.command(aliases=["dice", "random", "pick"])
 async def roll(ctx, *, names):
     # Determine a random thing from a list
+
     await ctx.channel.send(content="And the winner is...")
     await asyncio.sleep(5)
 
     names = names.split(", ")
+
     winner = random.choice(names)
 
     await ctx.channel.send(content="{0} wins the roll! {1} {1} {1}".format(winner, party))
@@ -1232,6 +1239,8 @@ async def readycheck(ctx, *args):
     wait = "\U0001F552"
 
     users = []
+    if len(args) == 0:
+        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("mentions"))
 
     usingRole = True
 
