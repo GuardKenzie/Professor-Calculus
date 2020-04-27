@@ -92,9 +92,12 @@ with open("wolfram", "r") as f:
 
 @professor.check
 async def permissioncheck(ctx):
-    check = permissionsDict[hash(ctx.guild)].hasPermission(ctx)
-    if not check:
-        await ctx.author.send(content="You do not have permission to do execute the command `{}`.".format(ctx.message.content))
+    if isinstance(ctx.channel, discord.abc.GuildChannel):
+        check = permissionsDict[hash(ctx.guild)].hasPermission(ctx)
+        if not check:
+            await ctx.author.send(content="You do not have permission to do execute the command `{}`.".format(ctx.message.content))
+    else:
+        return True
 
     return check
 
