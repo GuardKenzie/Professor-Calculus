@@ -328,16 +328,9 @@ async def on_ready():
             await myChannel.purge(check=purgecheck)
             await updatePinned(myChannel, guild)
 
-        # schedulerRoleId = eventsDict[guildHash].getSchedulerRole()
-        # if schedulerRoleId != 0:
-        #    schedulerRole = guild.get_role(schedulerRoleId)
-        # else:
-        #    schedulerRole = None
-
-        # if schedulerRole:
-        #    eventsDict[guildHash].schedulerRole = schedulerRole
-
+        # Initiate permissions
         permissionsDict[hash(guild)] = permissions.Permissions(hash(guild))
+
         print()
     if eventCheckerLoop not in asyncio.all_tasks():
         print("Starting event checking loop")
@@ -477,7 +470,24 @@ async def setup(ctx):
 @professor.group(aliases=["config", "conf"])
 async def configure(ctx):
     if ctx.invoked_subcommand is None:
-        await ctx.author.send(content="This command requires a valid subcommand.")
+        # Give an overview of roles with permissions
+        embed = discord.Embed(title="Permissions overveiw for {}".format(ctx.guild.name), color=accent_colour)
+
+        # Check all the roles
+        for role in ctx.guild.roles:
+            # Get permissions for role
+            perms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
+
+            # Check if there are any permissions
+            if perms == []:
+                continue
+            else:
+                out = "\n".join(map(permissions.resolvePermission, perms))
+
+            # Add field for role
+            embed.add_field(name=role.name, value=out)
+
+        await ctx.author.send(embed=embed)
 
     if delperm(ctx):
         await ctx.message.delete()
@@ -522,11 +532,13 @@ async def channel(ctx, channelType):
 @configure.command()
 async def role(ctx, role: discord.Role):
     cross = "\u274C"
+    # Permissions that can be set
     availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
     with open("foodemojis.txt", "r") as f:
         emojis_avail = f.read().splitlines()
+        random.shuffle(emojis_avail)
 
     done = False
 
@@ -534,12 +546,16 @@ async def role(ctx, role: discord.Role):
 
     message = await ctx.channel.send(content="-")
 
+    # Continue until done
+
     while not done:
+        # Initialize
         embed = discord.Embed(title="Permissions for {}".format(role.name), color=accent_colour)
         eventsPermissions = {}
         configurePermissions = {}
         soundboardPermissions = {}
 
+        # Categorize the permissions and check their values
         for p in permissions.permissionResolver.values():
             commandName = permissions.resolvePermission(p).split()[-1]
             if p[0] == "e":
@@ -549,6 +565,7 @@ async def role(ctx, role: discord.Role):
             elif p[0] == "c":
                 configurePermissions[commandName] = p in rolePerms
 
+        # Function to generate the permission list for each category
         def genstr(d, currentemoji):
             out = ""
             for i in d.items():
@@ -559,6 +576,7 @@ async def role(ctx, role: discord.Role):
 
         currentemoji = 0
 
+        # Add the fields
         embed.add_field(name="Events", value=genstr(eventsPermissions, currentemoji), inline=False)
         currentemoji += len(eventsPermissions)
 
@@ -570,6 +588,7 @@ async def role(ctx, role: discord.Role):
 
         await message.edit(content="", embed=embed)
 
+        # Add emojis if this is the first loop
         if initial:
             for k in range(currentemoji):
                 await message.add_reaction(emojis_avail[k])
@@ -577,6 +596,7 @@ async def role(ctx, role: discord.Role):
             await message.add_reaction(cross)
             initial = False
 
+        # Check function for reaction
         def check(payload):
             emojiok = payload.emoji.name in (emojis_avail[:currentemoji] + [cross])
             memberok = payload.member == ctx.author
@@ -587,24 +607,31 @@ async def role(ctx, role: discord.Role):
             else:
                 return False
 
-        payload = await professor.wait_for("raw_reaction_add", check=check, timeout=300)
+        try:
+            payload = await professor.wait_for("raw_reaction_add", check=check, timeout=300)
+        except asyncio.TimeoutError:
+            await message.delete()
+            return
 
+        # Break if done
         if payload.emoji.name == cross:
             done = True
             break
         else:
+            # Try to remove the reaction
             if delperm(ctx):
                 await message.remove_reaction(payload.emoji, ctx.author)
 
+            # Add or remove the permission selected from the permission array
             p = availablePerms[emojis_avail.index(payload.emoji.name)]
             if p in rolePerms:
                 del rolePerms[rolePerms.index(p)]
             else:
                 rolePerms.append(p)
 
+    # Update the permissions
     permissionsDict[hash(ctx.guild)].setPermissions(role.id, rolePerms)
-    if delperm(ctx):
-        await message.delete()
+    await message.delete()
 
 
 # --- Events ---

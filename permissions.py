@@ -15,6 +15,7 @@ import discord
 # Remove:   sr
 #
 # --- Configure ---
+# Config:   c
 # Channel:  cc
 # Role:     cr
 #
@@ -92,6 +93,9 @@ class Permissions:
             command = ctx.command.parent.name + " " + ctx.command.name
 
         permissionString = resolveCommand(command)
+
+        if command == "configure":
+            permissionString = "cr"
 
         if permissionString is None:
             return True
