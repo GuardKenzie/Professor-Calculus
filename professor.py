@@ -107,11 +107,14 @@ def delperm(ctx):
 
 
 async def notEventChannelCheck(ctx):
-    if isinstance(ctx.channel, discord.abc.GuildChannel) and hash(ctx.guild) in eventsDict.keys():
-        return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
+    if isinstance(ctx.channel, discord.abc.GuildChannel):
+        if hash(ctx.guild) in eventsDict.keys():
+            return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
+        else:
+            await ctx.author.send(content="You cannot use this command here.")
+            return False
     else:
-        await ctx.author.send(content="You cannot use this command here.")
-        return False
+        return True
 
 
 async def eventChannelCheck(ctx):
@@ -127,6 +130,7 @@ async def eventChannelCheck(ctx):
         else:
             await ctx.author.send(content="You need to be in the events channel to do that.")
     else:
+        await ctx.author.send(content="This command can only be used in the events channel.")
         return False
 
 
@@ -194,7 +198,9 @@ async def updatePinned(myChannel, guild):
         eventsDict[guildHash].setMyMessage(myLogMessage, "log")
 
         await myMessage.pin()
+        await asyncio.sleep(2)
         await helloMessage.pin()
+        await asyncio.sleep(2)
         await myLogMessage.pin()
 
 
@@ -354,15 +360,6 @@ async def on_command_completion(ctx):
 
 
 @professor.event
-async def on_command_error(ctx, error):
-    # Send user an error message when command throws an error.
-    print(error)
-    print(ctx.message.content)
-
-    await ctx.author.send(content=infoMessages["commandError"].format(ctx.message.content))
-
-
-@professor.event
 async def on_message(message):
     # Process command and then delete the message if it wasn't a command in events channel
     await professor.process_commands(message)
@@ -421,6 +418,21 @@ async def on_guild_join(guild):
             break
         except discord.errors.Forbidden:
             pass
+
+
+@professor.event
+async def on_command_error(ctx, error):
+    print("COMMAND ERROR")
+    print("Command:\t{}".format(ctx.message.content))
+    print("Error:\t\t{}".format(error))
+    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+        await ctx.author.send(content="There was an error executing your command `{}`. \n {}".format(ctx.message.content, error))
+    elif isinstance(error, discord.ext.commands.errors.CommandNotFound):
+        await ctx.author.send(content="The command `{}` is unknown.".format(ctx.message.content))
+    elif isinstance(error, discord.ext.commands.errors.CheckFailure):
+        pass
+    else:
+        await ctx.author.send(content="There was an unknown error executing your command. {}".format(ctx.message.content))
 
 # ==========================================
 # Bot commands
