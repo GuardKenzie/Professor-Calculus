@@ -432,7 +432,10 @@ async def on_command_error(ctx, error):
     elif isinstance(error, discord.ext.commands.errors.CheckFailure):
         pass
     else:
-        await ctx.author.send(content="There was an unknown error executing your command. {}".format(ctx.message.content))
+        if isinstance(ctx.channel, discord.abc.GuildChannel):
+            await ctx.author.send(content="There was an unknown error executing your command `{}`.".format(ctx.message.content))
+        else:
+            await ctx.author.send(content="There was an unknown error executing your command `{}`. Perhaps you should not be executing it in a dm channel.".format(ctx.message.content))
 
 # ==========================================
 # Bot commands
