@@ -70,6 +70,9 @@ everyone = "@everyone"
 # event check loop
 eventCheckerLoop = None
 
+# Activity loop
+activityLoop = None
+
 # Reddit
 with open("reddit", "r") as f:
     r_id = f.readline().strip()
@@ -306,6 +309,21 @@ async def notification_loop():
                 except:
                     continue
 
+
+async def activity_changer():
+    await professor.wait_until_ready()
+    currentActivity = 1
+    while True:
+        await asyncio.sleep(30)
+        if currentActivity == 0:
+            activity = discord.Game(infoMessages["activity"])
+            currentActivity = 1
+        else:
+            activity = discord.Game("p? help")
+            currentActivity = 0
+        await professor.change_presence(activity=activity)
+
+
 # ==========================================
 # Bot events
 # ==========================================
@@ -314,6 +332,7 @@ async def notification_loop():
 @professor.event
 async def on_ready():
     global eventCheckerLoop
+    global activityLoop
     print("User:\t\t\t{}".format(professor.user))
     # Set activity
     print("Activity:\t\t{}".format(activity))
@@ -350,6 +369,10 @@ async def on_ready():
     if eventCheckerLoop not in asyncio.all_tasks():
         print("Starting event checking loop")
         eventCheckerLoop = professor.loop.create_task(notification_loop())
+
+    if activityLoop not in asyncio.all_tasks():
+        print("Starting activity loop")
+        activityLoop = professor.loop.create_task(activity_changer())
 
 
 @professor.event
