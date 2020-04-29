@@ -1333,6 +1333,7 @@ async def readycheck(ctx, *args):
             # After 24h timeout and try to delete the readycheck
             try:
                 await readyCheckMsg.delete()
+                return
             except discord.errors.NotFound:
                 return
 
