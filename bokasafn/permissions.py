@@ -54,9 +54,9 @@ def resolvePermission(permission):
 
 class Permissions:
 
-    def __init__(self, guildHash):
+    def __init__(self, guildHash, database=None):
         self.guildHash = guildHash
-        self.conn = sqlite3.connect("permissiondb.db")
+        self.conn = sqlite3.connect(database)
         self.c = self.conn.cursor()
 
         self.c.execute("SELECT permissionsDict FROM permissions WHERE guildHash=?", (self.guildHash, ))

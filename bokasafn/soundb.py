@@ -3,9 +3,9 @@ import json
 
 
 class SoundBoard():
-    def __init__(self, guildHash):
+    def __init__(self, guildHash, database=None):
         # Initialises connection to database
-        self.conn = sqlite3.connect("sounds.db")
+        self.conn = sqlite3.connect(database)
         self.cursor = self.conn.cursor()
         self.guildHash = guildHash
 

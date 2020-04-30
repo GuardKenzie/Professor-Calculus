@@ -12,11 +12,11 @@ import io
 from PIL import Image
 
 # Mine
-import events
-import helper
-import salt.salty as salty
-import soundb
-import permissions
+import bokasafn.events as events
+import bokasafn.helper as helper
+import bokasafn.permissions as permissions
+import bokasafn.salty as salty
+import bokasafn.soundb as soundb
 
 
 # Bot key
@@ -39,7 +39,7 @@ prefixes = ["f? ", "f?", "p? ", "p?"]
 prefix = "p? "
 
 # Load messages
-with open("messages.json", "r") as f:
+with open("res/messages.json", "r") as f:
     infoMessages = json.loads(f.read())
 
 # Activity
@@ -63,7 +63,7 @@ calculator = "\U0001F5A9"
 accent_colour = discord.Colour(int("688F56", 16))
 
 # Salt initialisation
-saltWraper = salty.saltClass()
+saltWraper = salty.saltClass(database="db/salt.db", insults="res/insults.txt")
 
 everyone = "@everyone"
 
@@ -74,7 +74,7 @@ eventCheckerLoop = None
 activityLoop = None
 
 # Reddit
-with open("reddit", "r") as f:
+with open("keys/reddit", "r") as f:
     r_id = f.readline().strip()
     r_secret = f.readline().strip()
     r_ua = f.readline().strip()
@@ -84,7 +84,7 @@ with open("reddit", "r") as f:
                          user_agent=r_ua)
 
 # Wolfram
-with open("wolfram", "r") as f:
+with open("keys/wolfram", "r") as f:
     wa_app_id = f.readline().strip()
     wolf = wolframalpha.Client(wa_app_id)
 
@@ -343,8 +343,8 @@ async def on_ready():
         guildHash = hash(guild)
         print("Guild:\t\t\t{}".format(guildHash))
 
-        eventsDict[guildHash] = events.Events(guildHash)
-        soundBoardDict[guildHash] = soundb.SoundBoard(guildHash)
+        eventsDict[guildHash] = events.Events(guildHash, database="db/events.db")
+        soundBoardDict[guildHash] = soundb.SoundBoard(guildHash, database="db/sounds.db")
 
         # Find my channel
         myChannelId = eventsDict[guildHash].getMyChannelId("events")
@@ -363,7 +363,7 @@ async def on_ready():
             await updatePinned(myChannel, guild)
 
         # Initiate permissions
-        permissionsDict[hash(guild)] = permissions.Permissions(hash(guild))
+        permissionsDict[hash(guild)] = permissions.Permissions(hash(guild), database="db/permissions.db")
 
         print()
     if eventCheckerLoop not in asyncio.all_tasks():
@@ -438,9 +438,9 @@ async def on_raw_reaction_add(payload):
 @professor.event
 async def on_guild_join(guild):
     # Print setup message in first text channel we can
-    eventsDict[hash(guild)] = events.Events(hash(guild), None)
-    soundBoardDict[hash(guild)] = soundb.SoundBoard(hash(guild))
-    permissionsDict[hash(guild)] = permissions.Permissions(hash(guild))
+    eventsDict[hash(guild)] = events.Events(hash(guild), None, database="db/events.db")
+    soundBoardDict[hash(guild)] = soundb.SoundBoard(hash(guild), database="db/sounds.db")
+    permissionsDict[hash(guild)] = permissions.Permissions(hash(guild), database="db/permissions.db")
     for i in guild.text_channels:
         try:
             await i.send(content="Type `" + prefix + "setup` to get started")
@@ -584,7 +584,7 @@ async def role(ctx, role: discord.Role):
     availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
-    with open("foodemojis.txt", "r") as f:
+    with open("res/foodemojis.txt", "r") as f:
         emojis_avail = f.read().splitlines()
         random.shuffle(emojis_avail)
 
@@ -1358,10 +1358,11 @@ async def readycheck(ctx, *args):
         mentionstr = ""
         for user in users:
             mentionstr = mentionstr + user.mention + " "
+        mentionstr = mentionstr + "\n"
     else:
-        mentionstr = role.mention
+        mentionstr = role.mention + " "
 
-    await ctx.channel.send(content=mentionstr + "\n Everyone is ready")
+    await ctx.channel.send(content=mentionstr + "Everyone is ready")
 
 
 # --- Soundboard ---
@@ -1393,7 +1394,7 @@ async def playFromSoundboard(ctx, name):
 @professor.group(aliases=["sb"])
 async def soundboard(ctx):
     # Ávaxta emojis
-    with open("foodemojis.txt", "r") as f:
+    with open("res/foodemojis.txt", "r") as f:
         emojis_avail = f.read().splitlines()
 
     random.shuffle(emojis_avail)

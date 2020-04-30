@@ -48,7 +48,7 @@ class Events():
     # Events database handler
     # Format for table 'events':
     # server_hash str, id int, date str, name str, description str, people str
-    def __init__(self, guildHash, channel=None, role=None):
+    def __init__(self, guildHash, channel=None, role=None, database=None):
         self.guildHash = guildHash
         self.channel = channel
         self.myMessage = ""
@@ -56,7 +56,7 @@ class Events():
         self.myLogMessageId = None
         self.schedulerRole = role
 
-        self.conn = sqlite3.connect("events.db")
+        self.conn = sqlite3.connect(database)
         self.c = self.conn.cursor()
 
         # Fetch my message from the database
