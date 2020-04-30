@@ -1,4 +1,5 @@
 # Professor Calculus
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 A discord bot for managing guild events and more.
 
 * [Homepage](https://professorcalculus.io)
