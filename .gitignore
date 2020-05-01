@@ -6,3 +6,4 @@ cleaner/*
 reddit
 .flake8
 wolfram
+keys/*
