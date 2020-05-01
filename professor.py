@@ -325,6 +325,7 @@ async def notification_loop():
 
 async def activity_changer():
     await professor.wait_until_ready()
+    professor.add_cog(TopGG(professor))
     currentActivity = 1
     while True:
         await asyncio.sleep(30)
@@ -1526,4 +1527,3 @@ async def rename(ctx, oldname, newname):
 
 # Start bot
 professor.run(str(key))
-professor.add_cog(TopGG(professor))
