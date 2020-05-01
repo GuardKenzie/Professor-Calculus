@@ -392,6 +392,12 @@ async def on_ready():
 @professor.event
 async def on_command_completion(ctx):
     # List of commands for events
+    if ctx.prefix in ["f? ", "f?"]:
+        try:
+            await ctx.author.send("The `{}` prefix is deprecated and will soon be removed. Please switch to using the `{}` prefix instead.".format(ctx.prefix, prefix))
+        except discord.errors.Forbidden:
+            pass
+
     if ctx.guild:
         eventCommands = ["attend", "leave", "schedule", "remove", "update", "kick"]
 
