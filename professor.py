@@ -10,6 +10,7 @@ import wolframalpha
 import urllib.request
 import io
 from PIL import Image
+import dbl
 
 # Mine
 import bokasafn.events as events
@@ -17,7 +18,6 @@ import bokasafn.helper as helper
 import bokasafn.permissions as permissions
 import bokasafn.salty as salty
 import bokasafn.soundb as soundb
-
 
 # Bot key
 keyFile = open(sys.argv[1], "r")
@@ -93,6 +93,19 @@ with open("keys/wolfram", "r") as f:
 class dummyparam:
     def __init__(self, name):
         self.name = name
+
+
+# Server count for top.gg
+class TopGG(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        with open("keys/topgg", "r") as f:
+            self.token = f.read().strip()
+
+        self.dblpy = dbl.DBLClient(self.bot, self.token, autopost=True)
+
+    async def on_guild_post():
+        print("\nEVENT:\nServer count posted successfully")
 
 # ==========================================
 # Functions
@@ -1512,3 +1525,4 @@ async def rename(ctx, oldname, newname):
 
 # Start bot
 professor.run(str(key))
+professor.add_cog(TopGG(professor))
