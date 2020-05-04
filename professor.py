@@ -972,7 +972,9 @@ async def attend(ctx, eventId):
     if event.roles != []:
         try:
             for role in event.roles:
+                print(1)
                 if event.fullRole(role[0]):
+                    print(2)
                     continue
                 emojis.append(role[0])
             if len(emojis) == 0:
@@ -980,10 +982,12 @@ async def attend(ctx, eventId):
             else:
                 rolelist = []
                 for u, v, z in event.roles:
+                    print(3)
                     limitString = " ({}/{})".format(event.peopleInRole[u], event.rolelimits[u]) if event.rolelimits[u] != 0 else ""
                     rolelist.append(u + ": " + v + limitString)
 
                 rolelist = "\n".join(rolelist)
+                print(4)
 
                 reactMsg = await ctx.channel.fetch_message(eventsDict[hash(ctx.guild)].myLogMessageId)
                 await reactMsg.edit(content="Please pick a role by reacting to this message:\n{}".format(rolelist))

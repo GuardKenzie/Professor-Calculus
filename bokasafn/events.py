@@ -37,8 +37,6 @@ class Event:
             if r:
                 self.peopleInRole[r] += 1
 
-        self.roles = {u: r for r, u, v in self.roles}
-
         self.recurring = bool(recurring)
 
     def now(self):
@@ -61,9 +59,6 @@ class Event:
 
     def fullRole(self, role):
         return self.peopleInRole[role] >= self.rolelimits[role] and self.rolelimits[role] != 0
-
-    def allRoleNames(self):
-        return [u for u in self.roles.keys()]
 
     def roleEmoji(self, role):
         return self.roles[role]
