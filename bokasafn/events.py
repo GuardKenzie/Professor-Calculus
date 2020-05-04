@@ -169,6 +169,7 @@ class Events:
         else:
             self.timezone = pytz.timezone("UTC")
             self.c.execute("INSERT INTO guildTimezones VALUES (?, ?)", (guildHash, "UTC"))
+            self.conn.commit()
 
         self.page = 1
 
