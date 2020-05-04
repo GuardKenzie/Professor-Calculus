@@ -973,7 +973,7 @@ async def attend(ctx, eventId):
     if event.roles != []:
         try:
             for role in event.roles:
-                if event.fullRole(role):
+                if event.fullRole(event.roleEmoji(role)):
                     continue
                 emojis.append(role[0])
             if len(emojis) == 0:
