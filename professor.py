@@ -11,6 +11,8 @@ import urllib.request
 import io
 from PIL import Image
 import dbl
+import math
+import pytz
 
 # Mine
 import bokasafn.events as events
@@ -203,7 +205,7 @@ async def updatePinned(myChannel, guild):
     # Update the message if it exists, else post new one
     try:
         myMessage = await myChannel.fetch_message(myMessageId)
-        await myMessage.edit(content="Notice: all times are in GMT", embed=update)
+        await myMessage.edit(content="**Notice:** All times are in `{}` time.".format(str(eventsDict[guildHash].timezone)), embed=update)
         myLogMessage = await myChannel.fetch_message(myLogMessageId)
         await myLogMessage.edit(content="\n".join(mylog))
         await myLogMessage.clear_reactions()
@@ -228,8 +230,8 @@ async def updatePinned(myChannel, guild):
 
 async def friendly_notification(e):
     # Friendly reminder for recurring events
-    eventName = e["event"]["name"]
-    eventDesc = e["event"]["description"]
+    eventName = e["event"].name
+    eventDesc = e["event"].description
     weekday = e["date"]
 
     # Find my friendly channel
@@ -240,7 +242,7 @@ async def friendly_notification(e):
 
     friendlyChannel = guild.get_channel(channelId)
 
-    msgContent = "Today is \"{} {}\". \n {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
+    msgContent = "Today is **{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
@@ -266,16 +268,16 @@ async def event_notification(e):
         eventRole = 0
 
     # Get names of attendants and give them the event role
-    for member in event["people"]:
-        attendants.append(str(event["rolesdict"][member]) + " " + str(guildMembers[member].display_name))
+    for member in event.people:
+        attendants.append(str(event.rolesdict[member]) + " " + str(guildMembers[member].display_name))
 
         if eventRole != 0:
             await guildMembers[member].add_roles(eventRole)
 
     if len(attendants) == 0:
         attendants = ["Nobody :("]
-    if event["description"] == "":
-        event["description"] = "No description yet."
+    if event.description == "":
+        event.description = "No description yet."
 
     if now:
         messageTitle = mention + " Event starting now!"
@@ -285,12 +287,12 @@ async def event_notification(e):
         deleteTime = 3600
 
     # Generate message
-    if (event["limit"] != 0):
-        limitstr = "({}/{})".format(len(event["people"]), event["limit"])
+    if (event.limit != 0):
+        limitstr = "({}/{})".format(len(event.people), event.limit)
     else:
-        limitstr = "({})".format(str(len(event["people"])))
-    message = discord.Embed(title=event["name"], description=event["description"], color=color)
-    message.add_field(name="When?", value=event["date"])
+        limitstr = "({})".format(str(len(event.people)))
+    message = discord.Embed(title=event.name, description=event.description, color=color)
+    message.add_field(name="When?", value=event.printableDate())
     message.add_field(name="Party " + limitstr, value="\n".join(attendants), inline=False)
     await channel.send(content=messageTitle, embed=message, delete_after=deleteTime)
 
@@ -303,7 +305,8 @@ async def notification_loop():
     await professor.wait_until_ready()
     while True:
         # Check every 60s
-        await asyncio.sleep(60)
+        await asyncio.sleep(1)
+        print("checking")
         for guild in professor.guilds:
 
             if eventsDict[hash(guild)].channel is None:
@@ -399,7 +402,7 @@ async def on_command_completion(ctx):
             pass
 
     if ctx.guild:
-        eventCommands = ["attend", "leave", "schedule", "remove", "update", "kick"]
+        eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick"]
 
         guildHash = hash(ctx.guild)
 
@@ -703,6 +706,101 @@ async def role(ctx, role: discord.Role):
     await message.delete()
 
 
+@configure.command()
+async def timezone(ctx):
+    tzdict = {"Other": []}
+    regions = set()
+
+    for entry in pytz.all_timezones:
+        entry = entry.split("/")
+        if len(entry) == 1:
+            tzdict["Other"].append("/".join(entry))
+        elif entry[0] in regions:
+            tzdict[entry[0]].append("/".join(entry[1:]))
+        else:
+            tzdict[entry[0]] = []
+            regions.add(entry[0])
+
+    regions = list(tzdict.keys())
+    regionsStr = ""
+
+    i = 1
+    for r in regions:
+        regionsStr += "{}. {}\n".format(i, r)
+        i += 1
+
+    embed = discord.Embed(title="Regions", description=regionsStr)
+    msg = await ctx.channel.send(content="Please select a region by replying with the corresponding number.", embed=embed)
+
+    def checkRegion(message):
+        try:
+            return int(message.content) <= len(regions) and message.author == ctx.message.author
+        except ValueError:
+            return False
+
+    try:
+        regionMsg = await professor.wait_for("message", check=checkRegion, timeout=120)
+    except asyncio.TimeoutError:
+        await msg.delete()
+        return
+
+    regionIndex = int(regionMsg.content) - 1
+
+    if delperm(ctx):
+        await regionMsg.delete()
+
+    zones = tzdict[regions[regionIndex]]
+
+    def checkZone(message):
+        if message.content.lower() in ["back", "next"]:
+            return message.author == ctx.message.author
+        else:
+            try:
+                return int(message.content) <= len(zones) and message.author == ctx.message.author
+            except ValueError:
+                return False
+
+    done = False
+    page = 0
+    pages = math.ceil(len(zones) / 20)
+    while not done:
+        zonesStr = ""
+        i = 20 * (page) + 1
+        snid = zones[20 * (page):20 * (page + 1)] if page < pages else zones[20 * (page):]
+        for z in snid:
+            zonesStr += "{}. {}\n".format(i, z)
+            i += 1
+        embed = discord.Embed(title="Timezone (Page {}/{})".format(page + 1, pages), description=zonesStr)
+        await msg.edit(content="Please select a region by replying with the corresponding number.\nReply with `next` for the next page.\nReply with `back` for the previous page.", embed=embed)
+
+        try:
+            zoneIndex = await professor.wait_for("message", check=checkZone, timeout=120)
+        except asyncio.TimeoutError:
+            await msg.delete()
+            return
+
+        if zoneIndex.content == "next":
+            page = (page + 1) % pages
+        elif zoneIndex.content == "back":
+            page = (page - 1) % pages
+        else:
+            done = True
+            zoneIndex = int(zoneIndex.content) - 1
+        if delperm(ctx):
+            await zoneIndex.delete()
+
+    if regions[regionIndex] != "Other":
+        timezone = "{}/{}".format(regions[regionIndex], zones[zoneIndex])
+    else:
+        timezone = zones[zoneIndex]
+
+    await msg.delete()
+
+    eventsDict[hash(ctx.guild)].setTimezone(timezone)
+    await ctx.channel.send("Timezone set to `{}`".format(timezone), delete_after=60)
+
+    # eventsDict[hash(ctx.guild)].setTimezone(timezone)
+
 # --- Events ---
 
 
@@ -745,12 +843,12 @@ async def schedule(ctx):
         replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
         # Check if time is ok
-        timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
+        timeOk = events.parseDate(replyMsg.content)
         while timeOk is False:
             await replyMsg.delete()
             await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
-            timeOk = eventsDict[hash(ctx.guild)].dateFormat(replyMsg.content)
+            timeOk = events.parseDate(replyMsg.content)
 
         time = replyMsg.content
         await replyMsg.delete()
@@ -847,7 +945,7 @@ async def remove(ctx, fakeId):
 
     # Check if event id was found and if removal successful
     if eventId and eventsDict[guildHash].removeEvent(eventId):
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event["name"]))
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event.name))
     else:
         await ctx.author.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
 
@@ -867,23 +965,23 @@ async def attend(ctx, eventId):
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
     # Check if event is full
-    if len(event["people"]) >= event["limit"] and event["limit"] != 0:
+    if event.full():
         await ctx.channel.send(content="That event is already full!", delete_after=15)
         return
 
     # Get event roles
-    if event["roles"] != []:
+    if event.roles != []:
         try:
-            for role in event["roles"]:
-                if event["rolelimits"][role[0]] >= role[2] and role[2] != 0:
+            for role in event.roles:
+                if event.fullRole(role):
                     continue
                 emojis.append(role[0])
             if len(emojis) == 0:
                 role = ""
             else:
                 rolelist = []
-                for u, v, z in event["roles"]:
-                    limitString = " ({}/{})".format(event["rolelimits"][u], z) if z != 0 else ""
+                for u, v, z in event.roles:
+                    limitString = " ({}/{})".format(event.rolelimits[u], z) if z != 0 else ""
                     rolelist.append(u + ": " + v + limitString)
 
                 rolelist = "\n".join(rolelist)
@@ -906,7 +1004,7 @@ async def attend(ctx, eventId):
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event["name"]))
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event.name))
     else:
         await ctx.author.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
@@ -918,7 +1016,7 @@ async def leave(ctx, eventId):
 
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     try:
-        role = event["rolesdict"][ctx.author.id]
+        role = event.rolesdict[ctx.author.id]
     except KeyError:
         role = ""
 
@@ -926,7 +1024,7 @@ async def leave(ctx, eventId):
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, False, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event["name"]))
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event.name))
     else:
         await ctx.author.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
@@ -938,10 +1036,20 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
     # Check if usere is scheduler
     if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
+
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
+        if toUpdate == "description":
+            old = event.description
+        elif toUpdate == "name":
+            old = event.name
+        elif toUpdate == "date":
+            old = event.printableDate()
+        else:
+            old = ""
+
         if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
-            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event["name"], toUpdate, event[toUpdate], newInfo))
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event.name, toUpdate, old, newInfo))
 
         else:
             await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
@@ -957,16 +1065,16 @@ async def kick(ctx, userToKick: discord.Member, eventId):
     uid = userToKick.id
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
     try:
-        role = event["rolesdict"][uid]
+        role = event.rolesdict[uid]
     except KeyError:
         role = ""
 
     # Leave event and check for success
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, uid, False, role=role):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
-        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name, event["name"]))
+        eventsDict[hash(ctx.guild)].insertIntoLog("{} kicked {} from `{}`.".format(ctx.author.display_name, userToKick.display_name, event.name))
     else:
-        await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event["name"]))
+        await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event.name))
 
 
 # --- Misc ---
