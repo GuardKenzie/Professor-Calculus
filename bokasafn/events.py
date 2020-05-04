@@ -41,18 +41,18 @@ class Event:
 
     def now(self):
         now = pytz.utc.localize(datetime.datetime.utcnow())
-        return abs(now - self.date) < datetime.timedelta(minutes=1)
+        return abs(now - self.date) < datetime.timedelta(minutes=1) and self.date < now
 
     def inHour(self):
         inHour = pytz.utc.localize(datetime.datetime.utcnow())
         inHour += datetime.timedelta(hours=1)
-        return abs(inHour - self.date) < datetime.timedelta(minutes=1)
+        return abs(inHour - self.date) < datetime.timedelta(minutes=1) and self.date < inHour
 
     def friendlyNotification(self):
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
-        event_at_10 = self.date.replace(hour=10, minute=00)
+        event_at_10 = self.date.replace(hour=12, minute=31)
 
-        return abs(utc_now - event_at_10) < datetime.timedelta(minutes=1)
+        return abs(utc_now - event_at_10) < datetime.timedelta(minutes=1) and event_at_10 < utc_now
 
     def full(self):
         return self.limit <= len(self.people) and self.limit != 0
