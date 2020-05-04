@@ -1,54 +1,145 @@
-# Author: Tristan Ferrua
-# 2020-01-06 11:06
-# Filename: events.py
-
+import json
+import datetime
+import dateutil.parser
+import pytz
 import sqlite3
-import discord
 import random
 import math
-import json
-from datetime import datetime
-from datetime import timedelta
+import discord
 
 accent_colour = discord.Colour(int("688F56", 16))
 
 
-def randomId():
-    # Generate random int from 1 to 1000000000
-    return random.randint(1, 1000000000)
+class Event:
+    def __init__(self, guildHash, eventId, date, name, description, people, roles, limit, recurring, timezone: pytz.timezone):
+        self.hash = guildHash
+        self.id = eventId
+        self.date = dateutil.parser.isoparse(date)
+        self.name = name
+        self.description = description
+        self.roles = json.loads(roles)
+        self.timezone = timezone
+
+        self.parray = json.loads(people)
+        self.parray.sort(key=lambda x: ([x for x, y, z in (self.roles)] + [""]).index(x[1]))
+        self.rolesdict = dict(self.parray)
+        self.people = list(self.rolesdict.keys())
+        self.limit = limit
+
+        self.rolelimits = {u: v for u, w, v in self.roles}
+        self.peopleInRole = {}
+
+        for role in self.roles:
+            self.peopleInRole[role[0]] = 0
+
+        for p in self.people:
+            r = self.rolesdict[p]
+            if r:
+                self.peopleInRole[r] += 1
+
+        self.roles = {u: r for r, u, v in self.roles}
+
+        self.recurring = bool(recurring)
+
+    def now(self):
+        now = pytz.utc.localize(datetime.datetime.utcnow())
+        return abs(now - self.date) < datetime.timedelta(minutes=1)
+
+    def inHour(self):
+        inHour = pytz.utc.localize(datetime.datetime.utcnow())
+        inHour += datetime.timedelta(hours=1)
+        return abs(inHour - self.date) < datetime.timedelta(minutes=1)
+
+    def friendlyNotification(self):
+        utc_now = pytz.utc.localize(datetime.datetime.utcnow())
+        event_at_10 = self.date.replace(hour=10, minute=00)
+
+        return abs(utc_now - event_at_10) < datetime.timedelta(minutes=1)
+
+    def full(self):
+        return self.limit <= len(self.people) and self.limit != 0
+
+    def fullRole(self, role):
+        return self.peopleInRole[role] >= self.rolelimits[role] and self.rolelimits[role] != 0
+
+    def allRoleNames(self):
+        return [u for u in self.roles.keys()]
+
+    def roleEmoji(self, role):
+        return self.roles[role]
+
+    def roleName(self, emoji):
+        reverseRoles = {v: u for u, v in self.roles.items()}
+        return reverseRoles[emoji]
+
+    def roleLimit(self, role):
+        return self.rolelimits[role]
+
+    def numberInRole(self, role):
+        return self.peopleInRole[role]
+
+    def nextDay(self):
+        return str(self.date + datetime.timedelta(days=7))
+
+    def getDate(self):
+        return self.date.astimezone(self.timezone)
+
+    def printableDate(self):
+        if self.recurring:
+            return self.date.astimezone(self.timezone).strftime("%A %H:%M")
+        else:
+            return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
 
 
-def parseEvent(event):
-    out = {}
-    out["hash"] = event[0]
-    out["id"] = event[1]
-    out["date"] = event[2]
-    out["name"] = event[3]
-    out["description"] = event[4]
-    out["roles"] = json.loads(event[6])
+def parseDate(date, timezone=pytz.utc):
+    done = False
 
-    parray = json.loads(event[5])
-    parray.sort(key=lambda x: ([x for x, y, z in (out["roles"])] + [""]).index(x[1]))
-    out["rolesdict"] = dict(parray)
-    out["people"] = list(out["rolesdict"].keys())
-    out["limit"] = event[7]
-    out["rolelimits"] = {}
-    for role in out["roles"]:
-        out["rolelimits"][role[0]] = 0
+    if not done:
+        try:
+            date = datetime.datetime.strptime(date, "%d %B %Y %H:%M")
+            done = True
+        except ValueError:
+            pass
 
-    for p in out["people"]:
-        r = out["rolesdict"][p]
-        if r:
-            out["rolelimits"][r] += 1
+    if not done:
+        try:
+            date = datetime.datetime.strptime(date, "%d %b %Y %H:%M")
+            done = True
+        except ValueError:
+            pass
 
-    return out
+    if not done:
+        try:
+            date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M")
+            done = True
+        except ValueError:
+            pass
+
+    if not done:
+        try:
+            today = datetime.datetime.now().weekday()
+            weekdays = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6}
+            delta = (weekdays[date.split()[0].lower()] - today) % 7
+            try:
+                date = datetime.datetime.strptime(date, "%A %H:%M")
+            except ValueError:
+                date = datetime.datetime.strptime(date, "%a %H:%M")
+            date = datetime.datetime.utcnow().replace(hour=date.hour, minute=date.minute, second=0) + datetime.timedelta(days=delta)
+            done = True
+        except (AttributeError, ValueError):
+            pass
+
+    try:
+        return timezone.localize(date).astimezone(pytz.utc)
+    except ValueError:
+        return False
 
 
-class Events():
-    # Events database handler
-    # Format for table 'events':
-    # server_hash str, id int, date str, name str, description str, people str
+class Events:
     def __init__(self, guildHash, channel=None, role=None, database=None):
+        # Events database handler
+        # Format for table 'events':
+        # server_hash str, id int, date str, name str, description str, people str
         self.guildHash = guildHash
         self.channel = channel
         self.myMessage = ""
@@ -70,70 +161,52 @@ class Events():
         if myLogMessageId:
             self.myLogMessageId = int(myLogMessageId[0])
 
+        # Fetch my timezone
+        self.c.execute("SELECT timezone FROM guildTimezones WHERE server_hash=?", (guildHash, ))
+        timezone = self.c.fetchone()
+        if timezone:
+            self.timezone = pytz.timezone(timezone[0])
+        else:
+            self.timezone = pytz.timezone("UTC")
+            self.c.execute("INSERT INTO guildTimezones VALUES (?, ?)", (guildHash, "UTC"))
+
         self.page = 1
 
         self.scheduling = 0
         print("Events:\t\t\tonline for {}".format(guildHash))
 
-    def dateFormat(self, date):
-        # checks if date is in format D/M/Y h:m
-        # returns padded date if ok or False if not
-        if date.lower() == "tbd":
-            return "TBD"
-
+    def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit):
         weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-
-        monthsWith30Days = [4, 6, 9, 10]
-
-    # Seperate date and time
-        date = date.split(" ")
-        if len(date) != 2:
-            return False
-
-        time = date[1].split(":")
-        if len(time) != 2:
-            return False
-
-        h = int(time[0])
-        m = int(time[1])
-
-        if h not in range(0, 24):
-            return False
-        if m not in range(0, 61):
-            return False
-
-        if date[0].lower() not in weekdays:
-            day = date[0].split("/")
-            if len(day) != 3:
-                return False
-
-            D = int(day[0])
-            M = int(day[1])
-            Y = int(day[2])
-            if Y < 100:
-                Y = 2000 + Y
-
-            if D not in range(1, 32):
-                return False
-            if D not in range(1, 31) and M in monthsWith30Days:
-                return False
-            if D not in range(1, 29) and M == 2 and Y % 4 != 0:
-                return False
-            if D not in range(1, 30) and M == 2 and Y % 4 == 0:
-                return False
-            if M not in range(1, 13):
-                return False
-            dayString = "{}/{}/{}".format(str(D).zfill(2), str(M).zfill(2), str(Y))
+        if eventDate.split()[0].lower() in weekdays:
+            recurring = True
         else:
-            dayString = date[0].capitalize()
+            recurring = False
 
-        out = "{} {}:{}".format(dayString, str(h).zfill(2), str(m).zfill(2))
-        if date[0].lower() in weekdays:
-            return out
-        elif datetime.strptime(out, "%d/%m/%Y %H:%M") < datetime.now():
-            return False
+        eventDate = parseDate(eventDate, self.timezone)
+        eventId = random.randint(1, 1000000000)
+        eventRoles = json.dumps(eventRoles)
+
+        if eventDate:
+            e = self.c.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?, '[]', ?, ?, ?)", (self.guildHash, eventId, eventDate, eventName, eventDesc, eventRoles, eventLimit, recurring))
+            self.conn.commit()
+            return e
         else:
-            return out
+            return False
+
+    def setTimezone(self, timezone):
+        self.c.execute("UPDATE guildTimezones SET timezone=? WHERE server_hash=?", (timezone, self.guildHash))
+        self.timezone = pytz.timezone(timezone)
+        self.conn.commit()
+
+    def getEvent(self, eventId):
+        eventId = self.getEventId(eventId)
+
+        self.c.execute("SELECT * FROM events where id=? AND server_hash=?", (eventId, self.guildHash))
+        res = self.c.fetchone()
+        if res:
+            return Event(*res, self.timezone)
+        else:
+            return False
 
     def getChannel(self):
         # Get the events channel for the server
@@ -145,11 +218,6 @@ class Events():
         self.c.execute("SELECT * FROM events WHERE server_hash=?", (self.guildHash,))
         out = self.c.fetchall()
         return out
-
-    def getEvent(self, eventNumber):
-        eventId = self.getEventId(eventNumber)
-        self.c.execute("SELECT * FROM events WHERE server_hash=? AND id=?", (self.guildHash, eventId))
-        return parseEvent(self.c.fetchone())
 
     def getEventId(self, eventNumber):
         # Takes event index and returns id
@@ -166,18 +234,6 @@ class Events():
                 return False
 
         except ValueError:
-            return False
-
-    def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit):
-        # Creates a new event and stores in database
-        eventDate = self.dateFormat(eventDate)
-        eventId = randomId()
-        eventRoles = json.dumps(eventRoles)
-        if eventDate:
-            e = self.c.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?, '[]', ?, ?)", (self.guildHash, eventId, eventDate, eventName, eventDesc, eventRoles, eventLimit))
-            self.conn.commit()
-            return e
-        else:
             return False
 
     def removeEvent(self, eventId):
@@ -219,8 +275,9 @@ class Events():
         self.conn.commit()
         return e
 
-    def updateEvent(self, eventId, toUpdate, newInfo, actualId=False):
+    def updateEvent(self, eventId, toUpdate, newInfo, actualId=False, doNotSwitch=False):
         # updates field toUpdate to newInfo in database
+        toRecurring = False
 
         # Get actual Id
         if not actualId:
@@ -228,15 +285,22 @@ class Events():
             if not eventId:
                 return False
 
+        weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
         # Check for date and set correct padding
         if toUpdate == "date":
-            newInfo = self.dateFormat(newInfo)
+            toRecurring = bool(newInfo.split()[0].lower() in weekdays)
+            newInfo = parseDate(newInfo)
             if not newInfo:
                 return False
 
         # Update entry and check for success
         e = self.c.execute("UPDATE events SET {}=?  WHERE server_hash=? AND id=?".format(toUpdate), (newInfo, self.guildHash, eventId))
         if e:
+            if toRecurring and toUpdate == "date":
+                self.c.execute("UPDATE events SET recurring=1 WHERE server_hash=? AND id=?", (self.guildHash, eventId))
+            elif toUpdate == "date":
+                self.c.execute("UPDATE events SET recurring=0 WHERE server_hash=? AND id=?", (self.guildHash, eventId))
             self.conn.commit()
             return e
         else:
@@ -278,25 +342,25 @@ class Events():
             # Check if last event
             lastEvent = (event == eventList[-1])
             # Get info
-            event = parseEvent(event)
+            event = Event(*event, self.timezone)
             attendants = []
 
             # Get display names for attendants and put them in a list
-            for member in event["people"]:
-                attendants.append(event["rolesdict"][member] + " " + guildMembers[member])
+            for member in event.people:
+                attendants.append(event.rolesdict[member] + " " + guildMembers[member])
 
             # Generate party title
-            limitMessage = "({})".format(len(attendants)) if event["limit"] == 0 else "({}/{})".format(len(attendants), event["limit"])
+            limitMessage = "({})".format(len(attendants)) if event.limit == 0 else "({}/{})".format(len(attendants), event.limit)
 
             # Check if noone is attending or no description
             if len(attendants) == 0:
                 attendants = ["Nobody :("]
-            if event["description"] == "":
-                event["description"] = "No description yet."
+            if event.description == "":
+                event.description = "No description yet."
 
             # Create the header
-            fieldName = "{}. {} ({})".format(str(fakeId), event["name"], event["date"])
-            message.add_field(name=fieldName, value=event["description"], inline=True)
+            fieldName = "{}. {} ({})".format(str(fakeId), event.name, event.printableDate())
+            message.add_field(name=fieldName, value=event.description, inline=True)
 
             # Add party
             message.add_field(name="Party {}".format(limitMessage), value="\n".join(attendants))
@@ -310,60 +374,44 @@ class Events():
         return message
 
     def checkIfNotification(self, force=False):
-        # Generate time string for 1 hour in future and now
-        dateHour = []
-        dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M"))
-        dateHour.append((datetime.now() + timedelta(hours=1)).strftime("%A %H:%M"))
-
-        dateNow = []
-        dateNow.append(datetime.now().strftime("%d/%m/%Y %H:%M"))
-        dateNow.append(datetime.now().strftime("%A %H:%M"))
-
-        timeNow = datetime.now().strftime("%H:%M")
-
-        weekday = datetime.now().strftime("%A")
-
         eventsList = self.getAllEvents()
+        weekday = datetime.datetime.now().strftime("%A")
 
         # Check if notification for now or in an hour
         eventOut = []
 
         for event in eventsList:
-            event = parseEvent(event)
-            recurringEvent = False
+            event = Event(*event, self.timezone)
 
-            # Get actual day of event
-            eventDay = event["date"].split(" ")[0]
-
-            if eventDay.lower() == weekday.lower():
-                recurringEvent = True
-
-                if timeNow == "10:00" or force:
-                    eventOut.append({"event": event,
-                                     "date": weekday,
-                                     "friendly": True,
-                                     "channelId": self.getMyChannelId("friendly"),
-                                     "guild": self.channel.guild
-                                     })
+            if event.friendlyNotification():
+                eventOut.append({"event": event,
+                                 "date": weekday,
+                                 "friendly": True,
+                                 "channelId": self.getMyChannelId("friendly"),
+                                 "guild": self.channel.guild
+                                 })
 
             # If now then remove
-            if event["date"] in dateNow:
-                if not recurringEvent:
-                    self.removeEvent(event["id"])
+            if event.now():
+                if not event.recurring:
+                    self.removeEvent(event.id)
                 else:
-                    self.updateEvent(event["id"], "people", "[]", actualId=True)
+                    self.updateEvent(event.id, "people", "[]", actualId=True)
+                    print(event.nextDay())
+                    self.c.execute("UPDATE events SET date=? WHERE server_hash=? AND id=?", (event.nextDay(), self.guildHash, event.id))
+                    self.conn.commit()
                 eventOut.append({"event": event,
                                  "color": discord.Color.red(),
-                                 "date": dateNow,
+                                 "date": event.printableDate(),
                                  "channel": self.channel,
                                  "now": True,
                                  "friendly": False})
                 # (event, discord.Color.red(), dateNow, self.channel, True)
 
-            elif event["date"] in dateHour:
+            elif event.inHour():
                 eventOut.append({"event": event,
                                  "color": discord.Color.orange(),
-                                 "date": dateHour,
+                                 "date": event.printableDate(),
                                  "channel": self.channel,
                                  "now": False,
                                  "friendly": False})
@@ -405,7 +453,7 @@ class Events():
 
     def insertIntoLog(self, message):
         oldLog = self.getLog()
-        time = datetime.now().strftime("%D %T")
+        time = datetime.datetime.now().strftime("%D %T")
 
         if len(oldLog) >= 5:
             newLog = oldLog[1:]
@@ -437,22 +485,29 @@ class Events():
 
         self.conn.commit()
 
-    def getSchedulerRole(self):
-        self.c.execute("SELECT schedulerRoleId FROM schedulerRoles WHERE server_hash=?", (self.guildHash, ))
-        res = self.c.fetchone()
-        if res is not None:
-            return res[0]
-        else:
-            return 0
 
-    def setSchedulerRole(self, role):
-        roleId = role.id
-        self.schedulerRole = role
+if __name__ == "__main__":
+    conn = sqlite3.connect("../db/events.db")
+    c = conn.cursor()
 
-        self.c.execute("SELECT schedulerRoleId FROM schedulerRoles WHERE server_hash=?;", (self.guildHash, ))
-        res = self.c.fetchone()
-        if res is not None:
-            self.c.execute("UPDATE schedulerRoles SET schedulerRoleId=? WHERE server_hash=?;", (roleId, self.guildHash))
+    c.execute("ALTER TABLE events ADD recurring bool;")
+    c.execute("CREATE TABLE guildTimezones (server_hash int, timezone str);")
+    c.execute("SELECT * FROM events;")
+    res = c.fetchall()
+    weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    for r in res:
+        if r[2].lower() == "tbd":
+            c.execute("DELETE FROM events WHERE server_hash=? AND id=?", (r[0], r[1]))
+            continue
+        if r[2].split()[0].lower() in weekdays:
+            recurring = True
         else:
-            self.c.execute("INSERT INTO schedulerRoles VALUES (?, ?);", (roleId, self.guildHash))
-        self.conn.commit()
+            recurring = False
+        try:
+            date = datetime.datetime.strptime(r[2], "%d/%m/%Y %M:%H")
+            date = date.strftime("%d %B %Y %H:%M")
+        except ValueError:
+            date = r[2]
+        d = parseDate(r[2], pytz.timezone("utc"))
+        c.execute("UPDATE events SET date=?, recurring=? WHERE server_hash=? AND id=?", (d, recurring, r[0], r[1]))
+    conn.commit()
