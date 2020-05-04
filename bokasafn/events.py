@@ -126,12 +126,12 @@ def parseDate(date, timezone=pytz.utc):
                 date = datetime.datetime.strptime(date, "%a %H:%M")
             date = datetime.datetime.utcnow().replace(hour=date.hour, minute=date.minute, second=0) + datetime.timedelta(days=delta)
             done = True
-        except (AttributeError, ValueError):
+        except (AttributeError, ValueError, KeyError):
             pass
 
     try:
         return timezone.localize(date).astimezone(pytz.utc)
-    except ValueError:
+    except (AttributeError, ValueError):
         return False
 
 
@@ -290,7 +290,7 @@ class Events:
         # Check for date and set correct padding
         if toUpdate == "date":
             toRecurring = bool(newInfo.split()[0].lower() in weekdays)
-            newInfo = parseDate(newInfo)
+            newInfo = parseDate(newInfo, self.timezone)
             if not newInfo:
                 return False
 

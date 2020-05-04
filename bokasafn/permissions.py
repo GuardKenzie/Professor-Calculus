@@ -18,6 +18,7 @@ import discord
 # Config:   c
 # Channel:  cc
 # Role:     cr
+# Timezone: ct
 #
 # --- Maintenance ---
 # Setup:    ms
@@ -31,6 +32,7 @@ permissionResolver = {"schedule": "es",
                       "soundboard remove": "sr",
                       "configure channel": "cc",
                       "configure role": "cr",
+                      "configure timezone": "ct",
                       "setup": "ms",
                       "clean": "mc"
                       }

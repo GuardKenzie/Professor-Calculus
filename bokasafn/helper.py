@@ -13,6 +13,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="configure", value="Gives an overview of configured permissions", inline=False)
         msg.add_field(name="configure channel [channel type]", value="Sets the event or weekday channel", inline=False)
         msg.add_field(name="configure role [@role]", value="Configure bot permissions for a role", inline=False)
+        msg.add_field(name="configure timezone", value="Configure the timezone for events in this server", inline=False)
         msg.add_field(name="roll [list of names seperated with ,]", value="Select a random person from a list", inline=False)
         msg.add_field(name="salt", value="Get a salty nugg.", inline=False)
         msg.add_field(name="saltboard", value="See who has the most salt.", inline=False)
@@ -62,6 +63,9 @@ def helpCmd(prefix, cmd):
         elif cmd == "configure":
             msg = discord.Embed(title="configure")
             msg.add_field(name="\u200b", value="Messages the author with the current configuration", inline=False)
+        elif cmd == "configure timezone":
+            msg = discord.Embed(title="configure timezone")
+            msg.add_field(name="\u200b", value="Gives you a configuration dialogue for setting the guild timezone.", inline=False)
         elif cmd == "configure channel":
             msg = discord.Embed(title="configure channel [channel type]")
             msg.add_field(name="[channelType]", value="events for events channel or friendly for weekday announcements", inline=False)

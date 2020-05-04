@@ -305,7 +305,7 @@ async def notification_loop():
     await professor.wait_until_ready()
     while True:
         # Check every 60s
-        await asyncio.sleep(1)
+        await asyncio.sleep(60)
         print("checking")
         for guild in professor.guilds:
 
@@ -605,7 +605,7 @@ async def channel(ctx, channelType):
 async def role(ctx, role: discord.Role):
     cross = "\u274C"
     # Permissions that can be set
-    availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr"]
+    availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr", "ct"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
     with open("res/foodemojis.txt", "r") as f:
@@ -1044,6 +1044,9 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
         elif toUpdate == "name":
             old = event.name
         elif toUpdate == "date":
+            if not events.parseDate(newInfo):
+                await ctx.author.send("`{}` is not a valid date format".format(newInfo))
+                return
             old = event.printableDate()
         else:
             old = ""
