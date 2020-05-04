@@ -306,7 +306,6 @@ async def notification_loop():
     while True:
         # Check every 60s
         await asyncio.sleep(60)
-        print("checking")
         for guild in professor.guilds:
 
             if eventsDict[hash(guild)].channel is None:
@@ -973,7 +972,7 @@ async def attend(ctx, eventId):
     if event.roles != []:
         try:
             for role in event.roles:
-                if event.fullRole(event.roleEmoji(role)):
+                if event.fullRole(role[0]):
                     continue
                 emojis.append(role[0])
             if len(emojis) == 0:
@@ -981,7 +980,7 @@ async def attend(ctx, eventId):
             else:
                 rolelist = []
                 for u, v, z in event.roles:
-                    limitString = " ({}/{})".format(event.rolelimits[u], z) if z != 0 else ""
+                    limitString = " ({}/{})".format(event.peopleInRole[u], event.rolelimits[u]) if event.rolelimits[u] != 0 else ""
                     rolelist.append(u + ": " + v + limitString)
 
                 rolelist = "\n".join(rolelist)
