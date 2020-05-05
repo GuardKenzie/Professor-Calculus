@@ -213,7 +213,7 @@ async def updatePinned(myChannel, guild):
     except (discord.errors.HTTPException, discord.errors.NotFound):
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
-        myMessage = await myChannel.send(content="Notice: all times are in GMT", embed=update)
+        myMessage = await myChannel.send(content="**Notice:** All times are in `{}` time".format(str(eventsDict[guildHash].timezone)), embed=update)
         myLogMessage = await myChannel.send(content="\n".join(mylog))
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
@@ -228,7 +228,7 @@ async def updatePinned(myChannel, guild):
         await myLogMessage.pin()
 
 
-async def friendly_notification(e):
+async def friendly_notification(e, number):
     # Friendly reminder for recurring events
     eventName = e["event"].name
     eventDesc = e["event"].description
@@ -242,7 +242,10 @@ async def friendly_notification(e):
 
     friendlyChannel = guild.get_channel(channelId)
 
-    msgContent = "Today is **{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
+    msgContent = "Today is "
+    if number > 0:
+        msgContent += " also "
+     msgContent += "**{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
@@ -313,11 +316,14 @@ async def notification_loop():
 
             # Check every guild for notifications
             eventOut = eventsDict[hash(guild)].checkIfNotification()
+
+            i = 0
             for e in eventOut:
                 # If there is a notification, send it and update events list
                 try:
                     if e["friendly"]:
-                        await friendly_notification(e)
+                        await friendly_notification(e, i)
+                        i += 1
                     else:
                         await updatePinned(eventsDict[hash(guild)].channel, guild)
                         await event_notification(e)
@@ -838,7 +844,7 @@ async def schedule(ctx):
         await startEvent.edit(embed=emb)
 
         # Time
-        await msg.edit(content=infoMessages["eventTime"])
+        await msg.edit(content=infoMessages["eventTime"].format(str(eventsDict[hash(ctx.guild)].timezone)))
         replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
         # Check if time is ok
