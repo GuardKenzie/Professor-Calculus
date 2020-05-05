@@ -213,7 +213,7 @@ class Events:
         # Format of out:
         self.c.execute("SELECT * FROM events WHERE server_hash=?", (self.guildHash,))
         out = self.c.fetchall()
-        return out
+        return sorted(out, key=lambda x: dateutil.parser.isoparse(x[2]))
 
     def getEventId(self, eventNumber):
         # Takes event index and returns id
@@ -334,6 +334,7 @@ class Events:
 
         # Create line for each event on page
         fakeId = 1 + (page - 1) * 5
+
         for event in eventList:
             # Check if last event
             lastEvent = (event == eventList[-1])
