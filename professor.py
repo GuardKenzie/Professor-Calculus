@@ -776,7 +776,7 @@ async def timezone(ctx):
         for z in snid:
             zonesStr += "{}. {}\n".format(i, z)
             i += 1
-        embed = discord.Embed(title="Timezone (Page {}/{})".format(page + 1, pages), description=zonesStr)
+        embed = discord.Embed(title="Time zone (Page {}/{})".format(page + 1, pages), description=zonesStr)
         await msg.edit(content="Please select a region by replying with the corresponding number.\nReply with `next` for the next page.\nReply with `back` for the previous page.", embed=embed)
 
         try:
@@ -803,7 +803,7 @@ async def timezone(ctx):
     await msg.delete()
 
     eventsDict[hash(ctx.guild)].setTimezone(timezone)
-    await ctx.channel.send("Timezone set to `{}`".format(timezone), delete_after=60)
+    await ctx.channel.send("Time zone set to `{}`".format(timezone), delete_after=60)
 
     # eventsDict[hash(ctx.guild)].setTimezone(timezone)
 
