@@ -245,7 +245,8 @@ async def friendly_notification(e, number):
     msgContent = "Today is "
     if number > 0:
         msgContent += " also "
-     msgContent += "**{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
+
+    msgContent += "**{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
 
     await friendlyChannel.send(content=msgContent)
 
