@@ -1323,7 +1323,6 @@ async def stop(ctx):
 
 @chill.command(aliases=["v"])
 async def volume(ctx, v):
-    await ctx.message.delete()
     try:
         v = int(v) / 100
         if v >= 0 and v <= 1:
