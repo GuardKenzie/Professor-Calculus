@@ -334,18 +334,11 @@ class Events:
 
         # Create line for each event on page
         fakeId = 1 + (page - 1) * 5
-        i = 0
-        while i < len(eventList):
-            eventList[i] = Event(*eventList[i], self.timezone)
-            i += 1
-
-        eventList.sort(key=lambda x: x.date, reverse=True)
-
         for event in eventList:
             # Check if last event
             lastEvent = (event == eventList[-1])
             # Get info
-            # event = Event(*event, self.timezone)
+            event = Event(*event, self.timezone)
             attendants = []
 
             # Get display names for attendants and put them in a list
