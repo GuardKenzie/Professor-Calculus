@@ -18,8 +18,6 @@
   "updateFailed":           "Could not update event. Maybe check `{} help` and try again.",
   "invalidUpdateField":     "You cannot update that!",
 
-  "userNotScheduler":       "You lack the sufficient permissions to do that (you do not have the rank 'Scheduler'). Check with an admin if you think this is an error.",
-
   "commandError":           "There was an error executing your command: `{}`\n If you belive this is a bug, please contact the admins.",
   "activity":               "Phoenix Wright: Ace Attorney!",
 
@@ -27,7 +25,7 @@
 
   "startSchedule": "Creating new event",
   "eventTitle":     "Please enter a title for your event:",
-  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM` for weekly events. (all times are in GMT)",
+  "eventTime":      "Please give a date and time for your event.\n Format `DD/MM/YYYY HH:MM` or `Weekday HH:MM` for weekly events. (all times are in `{}`)",
   "eventDesc":      "Enter a description for your event:",
   "invalidDate":    "`{}` is not a valid date!",
   "cannotCreateEventsChannel": "I do not have permission to create my events channel. Please manually create a channel for events and set it as my channel with `{}configure channel events`. Make sure I have permission to manage messages in my events channel.",
