@@ -780,20 +780,20 @@ async def timezone(ctx):
         await msg.edit(content="Please select a region by replying with the corresponding number.\nReply with `next` for the next page.\nReply with `back` for the previous page.", embed=embed)
 
         try:
-            zoneIndex = await professor.wait_for("message", check=checkZone, timeout=120)
+            zoneMsg = await professor.wait_for("message", check=checkZone, timeout=120)
         except asyncio.TimeoutError:
             await msg.delete()
             return
 
-        if zoneIndex.content == "next":
+        if zoneMsg.content == "next":
             page = (page + 1) % pages
-        elif zoneIndex.content == "back":
+        elif zoneMsg.content == "back":
             page = (page - 1) % pages
         else:
             done = True
-            zoneIndex = int(zoneIndex.content) - 1
+            zoneIndex = int(zoneMsg.content) - 1
         if delperm(ctx):
-            await zoneIndex.delete()
+            await zoneMsg.delete()
 
     if regions[regionIndex] != "Other":
         timezone = "{}/{}".format(regions[regionIndex], zones[zoneIndex])
