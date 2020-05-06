@@ -1386,12 +1386,13 @@ async def force_friendly(ctx):
 
             rep = await professor.wait_for("message", check=check, timeout=100)
 
-            e = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
+            events = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
             i = 0
-            if e:
-                if e["friendly"]:
-                    await friendly_notification(e, i)
-                    i += 1
+            for e in events:
+                if e:
+                    if e["friendly"]:
+                        await friendly_notification(e, i)
+                        i += 1
 
     except asyncio.TimeoutError:
         await msg.delete()
