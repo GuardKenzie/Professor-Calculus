@@ -364,7 +364,7 @@ async def on_ready():
     # Initiate Events class for each guild
     for guild in professor.guilds:
         guildHash = hash(guild)
-        print("Guild:\t\t\t{}".format(guildHash))
+        print("Guild:\t\t\t{}".format(guild.name))
 
         eventsDict[guildHash] = events.Events(guildHash, database="db/events.db")
         soundBoardDict[guildHash] = soundb.SoundBoard(guildHash, database="db/sounds.db")
