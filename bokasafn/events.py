@@ -380,7 +380,7 @@ class Events:
         for event in eventsList:
             event = Event(*event, self.timezone)
 
-            if event.friendlyNotification():
+            if event.friendlyNotification() or force:
                 eventOut.append({"event": event,
                                  "date": weekday,
                                  "friendly": True,
