@@ -1389,6 +1389,7 @@ async def force_friendly(ctx):
             events = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
             i = 0
             for e in events:
+                print(e)
                 if e:
                     if e["friendly"]:
                         await friendly_notification(e, i)
