@@ -50,7 +50,7 @@ class Event:
 
     def friendlyNotification(self):
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
-        event_at_10 = self.date.replace(hour=12, minute=31)
+        event_at_10 = self.date.replace(hour=10, minute=00)
 
         return abs(utc_now - event_at_10) < datetime.timedelta(minutes=1) and event_at_10 < utc_now
 
