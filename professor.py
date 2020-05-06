@@ -1371,21 +1371,27 @@ async def force_friendly(ctx):
             avail = []
             i = 0
             for guild in guilds:
-                outmsg += str(i) + ": " + guild[0]
+                outmsg += str(i) + ": " + guild[0] + "\n"
                 avail.append(str(i))
                 i += 1
 
             msg = await ctx.author.send(content=outmsg)
 
             def check(m):
-                return ctx.author == m.author and m.content in avail
+                if ctx.author == m.author:
+                    if m.content.lower() == "cancel":
+                        raise asyncio.eoutError
+                    else:
+                        return m.content in avail
 
             rep = await professor.wait_for("message", check=check, timeout=100)
 
             e = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
+            i = 0
             if e:
                 if e["friendly"]:
-                    await friendly_notification(e)
+                    await friendly_notification(e, i)
+                    i += 1
 
     except asyncio.TimeoutError:
         await msg.delete()
