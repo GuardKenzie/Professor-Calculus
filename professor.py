@@ -1283,7 +1283,7 @@ async def remindme(ctx, *, reminderString):
 
     reminderWrapper.createReminder(ctx.author.id, reminderString)
 
-    await ctx.author.send("I will remind you at `{}` to `{}`.".format(printableTime, reminder))
+    await ctx.author.send("I will remind you at `{} UTC` to `{}`.".format(printableTime, reminder))
 
 # --- Salt ---
 
