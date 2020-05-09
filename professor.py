@@ -360,7 +360,7 @@ async def reminder_checker():
             user = professor.get_user(reminder["id"])
 
             await user.send(embed=reminder["embed"])
-        await asyncio.sleep(1)
+        await asyncio.sleep(10)
 
 # ==========================================
 # Bot events
