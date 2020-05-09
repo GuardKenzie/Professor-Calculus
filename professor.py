@@ -356,11 +356,8 @@ async def activity_changer():
 async def reminder_checker():
     await professor.wait_until_ready()
     while True:
-        print("Checking")
         for reminder in reminderWrapper.checkIfRemind():
-            print(reminder)
             user = professor.get_user(reminder["id"])
-            print(user)
 
             await user.send(embed=reminder["embed"])
         await asyncio.sleep(1)
@@ -417,7 +414,7 @@ async def on_ready():
         activityLoop = professor.loop.create_task(activity_changer())
 
     if reminderLoop not in asyncio.all_tasks():
-        print("Starting reminderes")
+        print("Starting reminders")
         reminderLoop = professor.loop.create_task(reminder_checker())
 
 

@@ -34,7 +34,7 @@ class Reminders:
 
         for r in res:
             setString = dateutil.parser.isoparse(r[3]).strftime("%d %B %Y %H:%M")
-            embed = discord.Embed(title="Reminder!", description=r[2])
+            embed = discord.Embed(title="Reminder!", description=r[2], colour=discord.Colour.blue())
             embed.add_field(name="When did I set this?", value="Set at `{}` for `{}`".format(setString, r[4]), inline=0)
             out.append({"id": r[0], "embed": embed})
 
