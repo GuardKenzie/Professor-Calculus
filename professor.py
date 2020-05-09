@@ -1422,7 +1422,7 @@ async def force_friendly(ctx):
             def check(m):
                 if ctx.author == m.author:
                     if m.content.lower() == "cancel":
-                        raise asyncio.eoutError
+                        raise asyncio.TimeoutError
                     else:
                         return m.content in avail
 
