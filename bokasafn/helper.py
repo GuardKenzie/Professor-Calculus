@@ -31,6 +31,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="soundboard play [name]", value="Play a sound", inline=False)
         msg.add_field(name="soundboard rename [name] [newname]", value="Rename a sound", inline=False)
         msg.add_field(name="calculate [query]", value="Query wolfram alpha", inline=False)
+        msg.add_field(name="remindme [time] to [reminder]", value="Set a reminder for [reminder] to go off at [time]", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule")
@@ -126,6 +127,9 @@ def helpCmd(prefix, cmd):
         elif cmd == "calculate":
             msg = discord.Embed(title="calculate [query]")
             msg.add_field(name="\u200b", value="The professor tries to calculate your `[query]`.", inline=False)
+        elif cmd == "remindme":
+            msg = discord.Embed(title="remindme [time] to [reminder]")
+            msg.add_field(name="[time]", value="accepts the same date format as the `schedule` command as well as relative dates such as `in 2 weeks`", inline=False)
         else:
             return -1
     return msg

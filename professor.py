@@ -13,6 +13,7 @@ from PIL import Image
 import dbl
 import math
 import pytz
+import dateutil.parser
 
 # Mine
 import bokasafn.events as events
@@ -20,6 +21,7 @@ import bokasafn.helper as helper
 import bokasafn.permissions as permissions
 import bokasafn.salty as salty
 import bokasafn.soundb as soundb
+import bokasafn.reminders as reminders
 
 # Bot key
 keyFile = open(sys.argv[1], "r")
@@ -74,6 +76,10 @@ eventCheckerLoop = None
 
 # Activity loop
 activityLoop = None
+
+# Reminders
+reminderLoop = None
+reminderWrapper = reminders.Reminders(database="db/reminders.db")
 
 # Reddit
 with open("keys/reddit", "r") as f:
@@ -347,6 +353,18 @@ async def activity_changer():
         await professor.change_presence(activity=activity)
 
 
+async def reminder_checker():
+    await professor.wait_until_ready()
+    while True:
+        print("Checking")
+        for reminder in reminderWrapper.checkIfRemind():
+            print(reminder)
+            user = professor.get_user(reminder["id"])
+            print(user)
+
+            await user.send(embed=reminder["embed"])
+        await asyncio.sleep(1)
+
 # ==========================================
 # Bot events
 # ==========================================
@@ -356,6 +374,7 @@ async def activity_changer():
 async def on_ready():
     global eventCheckerLoop
     global activityLoop
+    global reminderLoop
     print("User:\t\t\t{}".format(professor.user))
     # Set activity
     print("Activity:\t\t{}".format(activity))
@@ -396,6 +415,10 @@ async def on_ready():
     if activityLoop not in asyncio.all_tasks():
         print("Starting activity loop")
         activityLoop = professor.loop.create_task(activity_changer())
+
+    if reminderLoop not in asyncio.all_tasks():
+        print("Starting reminderes")
+        reminderLoop = professor.loop.create_task(reminder_checker())
 
 
 @professor.event
@@ -1242,6 +1265,28 @@ async def calculate(ctx, *, query):
     else:
         await ctx.author.send(content="Your query `{}` failed for some reason. Maybe wolfram alpha does not unterstand your query.".format(query))
 
+
+@professor.command()
+async def remindme(ctx, *, reminderString):
+    try:
+        s = reminderString.split(" to ")
+        time = s[0]
+        reminder = s[1]
+    except IndexError:
+        await ctx.author.send("Invalid reminder string. Please make sure it's in the format `[time] to [reminder]`.")
+        return
+
+    parsedTime = events.parseDate(time)
+
+    if not parsedTime:
+        await ctx.author.send("The time you entered for the reminder `{}` is invalid.".format(reminder))
+        return
+
+    printableTime = parsedTime.strftime("%d %B %Y %H:%M")
+
+    reminderWrapper.createReminder(ctx.author.id, reminderString)
+
+    await ctx.author.send("I will remind you at `{}` to `{}`.".format(printableTime, reminder))
 
 # --- Salt ---
 

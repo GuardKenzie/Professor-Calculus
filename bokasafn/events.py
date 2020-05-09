@@ -1,11 +1,13 @@
 import json
 import datetime
 import dateutil.parser
+from dateutil import relativedelta
 import pytz
 import sqlite3
 import random
 import math
 import discord
+import re
 
 accent_colour = discord.Colour(int("688F56", 16))
 
@@ -123,6 +125,48 @@ def parseDate(date, timezone=pytz.utc):
             done = True
         except (AttributeError, ValueError, KeyError):
             pass
+
+    if not done:
+        now = datetime.datetime.now()
+        reldict = {"tomorrow": datetime.timedelta(days=1),
+                   "day": datetime.timedelta(days=1),
+                   "week": datetime.timedelta(days=7),
+                   "hour": datetime.timedelta(hours=1),
+                   "minute": datetime.timedelta(minutes=1),
+                   "month": relativedelta.relativedelta(months=1),
+                   "year": relativedelta.relativedelta(years=1),
+                   "monday": relativedelta.relativedelta(weekday=0),
+                   "tuesday": relativedelta.relativedelta(weekday=1),
+                   "wednesday": relativedelta.relativedelta(weekday=2),
+                   "thursday": relativedelta.relativedelta(weekday=3),
+                   "friday": relativedelta.relativedelta(weekday=4),
+                   "saturday": relativedelta.relativedelta(weekday=5),
+                   "sunday": relativedelta.relativedelta(weekday=6)}
+        relativeReg = "(next|[0-9]+){0,1} {0,1}(" + "|".join(list(reldict.keys())) + ")[s]{0,1}"
+
+        timeReg = r"(\d{1,2}):(\d{2})"
+        time = re.findall(timeReg, date)
+
+        if time:
+            time = time[0]
+            h = int(time[0])
+            m = int(time[1])
+            now = now.replace(hour=h, minute=m)
+
+        relativePart = re.findall(relativeReg, date)
+
+        out = now
+        if relativePart:
+            relativePart = relativePart[0]
+            try:
+                count = int(relativePart[0])
+            except (TypeError, ValueError):
+                count = 1
+            out += count * reldict[relativePart[1]]
+
+        date = out
+        if out == now:
+            return False
 
     try:
         return timezone.localize(date).astimezone(pytz.utc)
@@ -484,27 +528,4 @@ class Events:
 
 
 if __name__ == "__main__":
-    conn = sqlite3.connect("../db/events.db")
-    c = conn.cursor()
-
-    c.execute("ALTER TABLE events ADD recurring bool;")
-    c.execute("CREATE TABLE guildTimezones (server_hash int, timezone str);")
-    c.execute("SELECT * FROM events;")
-    res = c.fetchall()
-    weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-    for r in res:
-        if r[2].lower() == "tbd":
-            c.execute("DELETE FROM events WHERE server_hash=? AND id=?", (r[0], r[1]))
-            continue
-        if r[2].split()[0].lower() in weekdays:
-            recurring = True
-        else:
-            recurring = False
-        try:
-            date = datetime.datetime.strptime(r[2], "%d/%m/%Y %M:%H")
-            date = date.strftime("%d %B %Y %H:%M")
-        except ValueError:
-            date = r[2]
-        d = parseDate(r[2], pytz.timezone("utc"))
-        c.execute("UPDATE events SET date=?, recurring=? WHERE server_hash=? AND id=?", (d, recurring, r[0], r[1]))
-    conn.commit()
+    print(parseDate(input("Date: ")))
