@@ -209,10 +209,17 @@ async def updatePinned(myChannel, guild):
     # Get my nick
     nick = guild.me.display_name
 
+    # Calculate timezone offset from UTC
+    utcoffset = eventsDict[guildHash].timezone.utcoffset(datetime.utcnow()).total_seconds() / 60 / 60
+    utcoffset = " (UTC+{})".format(int(utcoffset)) if utcoffset >= 0 else " (UTC-{})".format(abs(int(utcoffset)))
+
+    if str(eventsDict[guildHash].timezone) == "UTC":
+        utcoffset = ""
+
     # Update the message if it exists, else post new one
     try:
         myMessage = await myChannel.fetch_message(myMessageId)
-        await myMessage.edit(content="**Notice:** All times are in `{}` time.".format(str(eventsDict[guildHash].timezone)), embed=update)
+        await myMessage.edit(content="**Notice:** All times are in `{}{}` time.".format(str(eventsDict[guildHash].timezone), utcoffset), embed=update)
         myLogMessage = await myChannel.fetch_message(myLogMessageId)
         await myLogMessage.edit(content="\n".join(mylog))
         await myLogMessage.clear_reactions()
@@ -220,7 +227,7 @@ async def updatePinned(myChannel, guild):
     except (discord.errors.HTTPException, discord.errors.NotFound):
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
-        myMessage = await myChannel.send(content="**Notice:** All times are in `{}` time".format(str(eventsDict[guildHash].timezone)), embed=update)
+        myMessage = await myChannel.send(content="**Notice:** All times are in `{}{}` time".format(str(eventsDict[guildHash].timezone), utcoffset), embed=update)
         myLogMessage = await myChannel.send(content="\n".join(mylog))
         await myMessage.add_reaction(leftarrow)
         await myMessage.add_reaction(rightarrow)
