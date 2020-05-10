@@ -42,50 +42,76 @@ class Event:
         self.recurring = bool(recurring)
 
     def now(self):
+        # Check if event is now
         now = pytz.utc.localize(datetime.datetime.utcnow())
         return abs(now - self.date) < datetime.timedelta(minutes=1) and self.date < now
 
     def inHour(self):
+        # Check if event is in 1 hour
         inHour = pytz.utc.localize(datetime.datetime.utcnow())
         inHour += datetime.timedelta(hours=1)
         return abs(inHour - self.date) < datetime.timedelta(minutes=1) and self.date < inHour
 
     def friendlyNotification(self):
+        # Check if friendly notification
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
-        event_at_10 = self.date.replace(hour=10, minute=00)
+        event_at_10 = self.date.astimezone(self.timezone).replace(hour=10, minute=00)
 
         return abs(utc_now - event_at_10) < datetime.timedelta(minutes=1) and event_at_10 < utc_now
 
     def full(self):
+        # Check if event is full
         return self.limit <= len(self.people) and self.limit != 0
 
     def fullRole(self, role):
+        # Check if role is full
         return self.peopleInRole[role] >= self.rolelimits[role] and self.rolelimits[role] != 0
 
-    def roleEmoji(self, role):
-        return self.roles[role]
-
-    def roleName(self, emoji):
-        reverseRoles = {v: u for u, v in self.roles.items()}
-        return reverseRoles[emoji]
-
-    def roleLimit(self, role):
-        return self.rolelimits[role]
-
-    def numberInRole(self, role):
-        return self.peopleInRole[role]
-
     def nextDay(self):
+        # Get the next day a recurring event is gonna happen
         return str(self.date + datetime.timedelta(days=7))
 
-    def getDate(self):
+    def getAdjustedDate(self):
+        # Get the date as timezone
         return self.date.astimezone(self.timezone)
 
     def printableDate(self):
+        # String for date
         if self.recurring:
             return self.date.astimezone(self.timezone).strftime("%A %H:%M")
         else:
             return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
+
+    def offsetPrintableDate(self, offset: int):
+        # Get the printable date for the event offset by offset
+        offset = datetime.timedelta(hours=offset)
+        date = self.date + offset
+        return date.strftime("%d %B %Y %H:%M")
+
+    def timeUntil(self):
+        # Get the time until the event starts
+        now = pytz.utc.localize(datetime.datetime.utcnow())
+        delta = self.date - now
+
+        timeReg = r"(\d+):(\d+):\d+"
+        dayReg = r"(\d+ days)"
+
+        time = re.search(timeReg, str(delta))
+        days = re.search(dayReg, str(delta))
+
+        out = ""
+        if days:
+            out += days.group(0) + " "
+        if time:
+            hours = time.group(1)
+            minutes = time.group(2)
+
+            if int(hours) != 0:
+                out += hours + " hours "
+            if int(minutes) != 0:
+                out += minutes + " minutes"
+
+        return out
 
 
 def parseDate(date, timezone=pytz.utc):

@@ -1106,6 +1106,30 @@ async def kick(ctx, userToKick: discord.Member, eventId):
         await ctx.author.send(content="I could not kick {} from `{}`".format(userToKick.display_name, event.name))
 
 
+@professor.command()
+async def when(ctx, eventId, offset):
+    try:
+        offset = int(offset)
+    except ValueError:
+        await ctx.author.send("The time offset you provided (`{}`) is invalid. Valid offsets are positive and negative whole numbers.")
+        return
+
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if not event:
+        await ctx.author.send("Invalid event id.")
+        return
+
+    if offset >= 0:
+        offsetStr = "UTC+{}".format(offset)
+    else:
+        offsetStr = "UTC-{}".format(abs(offset))
+
+    embed = discord.Embed(title=event.name, colour=accent_colour)
+    embed.add_field(name="Start time in {}".format(offsetStr), value=event.offsetPrintableDate(offset))
+    embed.add_field(name="Time until the event starts", value=event.timeUntil())
+    await ctx.author.send(embed=embed)
+
+
 # --- Misc ---
 
 
@@ -1131,10 +1155,6 @@ async def eyebleach(ctx):
 
     pick = random.choice(out)
     await ctx.channel.send(content="From /r/eyebleach:\n{}\n{}".format(pick[0], pick[1]))
-    # embed = discord.Embed(title=pick[0], url=pick[1], color=discord.Color.blue())
-    # embed.set_image(url=pick[1])
-    # embed.set_footer(text="from /r/eyebleach")
-    # await ctx.channel.send(content="From https://reddit.com/r/eyebleach", embed=embed)
 
 
 @professor.command()
@@ -1268,7 +1288,7 @@ async def remindme(ctx, *, reminderString):
     try:
         s = reminderString.split(" to ")
         time = s[0]
-        reminder = s[1]
+        reminder = " to ".join(s[1:])
     except IndexError:
         await ctx.author.send("Invalid reminder string. Please make sure it's in the format `[time] to [reminder]`.")
         return
