@@ -14,6 +14,7 @@ import dbl
 import math
 import pytz
 import dateutil.parser
+import pickle
 
 # Mine
 import bokasafn.events as events
@@ -426,6 +427,18 @@ async def on_command_completion(ctx):
             await ctx.author.send("The `{}` prefix is deprecated and will soon be removed. Please switch to using the `{}` prefix instead.".format(ctx.prefix, prefix))
         except discord.errors.Forbidden:
             pass
+        if ctx.guild.id == 672945974586507295:
+            with open("fdonos.pkl", "rb") as f:
+                db = pickle.load(f)
+            if db is None:
+                db = {}
+
+            if ctx.author.id in db.keys():
+                db[ctx.author.id] += 10000
+            else:
+                db[ctx.author.id] = 10000
+            with open("fdonos.pkl", "wb") as f:
+                pickle.dump(db, f)
 
     if ctx.guild:
         eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick"]
@@ -1714,6 +1727,20 @@ async def rename(ctx, oldname, newname):
         await ctx.author.send(content="The sound `{}` already exists.".format(newname))
     else:
         await ctx.author.send(content="Could not rename sound `{}` to `{}` for an unknown reason.".format(oldname, newname))
+
+
+@professor.command()
+async def f(ctx):
+    if ctx.guild.id == 672945974586507295:
+        with open("fdonos.pkl", "rb") as f:
+            db = pickle.load(f)
+        db = {k: v for k, v in sorted(db.items(), key=lambda x: x[1], reverse=True)}
+        out = ""
+        for i in db.items():
+            out += "{}: {}\n".format(ctx.guild.get_member(i[0]).display_name, i[1])
+        embed = discord.Embed(title="Ammount owed for using f?", description=out, color=accent_colour)
+
+        await ctx.author.send(embed=embed)
 
 
 # Start bot
