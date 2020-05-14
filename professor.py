@@ -1487,6 +1487,7 @@ async def readycheck(ctx, *args):
     cross = "\u274C"
     wait = "\U0001F552"
 
+    mentionStrings = []
     users = []
     if len(args) == 0:
         raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("mentions"))
@@ -1494,18 +1495,18 @@ async def readycheck(ctx, *args):
     usingRole = True
 
     # Convert arguments to members or role
-    try:
-        # Try to convert to members
-        memconv = discord.ext.commands.MemberConverter()
-        for user in args:
-            users.append(await memconv.convert(ctx, user))
-        usingRole = False
+    memconv = discord.ext.commands.MemberConverter()
+    roleconv = discord.ext.commands.RoleConverter()
+    for entry in args:
+        try:
+            u = await memconv.convert(ctx, entry)
+            users.append(u)
+            mentionStrings.append(u.mention)
 
-    except discord.ext.commands.CommandError:
-        # If args are not members, try to convert to a role
-        roleconv = discord.ext.commands.RoleConverter()
-        role = await roleconv.convert(ctx, args[0])
-        users = role.members
+        except discord.ext.commands.CommandError:
+            role = await roleconv.convert(ctx, entry)
+            users += role.members
+            mentionStrings.append(role.mention)
 
     # Get the display names of all the users
     dnames = []
@@ -1580,13 +1581,7 @@ async def readycheck(ctx, *args):
         await readyCheckMsg.delete()
         await ctx.message.delete()
 
-    if not usingRole:
-        mentionstr = ""
-        for user in users:
-            mentionstr = mentionstr + user.mention + " "
-        mentionstr = mentionstr + "\n"
-    else:
-        mentionstr = role.mention + " "
+    mentionstr = " ".join(mentionStrings)
 
     await ctx.channel.send(content=mentionstr + "Everyone is ready")
 
