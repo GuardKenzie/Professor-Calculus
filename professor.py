@@ -1486,6 +1486,10 @@ async def readycheck(ctx, *args):
     if "-expires" in args:
         args = list(args)
         i = args.index("-expires")
+        if "-expires" == args[-1]:
+            await ctx.author.send("Missing the `[date]` argument for `-expires`.")
+            return
+
         expires = " ".join(args[i + 1:])
 
         date = events.parseDate(expires, eventsDict[hash(ctx.guild)].timezone)
