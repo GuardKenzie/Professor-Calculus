@@ -1482,6 +1482,23 @@ async def force_friendly(ctx):
 
 @professor.command()
 async def readycheck(ctx, *args):
+    # check if expires is in args
+    if "-expires" in args:
+        args = list(args)
+        i = args.index("-expires")
+        expires = " ".join(args[i + 1:])
+
+        date = events.parseDate(expires, eventsDict[hash(ctx.guild)].timezone)
+        if date:
+            timeout = date - eventsDict[hash(ctx.guild)].timezone.localize(datetime.now())
+            timeout = int(timeout.total_seconds())
+            del args[i:]
+        else:
+            await ctx.author.send("Invalid date format: `{}`.".format(expires))
+            return
+    else:
+        timeout = 86400
+
     # Emojis
     checkmark = "\u2705"
     cross = "\u274C"
@@ -1555,14 +1572,14 @@ async def readycheck(ctx, *args):
     while count < len(users):
         try:
             # Wait for a reaction
-            payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
+            payload = await professor.wait_for("raw_reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
             # After 24h timeout and try to delete the readycheck
             try:
                 await readyCheckMsg.delete()
-                return
             except discord.errors.NotFound:
-                return
+                pass
+            break
 
         # Set the status of the member who reacted to the emoji reacted with
         userDict[payload.member] = payload.emoji.name
@@ -1583,7 +1600,10 @@ async def readycheck(ctx, *args):
 
     mentionstr = " ".join(mentionStrings)
 
-    await ctx.channel.send(content=mentionstr + "Everyone is ready")
+    if count == len(users):
+        await ctx.channel.send(content=mentionstr + "Everyone is ready")
+    else:
+        await ctx.channel.send(content=mentionstr + "Ready check completed with `{}/{}` members ready.".format(count, len(users)))
 
 
 # --- Soundboard ---

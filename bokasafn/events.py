@@ -119,6 +119,20 @@ def parseDate(date, timezone=pytz.utc):
 
     if not done:
         try:
+            date = datetime.datetime.strptime(date, "%d %B %Y at %H:%M")
+            done = True
+        except ValueError:
+            pass
+
+    if not done:
+        try:
+            date = datetime.datetime.strptime(date, "%d/%B/%Y at %H:%M")
+            done = True
+        except ValueError:
+            pass
+
+    if not done:
+        try:
             date = datetime.datetime.strptime(date, "%d %B %Y %H:%M")
             done = True
         except ValueError:
@@ -134,6 +148,26 @@ def parseDate(date, timezone=pytz.utc):
     if not done:
         try:
             date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M")
+            done = True
+        except ValueError:
+            pass
+
+    if not done:
+        try:
+            date = datetime.datetime.strptime(date, "%H:%M")
+            now = timezone.localize(datetime.datetime.now())
+
+            date = date.replace(year=now.year, month=now.month, day=now.day)
+            done = True
+        except ValueError:
+            pass
+
+    if not done:
+        try:
+            date = datetime.datetime.strptime(date, "at %H:%M")
+            now = timezone.localize(datetime.datetime.now())
+
+            date = date.replace(year=now.year, month=now.month, day=now.day)
             done = True
         except ValueError:
             pass
@@ -167,8 +201,11 @@ def parseDate(date, timezone=pytz.utc):
                    "thursday": relativedelta.relativedelta(weekday=3),
                    "friday": relativedelta.relativedelta(weekday=4),
                    "saturday": relativedelta.relativedelta(weekday=5),
-                   "sunday": relativedelta.relativedelta(weekday=6)}
+                   "sunday": relativedelta.relativedelta(weekday=6),
+                   "second": datetime.timedelta(seconds=1)}
+
         relativeReg = "(next|[0-9]+){0,1} {0,1}(" + "|".join(list(reldict.keys())) + ")[s]{0,1}"
+        print(date)
 
         timeReg = r"(\d{1,2}):(\d{2})"
         time = re.findall(timeReg, date)
