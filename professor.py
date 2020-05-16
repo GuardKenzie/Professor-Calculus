@@ -1597,11 +1597,6 @@ async def readycheck(ctx, *args):
             if emoji == checkmark:
                 count += 1
 
-    # Delete command and readycheck list and let people know everyone is ready
-    if delperm(ctx):
-        await readyCheckMsg.delete()
-        await ctx.message.delete()
-
     mentionstr = " ".join(mentionStrings)
 
     if count == len(users):
