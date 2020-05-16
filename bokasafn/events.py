@@ -205,7 +205,6 @@ def parseDate(date, timezone=pytz.utc):
                    "second": datetime.timedelta(seconds=1)}
 
         relativeReg = "(next|[0-9]+){0,1} {0,1}(" + "|".join(list(reldict.keys())) + ")[s]{0,1}"
-        print(date)
 
         timeReg = r"(\d{1,2}):(\d{2})"
         time = re.findall(timeReg, date)
