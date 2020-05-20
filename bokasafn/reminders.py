@@ -3,6 +3,7 @@ import sqlite3
 import datetime
 import dateutil.parser
 import discord
+import math
 
 accent_colour = discord.Colour(int("688F56", 16))
 
@@ -27,6 +28,48 @@ class Reminders:
         # Update table
         self.c.execute("INSERT INTO reminders VALUES (?, ?, ?, ?, ?)", (user_id, parsedTime, reminder, now, time))
         self.conn.commit()
+
+    def getReminders(self, user_id):
+        self.c.execute("SELECT * FROM reminders WHERE user_id=?", (user_id, ))
+        res = self.c.fetchall()
+        if res:
+            return sorted(res, key=lambda x: dateutil.parser.isoparse(x[1]))
+        else:
+            return None
+
+    def genList(self, user_id, page):
+        res = self.getReminders(user_id)
+
+        if res is None:
+            return res
+        else:
+            i = 1 * page
+
+            pages = math.ceil(len(res) / 10)
+            if page > pages or page < 1:
+                return -1
+
+            if page * 10 < len(res):
+                res = res[(page - 1) * 10:page * 10]
+            else:
+                res = res[(page - 1) * 10:]
+            out = discord.Embed(title="Reminders (page {}/{})".format(page, pages), colour=accent_colour)
+            for r in res:
+                out.add_field(name="{}. {}".format(i, r[2]), value=dateutil.parser.isoparse(r[1]).strftime("%d %B %Y %H:%M"), inline=False)
+                i += 1
+        return out
+
+    def removeReminder(self, author_id, reminder_id):
+        r = self.getReminders(author_id)
+        if r is not None:
+            if reminder_id <= len(r):
+                r = r[reminder_id - 1]
+            else:
+                return -1
+        else:
+            return -1
+        self.c.execute("DELETE FROM reminders WHERE set_at=? AND user_id=?", (r[3], author_id))
+        return 1
 
     def checkIfRemind(self):
         # Get current time and time in 1 minute

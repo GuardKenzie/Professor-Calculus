@@ -584,7 +584,7 @@ async def setup(ctx):
 
 # --- Configuration ---
 
-@professor.group(aliases=["config", "conf"])
+@professor.group(invoke_without_command=True, aliases=["config", "conf"])
 async def configure(ctx):
     if ctx.invoked_subcommand is None:
         # Give an overview of roles with permissions
@@ -1303,27 +1303,51 @@ async def calculate(ctx, *, query):
         await ctx.author.send(content="Your query `{}` failed for some reason. Maybe wolfram alpha does not unterstand your query.".format(query))
 
 
-@professor.command()
-async def remindme(ctx, *, reminderString):
-    try:
-        s = reminderString.split(" to ")
-        time = s[0]
-        reminder = " to ".join(s[1:])
-    except IndexError:
-        await ctx.author.send("Invalid reminder string. Please make sure it's in the format `[time] to [reminder]`.")
-        return
+@professor.group(invoke_without_command=True)
+async def remindme(ctx, *, reminderString): # , *, reminderString):
+    if ctx.invoked_subcommand is None:
+        try:
+            s = reminderString.split(" to ")
+            time = s[0]
+            reminder = " to ".join(s[1:])
+        except IndexError:
+            await ctx.author.send("Invalid reminder string. Please make sure it's in the format `[time] to [reminder]`.")
+            return
 
-    parsedTime = events.parseDate(time)
+        parsedTime = events.parseDate(time)
 
-    if not parsedTime:
-        await ctx.author.send("The time you entered for the reminder `{}` is invalid.".format(reminder))
-        return
+        if not parsedTime:
+            await ctx.author.send("The time you entered for the reminder `{}` is invalid.".format(reminder))
+            return
 
-    printableTime = parsedTime.strftime("%d %B %Y %H:%M")
+        printableTime = parsedTime.strftime("%d %B %Y %H:%M")
 
-    reminderWrapper.createReminder(ctx.author.id, reminderString)
+        reminderWrapper.createReminder(ctx.author.id, reminderString)
 
-    await ctx.author.send("I will remind you at `{} UTC` to `{}`.".format(printableTime, reminder))
+        await ctx.author.send("I will remind you at `{} UTC` to `{}`.".format(printableTime, reminder))
+
+
+@remindme.command()
+async def list(ctx, page=1):
+    e = reminderWrapper.genList(ctx.author.id, page)
+    if e is None:
+        await ctx.author.send("You have no reminders.")
+    elif e == -1:
+        await ctx.author.send("That page does not exist.")
+    else:
+        await ctx.author.send(embed=e)
+
+
+@remindme.command()
+async def remove(ctx, reminder_id: int):
+    r = reminderWrapper.removeReminder(ctx.author.id, reminder_id)
+    if r:
+        await ctx.author.send("Reminder successfully removed!")
+    elif r == -1:
+        await ctx.author.send("That reminder does not exist.")
+    else:
+        await ctx.author.send("An unknown error occured while removing that reminder.")
+
 
 # --- Salt ---
 
@@ -1369,7 +1393,7 @@ async def on_voice_state_update(member, before, after):
             break
 
 
-@professor.group(checks=[notEventChannelCheck])
+@professor.group(invoke_without_command=True, checks=[notEventChannelCheck])
 async def chill(ctx):
     if ctx.invoked_subcommand is None:
         try:
@@ -1631,7 +1655,7 @@ async def playFromSoundboard(ctx, name):
         await ctx.author.send(content="No such sound `{}`. Notice that sound names are cases sensitive.".format(name))
 
 
-@professor.group(aliases=["sb"])
+@professor.group(invoke_without_command=True, aliases=["sb"])
 async def soundboard(ctx):
     # Ávaxta emojis
     with open("res/foodemojis.txt", "r") as f:
