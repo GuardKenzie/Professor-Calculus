@@ -1327,8 +1327,8 @@ async def remindme(ctx, *, reminderString): # , *, reminderString):
         await ctx.author.send("I will remind you at `{} UTC` to `{}`.".format(printableTime, reminder))
 
 
-@remindme.command()
-async def list(ctx, page=1):
+@remindme.command(name="list")
+async def listReminders(ctx, page=1):
     e = reminderWrapper.genList(ctx.author.id, page)
     if e is None:
         await ctx.author.send("You have no reminders.")
@@ -1655,7 +1655,7 @@ async def playFromSoundboard(ctx, name):
         await ctx.author.send(content="No such sound `{}`. Notice that sound names are cases sensitive.".format(name))
 
 
-@professor.group(invoke_without_command=True, aliases=["sb"])
+@professor.group(aliases=["sb"])
 async def soundboard(ctx):
     # Ávaxta emojis
     with open("res/foodemojis.txt", "r") as f:
