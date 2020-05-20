@@ -40,7 +40,7 @@ soundBoardDict = {}
 permissionsDict = {}
 
 # Command prefix
-prefixes = ["f? ", "f?", "p? ", "p?"]
+prefixes = ["p? ", "p?"]
 prefix = "p? "
 
 # Load messages
