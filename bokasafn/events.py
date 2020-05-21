@@ -204,7 +204,7 @@ def parseDate(date, timezone=pytz.utc):
                    "sunday": relativedelta.relativedelta(weekday=6),
                    "second": datetime.timedelta(seconds=1)}
 
-        relativeReg = "(next|[0-9]+){0,1} {0,1}(" + "|".join(list(reldict.keys())) + ")[s]{0,1}"
+        relativeReg = "(next|[0-9]+|[0-9]+.[0-9]+){0,1}\W{0,1}(" + "|".join(list(reldict.keys())) + ")[s]{0,1}"
 
         timeReg = r"(\d{1,2}):(\d{2})"
         time = re.findall(timeReg, date)
@@ -215,16 +215,23 @@ def parseDate(date, timezone=pytz.utc):
             m = int(time[1])
             now = now.replace(hour=h, minute=m)
 
+        zoneReg = r"UTC([\+\-](10|11|12|[0-9]))"
+
+        zone = re.findall(zoneReg, date)
+        if zone:
+            offset = zone[0][0]
+            timezone = pytz.timezone("Etc/GMT" + offset)
+
         relativePart = re.findall(relativeReg, date)
 
         out = now
         if relativePart:
-            relativePart = relativePart[0]
-            try:
-                count = int(relativePart[0])
-            except (TypeError, ValueError):
-                count = 1
-            out += count * reldict[relativePart[1]]
+            for bit in relativePart:
+                try:
+                    count = int(bit[0])
+                except (TypeError, ValueError):
+                    count = 1
+                out += count * reldict[bit[1]]
 
         date = out
         if out == now:
