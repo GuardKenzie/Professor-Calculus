@@ -1793,8 +1793,11 @@ async def announce_update(ctx):
         for guild in professor.guilds:
             if hash(guild) in eventsDict.keys():
                 if eventsDict[hash(guild)].channel is not None:
-                    msg = await eventsDict[hash(guild)].channel.send(infoMessages["new_update"], delete_after=86400)
-                    await msg.pin()
+                    try:
+                        msg = await eventsDict[hash(guild)].channel.send(infoMessages["new_update"], delete_after=86400)
+                        await msg.pin()
+                    except discord.errors.NotFound:
+                        pass
 
 
 # Start bot
