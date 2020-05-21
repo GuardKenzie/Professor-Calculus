@@ -55,7 +55,7 @@ class Reminders:
                 res = res[(page - 1) * 10:]
             out = discord.Embed(title="Reminders (page {}/{})".format(page, pages), colour=accent_colour)
             for r in res:
-                out.add_field(name="{}. {}".format(i, r[2]), value=dateutil.parser.isoparse(r[1]).strftime("%d %B %Y %H:%M"), inline=False)
+                out.add_field(name="{}. {}".format(i, r[2]), value=dateutil.parser.isoparse(r[1]).strftime("%d %B %Y %H:%M UTC"), inline=False)
                 i += 1
         return out
 
