@@ -30,5 +30,6 @@
   "invalidDate":    "`{}` is not a valid date!",
   "cannotCreateEventsChannel": "I do not have permission to create my events channel. Please manually create a channel for events and set it as my channel with `{}configure channel events`. Make sure I have permission to manage messages in my events channel.",
   "cannotCreateSchedulerRole": "I do not have permission to create roles. If you want certain users (other than ones with the `administrator` permission) to be able to manage events, please manually create a role called `Scheduler` and assign it to any users who should be able to manage events.",
-  "cannotManageMessages": "I must have the `manage messages` permission in this channel to be able to register it as my events channel."
+  "cannotManageMessages": "I must have the `manage messages` permission in this channel to be able to register it as my events channel.",
+  "new_update": "A new update is here! Check it out: https://professorcalculus.io/changelog"
 }

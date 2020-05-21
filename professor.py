@@ -25,10 +25,8 @@ import bokasafn.soundb as soundb
 import bokasafn.reminders as reminders
 
 # Bot key
-keyFile = open(sys.argv[1], "r")
-
-key = keyFile.read().strip()
-keyFile.close()
+with open(sys.argv[1], "r") as keyFile:
+    key = keyFile.read().strip()
 
 # Events dict. Index = guild hash
 eventsDict = {}
@@ -401,7 +399,7 @@ async def on_ready():
             myChannel = None
 
         def purgecheck(m):
-            return not m.pinned
+            return not m.pinned or m.content == infoMessages["new_update"]
 
         # If I have a channel, purge and post event list
         if myChannel:
@@ -1461,47 +1459,6 @@ async def log(ctx):
     if delperm(ctx):
         await ctx.message.delete()
 
-# --- Maintenance ---
-
-
-@professor.command()
-async def force_friendly(ctx):
-    try:
-        if ctx.author.id == 197471216594976768:
-            guilds = []
-
-            for guild in professor.guilds:
-                guilds.append((guild.name, hash(guild)))
-
-            outmsg = ""
-            avail = []
-            i = 0
-            for guild in guilds:
-                outmsg += str(i) + ": " + guild[0] + "\n"
-                avail.append(str(i))
-                i += 1
-
-            msg = await ctx.author.send(content=outmsg)
-
-            def check(m):
-                if ctx.author == m.author:
-                    if m.content.lower() == "cancel":
-                        raise asyncio.TimeoutError
-                    else:
-                        return m.content in avail
-
-            rep = await professor.wait_for("message", check=check, timeout=100)
-
-            events = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
-            i = 0
-            for e in events:
-                if e:
-                    if e["friendly"]:
-                        await friendly_notification(e, i)
-                        i += 1
-
-    except asyncio.TimeoutError:
-        await msg.delete()
 
 
 @professor.command()
@@ -1786,6 +1743,58 @@ async def f(ctx):
         embed = discord.Embed(title="Ammount owed for using f?", description=out, color=accent_colour)
 
         await ctx.author.send(embed=embed)
+
+
+# --- Maintenance ---
+
+
+@professor.command()
+async def force_friendly(ctx):
+    try:
+        if ctx.author.id == 197471216594976768:
+            guilds = []
+
+            for guild in professor.guilds:
+                guilds.append((guild.name, hash(guild)))
+
+            outmsg = ""
+            avail = []
+            i = 0
+            for guild in guilds:
+                outmsg += str(i) + ": " + guild[0] + "\n"
+                avail.append(str(i))
+                i += 1
+
+            msg = await ctx.author.send(content=outmsg)
+
+            def check(m):
+                if ctx.author == m.author:
+                    if m.content.lower() == "cancel":
+                        raise asyncio.TimeoutError
+                    else:
+                        return m.content in avail
+
+            rep = await professor.wait_for("message", check=check, timeout=100)
+
+            events = eventsDict[guilds[int(rep.content)][1]].checkIfNotification(force=True)
+            i = 0
+            for e in events:
+                if e:
+                    if e["friendly"]:
+                        await friendly_notification(e, i)
+                        i += 1
+
+    except asyncio.TimeoutError:
+        await msg.delete()
+
+@professor.command()
+async def announce_update(ctx):
+    if ctx.author.id == 197471216594976768:
+        for guild in professor.guilds:
+            if hash(guild) in eventsDict.keys():
+                if eventsDict[hash(guild)].channel is not None:
+                    msg = await eventsDict[hash(guild)].channel.send(infoMessages["new_update"], delete_after=86400)
+                    await msg.pin()
 
 
 # Start bot
