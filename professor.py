@@ -649,7 +649,7 @@ async def channel(ctx, channelType):
 async def role(ctx, role: discord.Role):
     cross = "\u274C"
     # Permissions that can be set
-    availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr", "ct"]
+    availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
     with open("res/foodemojis.txt", "r") as f:

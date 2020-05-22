@@ -9,6 +9,7 @@ import discord
 # Remove:   er
 # Update:   eu
 # Kick:     ek
+# Hooks:    eh
 #
 # --- Soundboard ---
 # Add:      sa
@@ -34,7 +35,8 @@ permissionResolver = {"schedule": "es",
                       "configure role": "cr",
                       "configure timezone": "ct",
                       "setup": "ms",
-                      "clean": "mc"
+                      "clean": "mc",
+                      "hook": "eh",
                       }
 
 
@@ -98,6 +100,9 @@ class Permissions:
 
         if command == "configure":
             permissionString = "cr"
+
+        if command == "hook remove":
+            permissionString = "eh"
 
         if permissionString is None:
             return True
