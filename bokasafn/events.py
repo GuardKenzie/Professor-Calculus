@@ -12,6 +12,43 @@ import re
 accent_colour = discord.Colour(int("688F56", 16))
 
 
+class Hook:
+    def __init__(self, ctx, event):
+        self.ctx = ctx
+
+        # Get hooks for event
+        conn = sqlite3.connect("db/hooks.db")
+        c = conn.cursor()
+        print(event.id)
+        c.execute("SELECT toProcess, action, params FROM hooks WHERE eventId=?", (str(event.id), ))
+
+        out = c.fetchall()
+        conn.close()
+
+        # Generate dict with commands as keys
+        self.hooks = {}
+
+        for o in out:
+            if o[0] not in self.hooks.keys():
+                self.hooks[o[0]] = [(o[1], o[2])]
+            else:
+                self.hooks[o[0]].append((o[1], o[2]))
+
+    async def execute(self, toProcess):
+        # Process the given toProcess
+        # Check if there is anything to process
+        if toProcess in self.hooks.keys():
+            for hook in self.hooks[toProcess]:
+                action = hook[0]
+                params = hook[1]
+
+                if action == "message":
+                    await self.ctx.author.send(json.loads(params))
+
+                if action == "poll":
+                    await self.ctx.author.send("poll nings")
+
+
 class Event:
     def __init__(self, guildHash, eventId, date, name, description, people, roles, limit, recurring, timezone: pytz.timezone):
         self.hash = guildHash
@@ -595,6 +632,56 @@ class Events:
 
         self.conn.commit()
 
+    def createHook(self, eventId, toProcess, action, params):
+        # Add a new hook
+        realId = self.getEventId(eventId)
+        if not realId:
+            return False
+
+        conn = sqlite3.connect("db/hooks.db")
+        c = conn.cursor()
+
+        params = json.dumps(params)
+
+        c.execute("INSERT INTO hooks (eventId, toProcess, action, params) VALUES (?, ?, ?, ?)", (realId, toProcess, action, params))
+
+        conn.commit()
+        conn.close()
+
+        return True
+
+    def getAllHooks(self, eventId):
+        # Returns all hooks for the event
+        eventId = self.getEventId(eventId)
+
+        if not eventId:
+            return False
+
+        conn = sqlite3.connect("db/hooks.db")
+        c = conn.cursor()
+
+        c.execute("SELECT * FROM hooks WHERE eventId=?", (eventId, ))
+
+        res = c.fetchall()
+        hooks = []
+        for hook in res:
+            hooks.append({"eventId": eventId, "toProcess": hook[1], "action": hook[2], "params": json.loads(hook[3])})
+
+        return hooks
+
+    def removeHook(self, eventId, hookNumber):
+        # Remove the given hook
+        hooks = self.getAllHooks(eventId)
+        conn = sqlite3.connect("db/hooks.db")
+        c = conn.cursor()
+
+        hook = hooks[hookNumber - 1]
+        hook = (hook["eventId"], hook["toProcess"], hook["action"], json.dumps(hook["params"]))
+
+        c.execute("DELETE FROM hooks WHERE eventId=? AND toProcess=? AND action=? AND params=?", hook)
+
+        conn.commit()
+        conn.close()
 
 if __name__ == "__main__":
     print(parseDate(input("Date: ")))

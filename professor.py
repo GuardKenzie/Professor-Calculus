@@ -1049,6 +1049,9 @@ async def attend(ctx, eventId):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event.name))
+
+        hook = events.Hook(ctx, event)
+        await hook.execute("attend")
     else:
         await ctx.author.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
@@ -1069,6 +1072,10 @@ async def leave(ctx, eventId):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event.name))
+
+        hook = events.Hook(ctx, event)
+        await hook.execute("leave")
+
     else:
         await ctx.author.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
 
@@ -1146,6 +1153,121 @@ async def when(ctx, eventId, offset):
     embed.add_field(name="Start time in {}".format(offsetStr), value=event.offsetPrintableDate(offset))
     embed.add_field(name="Time until the event starts", value=event.timeUntil())
     await ctx.author.send(embed=embed)
+
+
+@professor.group(invoke_without_command=True)
+async def hook(ctx, eventId, toProcess):
+    if ctx.invoked_subcommand is None:
+        # Check if I can process hook
+        availToProcess = ["attend", "leave"]
+
+        if toProcess.lower() not in availToProcess:
+            await ctx.author.send("`{}` is not an available command to hook into.".format(toProcess))
+            return
+
+        toProcess = toProcess.lower()
+
+        # Check if event exists
+        if not eventsDict[hash(ctx.guild)].getEvent(int(eventId)):
+            await ctx.channel.send("Invalid event id.")
+            return
+
+        # Send initial message
+        mymsg = await ctx.author.send("What action would you like me to execute on `{}`?\nAvailable actions are:\n>>> `message`".format(toProcess))
+
+        try:
+            # Check function
+            def check(m):
+                return m.author == ctx.author and m.content.lower() in ["message", "cancel"]
+            # Wait for reply with action
+            reply = await professor.wait_for("message", check=check,  timeout=60)
+            action = reply.content.lower()
+
+            if action == "cancel":
+                raise asyncio.TimeoutError
+
+            elif action == "message":
+                # Update my message and get message content
+                await mymsg.edit(content="What is the message you would like me to send users when they {}?".format(toProcess))
+
+                def check(m):
+                    return m.author == ctx.author
+
+                reply = await professor.wait_for("message", check=check, timeout=300)
+                params = reply.content
+
+                await mymsg.delete()
+
+            res = eventsDict[hash(ctx.guild)].createHook(eventId, toProcess, action, params)
+            if res:
+                event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+
+                embed = discord.Embed(title="Hook created for {}".format(event.name), description="On `{}`, {} users with\n>>> {}".format(toProcess, action, params), colour=accent_colour)
+
+                await ctx.author.send(embed=embed)
+
+        except asyncio.TimeoutError:
+            await mymsg.delete()
+
+        if delperm(ctx):
+            await ctx.message.delete()
+
+
+@hook.command(name="remove")
+async def removeHook(ctx, eventId):
+    hooks = eventsDict[hash(ctx.guild)].getAllHooks(eventId)
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+
+    # Check if there are any hooks
+    if not hooks:
+        await ctx.author.send("There are no hooks for event `{}`.".format(eventId))
+        return
+    if not event:
+        await ctx.author.send("No event with id `{}` exists.".format(eventId))
+        return
+
+
+    # Generate hook list
+    embed = discord.Embed(title="Hooks for {}".format(event.name), colour=accent_colour)
+    i = 1
+    for h in hooks:
+        embed.add_field(name="{}. On `{}`".format(i, h["toProcess"]), value="{}: {}".format(h["action"], h["params"]), inline=False)
+        i += 1
+
+    pickmessage = await ctx.author.send(content="Please pick a hook to remove by replying with the relevant number. Type `cancel` to cancel", embed=embed)
+
+    # Check for validity of reply
+    def check(m):
+        if m.author == ctx.author:
+            if m.content.lower() == "cancel":
+                return True
+            try:
+                a = int(m.content)
+                return a <= len(hooks)
+            except ValueError:
+                return False
+
+    try:
+        # Wait for user to pick hook to remove
+        reply = await professor.wait_for("message", check=check, timeout=60)
+        if reply.content.lower() == "cancel":
+            raise asyncio.TimeoutError
+
+        hookNumber = int(reply.content)
+
+        # Remove hook
+        eventsDict[hash(ctx.guild)].removeHook(eventId, hookNumber)
+        await ctx.author.send("Hook successfully removed", delete_after=10)
+
+        await pickmessage.delete()
+
+        if delperm(ctx):
+            await ctx.message.delete()
+
+    except asyncio.TimeoutError:
+        await pickmessage.delete()
+        if delperm(ctx):
+            await ctx.message.delete()
 
 
 # --- Misc ---
