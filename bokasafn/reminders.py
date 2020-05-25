@@ -1,4 +1,5 @@
 from . import events
+from . import dags
 import sqlite3
 import datetime
 import dateutil.parser
@@ -20,7 +21,7 @@ class Reminders:
         # Find time and text
         time = string[0]
         reminder = " to ".join(string[1:])
-        parsedTime = events.parseDate(time)
+        parsedTime = dags.parse(time)
 
         # Get the current time
         now = datetime.datetime.now().isoformat()

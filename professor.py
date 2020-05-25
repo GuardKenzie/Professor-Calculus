@@ -23,6 +23,7 @@ import bokasafn.permissions as permissions
 import bokasafn.salty as salty
 import bokasafn.soundb as soundb
 import bokasafn.reminders as reminders
+import bokasafn.dags as dags
 
 # Bot key
 with open(sys.argv[1], "r") as keyFile:
@@ -887,12 +888,12 @@ async def schedule(ctx):
         replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
         # Check if time is ok
-        timeOk = events.parseDate(replyMsg.content)
+        timeOk = dags.parse(replyMsg.content)
         while timeOk is False:
             await replyMsg.delete()
             await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
-            timeOk = events.parseDate(replyMsg.content)
+            timeOk = dags.parse(replyMsg.content)
 
         time = replyMsg.content
         await replyMsg.delete()
@@ -1095,7 +1096,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
         elif toUpdate == "name":
             old = event.name
         elif toUpdate == "date":
-            if not events.parseDate(newInfo):
+            if not dags.parse(newInfo):
                 await ctx.author.send("`{}` is not a valid date format".format(newInfo))
                 return
             old = event.printableDate()
@@ -1434,7 +1435,7 @@ async def remindme(ctx, *, reminderString): # , *, reminderString):
             await ctx.author.send("Invalid reminder string. Please make sure it's in the format `[time] to [reminder]`.")
             return
 
-        parsedTime = events.parseDate(time)
+        parsedTime = dags.parse(time)
 
         if not parsedTime:
             await ctx.author.send("The time you entered for the reminder `{}` is invalid.".format(reminder))
@@ -1595,7 +1596,7 @@ async def readycheck(ctx, *args):
 
         expires = " ".join(args[i + 1:])
 
-        date = events.parseDate(expires, eventsDict[hash(ctx.guild)].timezone)
+        date = dags.parse(expires, eventsDict[hash(ctx.guild)].timezone)
         if date:
             timeout = date - eventsDict[hash(ctx.guild)].timezone.localize(datetime.now())
             timeout = int(timeout.total_seconds())

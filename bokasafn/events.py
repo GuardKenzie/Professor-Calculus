@@ -9,6 +9,8 @@ import math
 import discord
 import re
 
+from . import dags
+
 accent_colour = discord.Colour(int("688F56", 16))
 
 
@@ -328,7 +330,7 @@ class Events:
         else:
             recurring = False
 
-        eventDate = parseDate(eventDate, self.timezone)
+        eventDate = dags.parse(eventDate, self.timezone)
         eventId = random.randint(1, 1000000000)
         eventRoles = json.dumps(eventRoles)
 
@@ -436,7 +438,7 @@ class Events:
         # Check for date and set correct padding
         if toUpdate == "date":
             toRecurring = bool(newInfo.split()[0].lower() in weekdays)
-            newInfo = parseDate(newInfo, self.timezone)
+            newInfo = dags.parse(newInfo, self.timezone)
             if not newInfo:
                 return False
 
@@ -684,4 +686,4 @@ class Events:
         conn.close()
 
 if __name__ == "__main__":
-    print(parseDate(input("Date: ")))
+    print(dags.parse(input("Date: ")))
