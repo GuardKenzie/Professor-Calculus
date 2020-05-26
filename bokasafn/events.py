@@ -21,7 +21,6 @@ class Hook:
         # Get hooks for event
         conn = sqlite3.connect("db/hooks.db")
         c = conn.cursor()
-        print(event.id)
         c.execute("SELECT toProcess, action, params FROM hooks WHERE eventId=?", (str(event.id), ))
 
         out = c.fetchall()
