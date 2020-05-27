@@ -17,6 +17,7 @@ import dateutil.parser
 import pickle
 
 # Mine
+import bokasafn.breytugreinir as breytugreinir
 import bokasafn.events as events
 import bokasafn.helper as helper
 import bokasafn.permissions as permissions
