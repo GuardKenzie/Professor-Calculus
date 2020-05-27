@@ -1,4 +1,5 @@
 import discord
+import re
 import json
 from discord.ext import commands
 import asyncio
@@ -340,7 +341,7 @@ async def notification_loop():
                         await friendly_notification(e, i)
                         i += 1
                     else:
-                        await updatePinned(eventsDict[hash(guild)].channel, guild)
+                        asyncio.create_task(updatePinned(eventsDict[hash(guild)].channel, guild))
                         await event_notification(e)
                 except:
                     continue
@@ -407,7 +408,7 @@ async def on_ready():
         if myChannel:
             eventsDict[guildHash].channel = myChannel
             await myChannel.purge(check=purgecheck)
-            await updatePinned(myChannel, guild)
+            asyncio.create_task(updatePinned(myChannel, guild))
 
         # Initiate permissions
         permissionsDict[hash(guild)] = permissions.Permissions(hash(guild), database="db/permissions.db")
@@ -434,18 +435,6 @@ async def on_command_completion(ctx):
             await ctx.author.send("The `{}` prefix is deprecated and will soon be removed. Please switch to using the `{}` prefix instead.".format(ctx.prefix, prefix))
         except discord.errors.Forbidden:
             pass
-        if ctx.guild.id == 672945974586507295:
-            with open("fdonos.pkl", "rb") as f:
-                db = pickle.load(f)
-            if db is None:
-                db = {}
-
-            if ctx.author.id in db.keys():
-                db[ctx.author.id] += 10000
-            else:
-                db[ctx.author.id] = 10000
-            with open("fdonos.pkl", "wb") as f:
-                pickle.dump(db, f)
 
     if ctx.guild:
         eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick"]
@@ -454,7 +443,7 @@ async def on_command_completion(ctx):
 
         # Update pinned list if command is for event
         if ctx.command.name in eventCommands and guildHash in eventsDict.keys():
-            await updatePinned(eventsDict[guildHash].channel, ctx.guild)
+            asyncio.create_task(updatePinned(eventsDict[guildHash].channel, ctx.guild))
 
 
 @professor.event
@@ -1053,7 +1042,7 @@ async def attend(ctx, eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} joined event `{}`.".format(ctx.author.display_name, event.name))
 
         hook = events.Hook(ctx, event)
-        await hook.execute("attend")
+        asyncio.create_task(hook.execute("attend"))
     else:
         await ctx.author.send(content=infoMessages["attendFailed"].format(prefix), delete_after=15)
 
@@ -1076,7 +1065,7 @@ async def leave(ctx, eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} left event `{}`.".format(ctx.author.display_name, event.name))
 
         hook = events.Hook(ctx, event)
-        await hook.execute("leave")
+        asyncio.create_task(hook.execute("leave"))
 
     else:
         await ctx.author.send(content=infoMessages["leaveFailed"].format(prefix), delete_after=15)
@@ -1156,6 +1145,40 @@ async def when(ctx, eventId, offset):
     embed.add_field(name="Time until the event starts", value=event.timeUntil())
     await ctx.author.send(embed=embed)
 
+@professor.command()
+async def hook2(ctx, *args):
+    args = list(args)
+
+    argStr = " ".join(args)
+    eventId = re.findall("-event (\d+)", argStr)
+    toProcess = re.findall("-command (\w+)", argStr)
+    message = re.findall("-message (\w.+)($| -\w+)", argStr)
+    print(argStr)
+    role = re.findall("-role (\S+)", argStr)
+    expires = re.findall("-expires (\w.+)($| -\w+)", argStr)
+
+    if not eventId:
+        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("event id"))
+        return
+
+    if not toProcess:
+        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("command to hook into"))
+        return
+
+    if not message and not role:
+        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("action"))
+        return
+
+    print("Event: " + str(eventId))
+    print("toProcess: " + str(toProcess))
+    print("message: " + str(message))
+    print("role: " + str(role))
+    print("expires: " + str(expires))
+
+
+
+
+
 
 @professor.group(invoke_without_command=True)
 async def hook(ctx, eventId, toProcess):
@@ -1175,7 +1198,7 @@ async def hook(ctx, eventId, toProcess):
             return
 
         # Send initial message
-        mymsg = await ctx.author.send("What action would you like me to execute on `{}`?\nAvailable actions are:\n>>> `message`".format(toProcess))
+        await ctx.author.send("What action would you like me to execute on `{}`?\nAvailable actions are:\n>>> `message`".format(toProcess))
 
         try:
             # Check function
@@ -1190,7 +1213,7 @@ async def hook(ctx, eventId, toProcess):
 
             elif action == "message":
                 # Update my message and get message content
-                await mymsg.edit(content="What is the message you would like me to send users when they {}?".format(toProcess))
+                await ctx.author.send(content="What is the message you would like me to send users when they {}?".format(toProcess))
 
                 def check(m):
                     return m.author == ctx.author
