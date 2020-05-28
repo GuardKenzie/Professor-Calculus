@@ -1145,39 +1145,60 @@ async def when(ctx, eventId, offset):
     embed.add_field(name="Time until the event starts", value=event.timeUntil())
     await ctx.author.send(embed=embed)
 
+
 @professor.command()
 async def hook2(ctx, *args):
-    args = list(args)
+    greinir = breytugreinir.Breytugreinir()
 
-    argStr = " ".join(args)
-    eventId = re.findall("-event (\d+)", argStr)
-    toProcess = re.findall("-command (\w+)", argStr)
-    message = re.findall("-message (\w.+)($| -\w+)", argStr)
-    print(argStr)
-    role = re.findall("-role (\S+)", argStr)
-    expires = re.findall("-expires (\w.+)($| -\w+)", argStr)
+    greinir.ny_breyta("-event ", argtype=int)
+    greinir.ny_breyta("-message ", nargs="*")
+    greinir.ny_breyta("-role ", nargs=2)
+    greinir.ny_breyta("-expires ", nargs="*")
+    greinir.ny_breyta("-command ")
 
-    if not eventId:
-        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("event id"))
-        return
+    args = greinir.greina(args)
 
-    if not toProcess:
-        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("command to hook into"))
-        return
+    if args["event"] is None:
+        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("event"))
 
-    if not message and not role:
-        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("action"))
-        return
+    if args["command"] is None:
+        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("command"))
 
-    print("Event: " + str(eventId))
-    print("toProcess: " + str(toProcess))
-    print("message: " + str(message))
-    print("role: " + str(role))
-    print("expires: " + str(expires))
+    attr = False
+    eventId = args["event"]
+    toProcess = args["command"]
 
+    if args["message"]:
+        attr = True
+        eventsDict[hash(ctx.guild)].createHook(eventId, toProcess, "message", " ".join(args["message"]))
 
+    if args["role"]:
+        attr = True
+        if args["expires"]:
+            event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+            expires = dags.parse(args["expires"], relative_base=event.date)
+        else:
+            expires = None
 
+        rolecon = discord.ext.commands.RoleConverter()
+        roleId = rolecon.convert(ctx, args["role"][1]).id
 
+        if expires is False:
+            await ctx.author.send("Invalid date format for `-expired`.")
+            return
+
+        if args["role"][0].lower() == "add":
+            eventsDict[hash(ctx.guild)].createHook(eventId, toProcess, "add_role", roleId, expires=expires)
+
+        elif args["role"][0].lower() == "remove":
+            eventsDict[hash(ctx.guild)].createHook(eventId, toProcess, "remove_role", roleId)
+        else:
+            await ctx.author.send("Invalid action for `-role`: {}".format(args["role"][0]))
+
+    if not attr:
+        await ctx.author.send("Please specify an action to execute on `{}`".format(toProcess))
+
+    print(args)
 
 
 @professor.group(invoke_without_command=True)
@@ -1205,7 +1226,7 @@ async def hook(ctx, eventId, toProcess):
             def check(m):
                 return m.author == ctx.author and m.content.lower() in ["message", "cancel"]
             # Wait for reply with action
-            reply = await professor.wait_for("message", check=check,  timeout=60)
+            reply = await professor.wait_for("message", check=check, timeout=60)
             action = reply.content.lower()
 
             if action == "cancel":
@@ -1250,7 +1271,6 @@ async def removeHook(ctx, eventId):
     if not event:
         await ctx.author.send("No event with id `{}` exists.".format(eventId))
         return
-
 
     # Generate hook list
     embed = discord.Embed(title="Hooks for {}".format(event.name), colour=accent_colour)
