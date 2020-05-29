@@ -16,7 +16,6 @@ class Breyta:
 
 class Breytugreinir:
     def __init__(self):
-        self.breytuNofn = []
         self.breytur = {}
 
     def ny_breyta(self, name: str, nargs=1, argtype=None):
@@ -33,7 +32,6 @@ class Breytugreinir:
             nargs = int(nargs)
 
         self.breytur[name] = Breyta(name, nargs, argtype)
-        self.breytuNofn.append(self.breytur[name].name)
 
     def greina(self, args: tuple):
         out = {}
@@ -41,19 +39,16 @@ class Breytugreinir:
         for nafn in self.breytur.keys():
             breyta = self.breytur[nafn]
             if breyta.nargs == "*":
-                regex = rf"{nafn}(.+?)(?: -(?:{'|'.join(self.breytuNofn)})|$)"
+                regex = rf"{nafn}(.+?)(?: -\w+|$)"
+                print(regex)
             else:
                 regex = rf"{nafn}(\S+ ){{{breyta.nargs - 1}}}(\S+)"
 
             aux = re.findall(regex, " ".join(args))
-
             if aux == []:
                 out[breyta.name] = None
             else:
-                if breyta.nargs == "*":
-                    aux[0] = aux[0].split()
-
-                out[breyta.name] = tuple(map(breyta.type, aux[0]))
+                out[breyta.name] = breyta.type("".join(aux[0]))
 
         return out
 
@@ -62,7 +57,7 @@ if __name__ == "__main__":
     args = tuple(input().split())
 
     greinir = Breytugreinir()
-    greinir.ny_breyta("-event ", nargs=2, argtype=int)
+    greinir.ny_breyta("-event ", nargs=1, argtype=int)
     greinir.ny_breyta("-message ", nargs='*')
     g = greinir.greina(args)
 
