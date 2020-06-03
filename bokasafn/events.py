@@ -8,6 +8,7 @@ import random
 import math
 import discord
 import re
+import dateparser
 
 from . import dags
 
@@ -150,135 +151,6 @@ class Event:
                 out += minutes + " minutes"
 
         return out
-
-
-def parseDate(date, timezone=pytz.utc):
-    done = False
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "%d %B %Y at %H:%M")
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "%d/%B/%Y at %H:%M")
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "%d %B %Y %H:%M")
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "%d %b %Y %H:%M")
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M")
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "%H:%M")
-            now = timezone.localize(datetime.datetime.now())
-
-            date = date.replace(year=now.year, month=now.month, day=now.day)
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            date = datetime.datetime.strptime(date, "at %H:%M")
-            now = timezone.localize(datetime.datetime.now())
-
-            date = date.replace(year=now.year, month=now.month, day=now.day)
-            done = True
-        except ValueError:
-            pass
-
-    if not done:
-        try:
-            today = datetime.datetime.now().weekday()
-            weekdays = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6}
-            delta = (weekdays[date.split()[0].lower()] - today) % 7
-            try:
-                date = datetime.datetime.strptime(date, "%A %H:%M")
-            except ValueError:
-                date = datetime.datetime.strptime(date, "%a %H:%M")
-            date = datetime.datetime.utcnow().replace(hour=date.hour, minute=date.minute, second=0) + datetime.timedelta(days=delta)
-            done = True
-        except (AttributeError, ValueError, KeyError):
-            pass
-
-    if not done:
-        now = datetime.datetime.now()
-        reldict = {"tomorrow": datetime.timedelta(days=1),
-                   "day": datetime.timedelta(days=1),
-                   "week": datetime.timedelta(days=7),
-                   "hour": datetime.timedelta(hours=1),
-                   "minute": datetime.timedelta(minutes=1),
-                   "month": relativedelta.relativedelta(months=1),
-                   "year": relativedelta.relativedelta(years=1),
-                   "monday": relativedelta.relativedelta(weekday=0),
-                   "tuesday": relativedelta.relativedelta(weekday=1),
-                   "wednesday": relativedelta.relativedelta(weekday=2),
-                   "thursday": relativedelta.relativedelta(weekday=3),
-                   "friday": relativedelta.relativedelta(weekday=4),
-                   "saturday": relativedelta.relativedelta(weekday=5),
-                   "sunday": relativedelta.relativedelta(weekday=6),
-                   "second": datetime.timedelta(seconds=1)}
-
-        relativeReg = "(next|[0-9]+|[0-9]+.[0-9]+){0,1}\W{0,1}(" + "|".join(list(reldict.keys())) + ")[s]{0,1}"
-
-        timeReg = r"(\d{1,2}):(\d{2})"
-        time = re.findall(timeReg, date)
-
-        if time:
-            time = time[0]
-            h = int(time[0])
-            m = int(time[1])
-            now = now.replace(hour=h, minute=m)
-
-        zoneReg = r"UTC([\+\-](10|11|12|[0-9]))"
-
-        zone = re.findall(zoneReg, date)
-        if zone:
-            offset = zone[0][0]
-            timezone = pytz.timezone("Etc/GMT" + offset)
-
-        relativePart = re.findall(relativeReg, date)
-
-        out = now
-        if relativePart:
-            for bit in relativePart:
-                try:
-                    count = int(bit[0])
-                except (TypeError, ValueError):
-                    count = 1
-                out += count * reldict[bit[1]]
-
-        date = out
-        if out == now:
-            return False
-
-    try:
-        return timezone.localize(date).astimezone(pytz.utc)
-    except (AttributeError, ValueError):
-        return False
 
 
 class Events:
@@ -588,12 +460,15 @@ class Events:
         else:
             return 0
 
-    def getLog(self):
+    def getLog(self, dateform=None):
         self.c.execute("SELECT log FROM log WHERE server_hash=?;", (self.guildHash, ))
         log = self.c.fetchone()
 
         if log is not None:
-            return json.loads(log[0])
+            out = json.loads(log[0])
+            if dateform is not None:
+                out = [(dateparser.parse(u).astimezone(self.timezone).strftime(dateform), v) for u, v in out]
+            return out
         else:
             self.c.execute("INSERT INTO log (server_hash, log) VALUES (?, ?)", (self.guildHash, "[]"))
             self.conn.commit()
@@ -601,7 +476,7 @@ class Events:
 
     def insertIntoLog(self, message):
         oldLog = self.getLog()
-        time = datetime.datetime.now().strftime("%D %T")
+        time = str(pytz.utc.localize(datetime.datetime.utcnow()))
 
         if len(oldLog) >= 5:
             newLog = oldLog[1:]

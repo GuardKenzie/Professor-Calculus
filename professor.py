@@ -187,7 +187,7 @@ async def updatePinned(myChannel, guild):
         return
 
     def dform(d):
-        d = datetime.strptime(d, "%m/%d/%y %H:%M:%S")
+        d = dateutil.parser.isoparse(d).astimezone(eventsDict[hash(guild)].timezone)
         return "`" + datetime.strftime(d, "%a. %H:%M") + "`"
 
     # Updates the pinned event list
@@ -195,8 +195,8 @@ async def updatePinned(myChannel, guild):
     guildMembers = dictFromMembersName(guild.members)
     update = eventsDict[guildHash].generateEventsMessage(guildMembers)
 
-    mylog = eventsDict[guildHash].getLog()
-    mylog = [dform(u) + "\t" + v for u, v in mylog][-3:]
+    mylog = eventsDict[guildHash].getLog(dateform="%a. %H:%M")
+    mylog = ["`{}`\t{}".format(u, v) for u, v in mylog][-3:]
 
     if mylog:
         mylog[0] = ">>> " + mylog[0]
@@ -1595,7 +1595,7 @@ async def volume(ctx, v):
 
 @professor.command()
 async def log(ctx):
-    log = eventsDict[hash(ctx.guild)].getLog()
+    log = eventsDict[hash(ctx.guild)].getLog(dateform="%D %T")
     embed = discord.Embed(title="Activity log", color=accent_colour)
 
     for e in log:
@@ -1605,7 +1605,6 @@ async def log(ctx):
 
     if delperm(ctx):
         await ctx.message.delete()
-
 
 
 @professor.command()
