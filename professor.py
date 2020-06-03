@@ -186,10 +186,6 @@ async def updatePinned(myChannel, guild):
     if myChannel is None:
         return
 
-    def dform(d):
-        d = dateutil.parser.isoparse(d).astimezone(eventsDict[hash(guild)].timezone)
-        return "`" + datetime.strftime(d, "%a. %H:%M") + "`"
-
     # Updates the pinned event list
     guildHash = hash(guild)
     guildMembers = dictFromMembersName(guild.members)
