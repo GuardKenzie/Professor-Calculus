@@ -1293,6 +1293,38 @@ async def removeHook(ctx, eventId):
 
 # --- Misc ---
 
+@professor.command(checks=[notEventChannelCheck])
+async def spoiler(ctx, *, content=None):
+    outFiles = []
+
+    if ctx.message.attachments == []:
+        return
+
+    for attachment in ctx.message.attachments:
+        # Sækja skrá
+        f = await attachment.to_file()
+        # Fá nafn og breyta í spoiler
+        fname = "SPOILER_" + f.filename
+
+        # Actual skráin
+        fp = f.fp
+
+        # Bæta í út
+        f = discord.File(fp, filename="SPOILER_" + fname)
+        outFiles.append(f)
+
+    await ctx.message.delete()
+
+    if content is not None:
+        content = "\n>>> {}".format(content)
+    else:
+        content = ""
+
+
+    await ctx.channel.send("From {}{}".format(ctx.author.mention, content), files=outFiles)
+
+
+
 
 @professor.command(checks=[notEventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
 async def eyebleach(ctx):
