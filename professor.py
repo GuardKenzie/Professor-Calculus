@@ -1331,6 +1331,8 @@ async def delete(ctx):
     if lastid is not None:
         msg = await ctx.guild.get_channel(lastid[1]).fetch_message(lastid[0])
         await msg.delete()
+        if delperm(ctx):
+            await ctx.message.delete()
 
 
 @professor.command(checks=[notEventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
