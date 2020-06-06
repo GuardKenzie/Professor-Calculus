@@ -559,5 +559,28 @@ class Events:
         conn.commit()
         conn.close()
 
+    def addSpoiler(self, messageid, userid, channelid):
+        # Spoiler table:
+        # (userid int, messageid int, channelid int, guildhash int)
+        conn = sqlite3.connect("db/spoilers.db")
+        c = conn.cursor()
+        c.execute("INSERT INTO spoilers VALUES (?, ?, ?, ?)", (userid, messageid, channelid, self.guildHash))
+        conn.commit()
+
+    def popLastSpoiler(self, userid):
+        conn = sqlite3.connect("db/spoilers.db")
+        c = conn.cursor()
+        c.execute("SELECT messageid, channelid FROM spoilers WHERE userid=? AND guildhash=?", (userid, int(self.guildHash)))
+        res = c.fetchall()
+
+        if res:
+            res = res[-1]
+            c.execute("DELETE FROM spoilers WHERE messageid=? AND channelid=?", (res[0], res[1]))
+            conn.commit()
+            return (res[0], res[1])
+        else:
+            return None
+
+
 if __name__ == "__main__":
     print(dags.parse(input("Date: ")))

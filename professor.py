@@ -1293,7 +1293,7 @@ async def removeHook(ctx, eventId):
 
 # --- Misc ---
 
-@professor.command(checks=[notEventChannelCheck])
+@professor.group(checks=[notEventChannelCheck], invoke_without_command=True)
 async def spoiler(ctx, *, content=None):
     outFiles = []
 
@@ -1320,10 +1320,17 @@ async def spoiler(ctx, *, content=None):
     else:
         content = ""
 
+    msg = await ctx.channel.send("From {}{}".format(ctx.author.mention, content), files=outFiles)
+    eventsDict[hash(ctx.guild)].addSpoiler(msg.id, ctx.author.id, ctx.channel.id)
 
-    await ctx.channel.send("From {}{}".format(ctx.author.mention, content), files=outFiles)
 
+@spoiler.command()
+async def delete(ctx):
+    lastid = eventsDict[hash(ctx.guild)].popLastSpoiler(ctx.author.id)
 
+    if lastid is not None:
+        msg = await ctx.guild.get_channel(lastid[1]).fetch_message(lastid[0])
+        await msg.delete()
 
 
 @professor.command(checks=[notEventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
