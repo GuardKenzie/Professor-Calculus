@@ -1608,6 +1608,9 @@ async def stop(ctx):
     except AttributeError:
         await ctx.author.send(content="You have to be on voice to do that")
 
+    if delperm(ctx):
+        await ctx.message.delete()
+
 
 @chill.command(aliases=["v"])
 async def volume(ctx, v):
@@ -1626,6 +1629,25 @@ async def volume(ctx, v):
             await ctx.send("Please give a volume between 0 and 100")
     except TypeError:
         await ctx.send("Please give a volume between 0 and 100")
+
+    if delperm(ctx):
+        await ctx.message.delete()
+
+
+@chill.command(aliases=["now", "playing"])
+async def nowplaying(ctx):
+    info = urllib.request.urlopen("https://mystic.tokyo/lofi/player/info.txt").read().decode("utf-8").strip()
+    info = info.split(" - ")
+    title = " - ".join(info[1:])
+    artist = info[0]
+
+    embed = discord.Embed(title="Now playing", description="{} by {}".format(title, artist), colour=accent_colour)
+    embed.set_image(url="https://mystic.tokyo/lofi/player/cover.jpg?v={}".format(random.randint(0, 100000000000)))
+
+    await ctx.send(embed=embed, delete_after=60)
+
+    if delperm(ctx):
+        await ctx.message.delete()
 
 # --- Log ---
 
