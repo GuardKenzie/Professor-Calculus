@@ -135,7 +135,10 @@ async def permissioncheck(ctx):
 
 
 def delperm(ctx):
-    return ctx.channel.permissions_for(ctx.guild.me).manage_messages
+    if isinstance(ctx.channel, discord.abc.GuildChannel):
+        return ctx.channel.permissions_for(ctx.guild.me).manage_messages
+    else:
+        return False
 
 
 async def notEventChannelCheck(ctx):
@@ -503,7 +506,6 @@ async def on_guild_join(guild):
         except discord.errors.Forbidden:
             pass
 
-
 @professor.event
 async def on_command_error(ctx, error):
     print("COMMAND ERROR")
@@ -520,6 +522,7 @@ async def on_command_error(ctx, error):
             await ctx.author.send(content="There was an unknown error executing your command `{}`.".format(ctx.message.content))
         else:
             await ctx.author.send(content="There was an unknown error executing your command `{}`. Perhaps you should not be executing it in a dm channel.".format(ctx.message.content))
+
 
 # ==========================================
 # Bot commands
