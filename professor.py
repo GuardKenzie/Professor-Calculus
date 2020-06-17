@@ -1545,7 +1545,7 @@ async def pizza(ctx, link):
     if delperm(ctx):
         await ctx.message.delete()
 
-    d = dags.parse("now", tz=eventsDict[hash(ctx.guild)].timezone)
+    d = dags.parse("now", tz=eventsDict[hash(ctx.guild)].timezone, ignore_past=True)
     d = d.strftime("%d %b %Y %H:%M")
 
     embed = discord.Embed(title="Pizza ({})".format(d), description=link, colour=accent_colour)

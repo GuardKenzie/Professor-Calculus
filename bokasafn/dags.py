@@ -4,7 +4,7 @@ import datetime
 import re
 
 
-def parse(datestr, tz=pytz.utc):
+def parse(datestr, tz=pytz.utc, ignore_past=False):
     # Athuga hvort timezone sé gefið
     tzbit = r"(UTC+\d{1,2}|UTC-\d{1,2}|GMT+\d{1,2}|GMT-\d{1,2}|[A-Za-z]{3,5})"
     nottzbit = r"(\d{1,2}:\d{2}.*)"
@@ -31,7 +31,7 @@ def parse(datestr, tz=pytz.utc):
     elif date.tzinfo is None:
         date = tz.localize(date)
 
-    if pytz.utc.localize(datetime.datetime.utcnow()) > date:
+    if pytz.utc.localize(datetime.datetime.utcnow()) > date and not ignore_past:
         return False
 
     # Skilum samsvarandi tíma í UTC
