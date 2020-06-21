@@ -1561,14 +1561,15 @@ async def pizza(ctx, link):
 
 @professor.command(checks=[notEventChannelCheck])
 async def salt(ctx):
+    # Ordinal from Stack Overflow
+    ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
+
     # Get a random nugg and increment count
     username = ctx.author.display_name
     insultMessage = saltWraper.insult(username)
     count = saltWraper.eatCookie(ctx.author)
 
-    await ctx.send("Here is your little nugget of salt:\n{}".format(insultMessage))
-    await asyncio.sleep(1)
-    await ctx.send("{} has now had {} salty nuggs!".format(username, count))
+    await ctx.send("Here is your {} nugget of salt, {}:\n> {}".format(ordinal(count), username, insultMessage))
 
 
 @professor.command(checks=[notEventChannelCheck])
