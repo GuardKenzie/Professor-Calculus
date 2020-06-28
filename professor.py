@@ -1336,13 +1336,23 @@ async def spoiler(ctx, *, content=None):
 
 @spoiler.command()
 async def delete(ctx):
-    lastid = eventsDict[hash(ctx.guild)].popLastSpoiler(ctx.author.id)
+    done = False
 
-    if lastid is not None:
-        msg = await ctx.guild.get_channel(lastid[1]).fetch_message(lastid[0])
-        await msg.delete()
-        if delperm(ctx):
-            await ctx.message.delete()
+    while not done:
+        lastid = eventsDict[hash(ctx.guild)].popLastSpoiler(ctx.author.id)
+
+        if lastid is not None:
+            try:
+                msg = await ctx.guild.get_channel(lastid[1]).fetch_message(lastid[0])
+                await msg.delete()
+                if delperm(ctx):
+                    await ctx.message.delete()
+                done = True
+            except discord.errors.NotFound:
+                lastid = eventsDict[hash(ctx.guild)].popLastSpoiler(ctx.author.id)
+        else:
+            done = True
+
 
 
 @professor.command(checks=[notEventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
