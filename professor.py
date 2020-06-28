@@ -1594,6 +1594,21 @@ async def forget_me(ctx):
     henda("db/salt.db", "salt", "userId")
     henda("db/spoilers.db", "spoilers", "userid")
 
+    for guild in professor.guilds:
+        member = guild.get_member(userid)
+
+        if member is not None:
+            allEvents = eventsDict[hash(guild)].getAllEvents()
+            for event in allEvents:
+                people = json.loads(event[5])
+                out = []
+
+                for person in people:
+                    if person[0] != userid:
+                        out.append(person)
+                eventsDict[hash(guild)].updateEvent(event[1], "people", json.dumps(out), actualId=True)
+                asyncio.create_task(updatePinned(eventsDict[hash(guild)].channel, guild))
+
     await msg.delete()
     await ctx.author.send("You have been forgotten.")
 
