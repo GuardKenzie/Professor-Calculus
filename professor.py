@@ -16,6 +16,7 @@ import math
 import pytz
 import dateutil.parser
 import pickle
+from imgurpython import ImgurClient
 
 # Mine
 import bokasafn.breytugreinir as breytugreinir
@@ -97,6 +98,11 @@ with open("keys/reddit", "r") as f:
 with open("keys/wolfram", "r") as f:
     wa_app_id = f.readline().strip()
     wolf = wolframalpha.Client(wa_app_id)
+
+# Imgur
+with open("keys/imgur.json", "r") as f:
+    aux = json.loads(f.read())
+    imgur = ImgurClient(aux["clientid"], aux["secret"])
 
 
 # dummy parameter for discord.ext.commands.errors.MissingRequiredArgumentError
@@ -1534,19 +1540,36 @@ async def remove(ctx, reminder_id: int):
         await ctx.author.send("An unknown error occured while removing that reminder.")
 
 
+@professor.command()
+async def pizza(ctx, link):
+    if delperm(ctx):
+        await ctx.message.delete()
+
+    d = dags.parse("now", tz=eventsDict[hash(ctx.guild)].timezone, ignore_past=True)
+    d = d.strftime("%d %b %Y %H:%M")
+
+    embed = discord.Embed(title="Pizza ({})".format(d), description=link, colour=accent_colour)
+    pizzaimages = imgur.subreddit_gallery("pizza", sort="hot")
+    pizzaimage = pizzaimages[hash(link) % len(pizzaimages)].link
+
+    embed.set_image(url=pizzaimage)
+    await ctx.channel.send(embed=embed)
+
+
 # --- Salt ---
 
 
 @professor.command(checks=[notEventChannelCheck])
 async def salt(ctx):
+    # Ordinal from Stack Overflow
+    ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
+
     # Get a random nugg and increment count
     username = ctx.author.display_name
     insultMessage = saltWraper.insult(username)
     count = saltWraper.eatCookie(ctx.author)
 
-    await ctx.send("Here is your little nugget of salt:\n{}".format(insultMessage))
-    await asyncio.sleep(1)
-    await ctx.send("{} has now had {} salty nuggs!".format(username, count))
+    await ctx.send("Here is your {} nugget of salt, {}:\n> {}".format(ordinal(count), username, insultMessage))
 
 
 @professor.command(checks=[notEventChannelCheck])
