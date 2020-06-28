@@ -1,4 +1,5 @@
 import sqlite3
+import os.path
 
 
 class color:
@@ -15,16 +16,32 @@ class color:
 
 
 def skapa(fname, tables):
-    print(f'Generating {color.BOLD}{fname}{color.END}')
+    if os.path.isfile(fname):
+        status = "Updating"
+    else:
+        status = "Creating"
+
+    print(f'{status} {color.BOLD}{fname}{color.END}')
     conn = sqlite3.connect(fname)
     c = conn.cursor()
 
+    count = 0
+
     for table in tables:
-        c.execute(table)
-        print(f'==> {color.YELLOW}{table}{color.END}')
-        conn.commit()
+        try:
+            c.execute(table)
+            print(f'==> {color.YELLOW}{table}{color.END}')
+            conn.commit()
+            count += 1
+        except sqlite3.OperationalError:
+            pass
     conn.close()
-    print(f'{color.GREEN}Done{color.END}\n')
+
+    if count == 0:
+        status = f'{color.YELLOW}Nothing to do{color.END}'
+    else:
+        status = f'{color.GREEN}Done{color.END}'
+    print(f'{status}\n')
 
 
 # Hooks.db
