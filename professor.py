@@ -1,4 +1,5 @@
 import discord
+import sqlite3
 import re
 import json
 from discord.ext import commands
@@ -1555,6 +1556,46 @@ async def pizza(ctx, link):
     embed.set_image(url=pizzaimage)
     await ctx.channel.send(embed=embed)
 
+
+@professor.command()
+async def forget_me(ctx):
+
+    msg = await ctx.author.send("**ARE YOU SURE YOU WANT TO BE FORGOTTEN?**\nReply with `yes/no`")
+
+    def check(m):
+        return m.author == ctx.author and m.content.lower() in ["yes","no"]
+
+    try:
+        rep = await professor.wait_for("message", check=check)
+    except asyncio.TimeoutError:
+        await msg.delete()
+        return
+
+    if rep.content.lower() != "yes":
+        await msg.delete()
+        return
+
+
+    if delperm(ctx):
+        await ctx.messsage.delete()
+
+    userid = ctx.author.id
+
+    def henda(fname, table, col):
+        conn = sqlite3.connect(fname)
+        c = conn.cursor()
+
+        c.execute(f'DELETE FROM {table} WHERE {col}=?', (userid, ))
+
+        conn.commit()
+        conn.close()
+
+    henda("db/reminders.db", "reminders", "user_id")
+    henda("db/salt.db", "salt", "userId")
+    henda("db/spoilers.db", "spoilers", "userid")
+
+    await msg.delete()
+    await ctx.author.send("You have been forgotten.")
 
 # --- Salt ---
 
