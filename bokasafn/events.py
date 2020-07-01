@@ -451,6 +451,12 @@ class Events:
         # Save
         self.conn.commit()
 
+    def unsetMyChannelId(self, channelType):
+        self.c.execute("DELETE FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash, channelType))
+        if channelType == "events":
+            self.channel = None
+        self.conn.commit()
+
     def getMyChannelId(self, channelType):
         # Check if I have a channel and return
         self.c.execute("SELECT channelId FROM myChannels WHERE guildHash=? AND channelType=?;", (self.guildHash, channelType))
