@@ -1065,6 +1065,9 @@ async def configure(ctx):
             await msg.delete()
             return
 
+    if delperm(ctx):
+        await ctx.message.delete()
+
 
 @configure.command(checks=[notEventChannelCheck])
 async def channel(ctx, channelType):
