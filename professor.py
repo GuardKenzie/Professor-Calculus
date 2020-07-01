@@ -125,6 +125,10 @@ class TopGG(commands.Cog):
     async def on_guild_post():
         print("\nEVENT:\nServer count posted successfully")
 
+
+# Ongoing commands
+ongoing = 0
+
 # ==========================================
 # Functions
 # ==========================================
@@ -437,11 +441,8 @@ async def on_ready():
 @professor.event
 async def on_command_completion(ctx):
     # List of commands for events
-    if ctx.prefix in ["f? ", "f?"]:
-        try:
-            await ctx.author.send("The `{}` prefix is deprecated and will soon be removed. Please switch to using the `{}` prefix instead.".format(ctx.prefix, prefix))
-        except discord.errors.Forbidden:
-            pass
+    global ongoing
+    ongoing -= 1
 
     if ctx.guild:
         eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick"]
@@ -451,6 +452,12 @@ async def on_command_completion(ctx):
         # Update pinned list if command is for event
         if ctx.command.name in eventCommands and guildHash in eventsDict.keys():
             asyncio.create_task(updatePinned(eventsDict[guildHash].channel, ctx.guild))
+
+
+@professor.event
+async def on_command(ctx):
+    global ongoing
+    ongoing += 1
 
 
 @professor.event
@@ -515,22 +522,22 @@ async def on_guild_join(guild):
             pass
 
 
-#@professor.event
-#async def on_command_error(ctx, error):
-#    print("COMMAND ERROR")
-#    print("Command:\t{}".format(ctx.message.content))
-#    print("Error:\t\t{}".format(error))
-#    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
-#        await ctx.author.send(content="There was an error executing your command `{}`. Incorrect number of arguments passed.".format(ctx.message.content))
-#    elif isinstance(error, discord.ext.commands.errors.CommandNotFound):
-#        await ctx.author.send(content="The command `{}` is unknown.".format(ctx.message.content))
-#    elif isinstance(error, discord.ext.commands.errors.CheckFailure):
-#        pass
-#    else:
-#        if isinstance(ctx.channel, discord.abc.GuildChannel):
-#            await ctx.author.send(content="There was an unknown error executing your command `{}`.".format(ctx.message.content))
-#        else:
-#            await ctx.author.send(content="There was an unknown error executing your command `{}`. Perhaps you should not be executing it in a dm channel.".format(ctx.message.content))
+@professor.event
+async def on_command_error(ctx, error):
+    print("COMMAND ERROR")
+    print("Command:\t{}".format(ctx.message.content))
+    print("Error:\t\t{}".format(error))
+    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+        await ctx.author.send(content="There was an error executing your command `{}`. Incorrect number of arguments passed.".format(ctx.message.content))
+    elif isinstance(error, discord.ext.commands.errors.CommandNotFound):
+        await ctx.author.send(content="The command `{}` is unknown.".format(ctx.message.content))
+    elif isinstance(error, discord.ext.commands.errors.CheckFailure):
+        pass
+    else:
+        if isinstance(ctx.channel, discord.abc.GuildChannel):
+            await ctx.author.send(content="There was an unknown error executing your command `{}`.".format(ctx.message.content))
+        else:
+            await ctx.author.send(content="There was an unknown error executing your command `{}`. Perhaps you should not be executing it in a dm channel.".format(ctx.message.content))
 
 
 # ==========================================
@@ -2558,6 +2565,10 @@ async def announce_update(ctx):
                         await msg.pin()
                     except discord.errors.NotFound:
                         pass
+
+@professor.command()
+async def safe(ctx):
+    await ctx.author.send("Ongoing commands: {}".format(ongoing))
 
 
 # Start bot
