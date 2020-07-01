@@ -24,6 +24,7 @@ import discord
 # --- Maintenance ---
 # Setup:    ms
 # Clean:    mc
+availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct"]
 
 permissionResolver = {"schedule": "es",
                       "remove": "er",
