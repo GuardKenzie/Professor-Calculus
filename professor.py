@@ -28,6 +28,7 @@ import bokasafn.salty as salty
 import bokasafn.soundb as soundb
 import bokasafn.reminders as reminders
 import bokasafn.dags as dags
+import bokasafn.emojis as foodEmojis
 
 # Bot key
 with open(sys.argv[1], "r") as keyFile:
@@ -413,7 +414,7 @@ async def on_ready():
         # If I have a channel, purge and post event list
         if myChannel:
             eventsDict[guildHash].channel = myChannel
-            await myChannel.purge(check=purgecheck)
+            asyncio.create_task(myChannel.purge(check=purgecheck))
             asyncio.create_task(updatePinned(myChannel, guild))
 
         # Initiate permissions
@@ -513,22 +514,23 @@ async def on_guild_join(guild):
         except discord.errors.Forbidden:
             pass
 
-@professor.event
-async def on_command_error(ctx, error):
-    print("COMMAND ERROR")
-    print("Command:\t{}".format(ctx.message.content))
-    print("Error:\t\t{}".format(error))
-    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
-        await ctx.author.send(content="There was an error executing your command `{}`. Incorrect number of arguments passed.".format(ctx.message.content))
-    elif isinstance(error, discord.ext.commands.errors.CommandNotFound):
-        await ctx.author.send(content="The command `{}` is unknown.".format(ctx.message.content))
-    elif isinstance(error, discord.ext.commands.errors.CheckFailure):
-        pass
-    else:
-        if isinstance(ctx.channel, discord.abc.GuildChannel):
-            await ctx.author.send(content="There was an unknown error executing your command `{}`.".format(ctx.message.content))
-        else:
-            await ctx.author.send(content="There was an unknown error executing your command `{}`. Perhaps you should not be executing it in a dm channel.".format(ctx.message.content))
+
+#@professor.event
+#async def on_command_error(ctx, error):
+#    print("COMMAND ERROR")
+#    print("Command:\t{}".format(ctx.message.content))
+#    print("Error:\t\t{}".format(error))
+#    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+#        await ctx.author.send(content="There was an error executing your command `{}`. Incorrect number of arguments passed.".format(ctx.message.content))
+#    elif isinstance(error, discord.ext.commands.errors.CommandNotFound):
+#        await ctx.author.send(content="The command `{}` is unknown.".format(ctx.message.content))
+#    elif isinstance(error, discord.ext.commands.errors.CheckFailure):
+#        pass
+#    else:
+#        if isinstance(ctx.channel, discord.abc.GuildChannel):
+#            await ctx.author.send(content="There was an unknown error executing your command `{}`.".format(ctx.message.content))
+#        else:
+#            await ctx.author.send(content="There was an unknown error executing your command `{}`. Perhaps you should not be executing it in a dm channel.".format(ctx.message.content))
 
 
 # ==========================================
@@ -579,8 +581,8 @@ async def setup(ctx):
 
 # --- Configuration ---
 
-@professor.group(invoke_without_command=True, aliases=["config", "conf"])
-async def configure(ctx):
+@professor.group(invoke_without_command=True)#, aliases=["config", "conf"])
+async def configureold(ctx):
     if ctx.invoked_subcommand is None:
         # Give an overview of roles with permissions
         embed = discord.Embed(title="Permissions overveiw for {}".format(ctx.guild.name), color=accent_colour)
@@ -604,6 +606,464 @@ async def configure(ctx):
 
     if delperm(ctx):
         await ctx.message.delete()
+
+
+@professor.group(invoke_without_command=True, aliases=["config", "conf"])
+async def configure(ctx):
+    # Todo:
+    # Comments
+
+    events_channel = eventsDict[hash(ctx.guild)].channel
+    friendly_channel = ctx.guild.get_channel(eventsDict[hash(ctx.guild)].getMyChannelId("friendly"))
+
+    events_channel_mention = None if events_channel is None else events_channel.mention
+    friendly_channel_mention = None if friendly_channel is None else friendly_channel.mention
+
+    timezone = eventsDict[hash(ctx.guild)].timezone
+
+    TextChannelConverter = discord.ext.commands.TextChannelConverter()
+    RoleConverter = discord.ext.commands.RoleConverter()
+
+    emojis = foodEmojis.foodEmojis("res/foodemojis.txt")
+    emojis_avail = emojis.getEmojis(4)
+
+    async def editChannel(msg, channelType):
+        await msg.clear_reactions()
+        ghost = "\U0001F47B"
+
+        embed = discord.Embed(colour=accent_colour, title=f"Please select an option for configuring the {channelType} channel", description=f"{emojis.checkmark} Change the channel\n\n{ghost} Unset the channel\n\n{emojis.cancel} Cancel")
+        await msg.edit(embed=embed)
+
+        await msg.add_reaction(emojis.checkmark)
+        await msg.add_reaction(ghost)
+        await msg.add_reaction(emojis.cancel)
+
+        try:
+            r, _ = await professor.wait_for("reaction_add", check=lambda r, u: u == ctx.author and r.emoji in [ghost, emojis.checkmark, emojis.cancel])
+        except asyncio.TimeoutError:
+            return -1
+
+        if r.emoji == emojis.cancel:
+            return -1
+
+        if r.emoji == ghost:
+            print("unset")
+            eventsDict[hash(ctx.guild)].unsetMyChannelId(channelType)
+            return 1
+
+        await msg.clear_reactions()
+
+        if channelType == "events":
+            embed = discord.Embed(colour=accent_colour, title="Editing events channel", description=f"Currently configured to: {events_channel_mention}\nPlease specify the new events channel and then press {emojis.checkmark} to confirm.\n**WARNING: THIS WILL DELETE ALL MESSAGES IN THAT CHANNEL.**\nType `back` to go back to the main menu.")
+
+            await msg.edit(embed=embed)
+
+            def check_channel(m):
+                return m.author == ctx.author
+
+            def check_confirm(r, u):
+                return r.emoji in [emojis.checkmark, emojis.cancel] and u == ctx.author
+
+            try:
+                while True:
+                    rep = await professor.wait_for("message", check=check_channel)
+                    try:
+                        if rep.content.lower() == "back":
+                            if delperm(ctx):
+                                await rep.delete()
+
+                            raise asyncio.TimeoutError
+
+                        channel = await TextChannelConverter.convert(ctx, rep.content)
+                        if delperm(ctx):
+                            await rep.delete()
+
+                        break
+                    except discord.ext.commands.CommandError:
+                        pass
+
+                embed.add_field(name="New channel", value=channel.mention)
+                await msg.edit(embed=embed)
+
+                await msg.add_reaction(emojis.checkmark)
+                await msg.add_reaction(emojis.cancel)
+
+                r, _ = await professor.wait_for("reaction_add", check=check_confirm)
+                if r.emoji == emojis.checkmark:
+                    eventsDict[hash(ctx.guild)].channel = channel
+                    eventsDict[hash(ctx.guild)].myMessage = None
+                    eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, channelType)
+                    asyncio.create_task(updatePinned(channel, ctx.guild))
+                    return 1
+                else:
+                    return 1
+
+            except asyncio.TimeoutError:
+                return -1
+
+        elif channelType == "friendly":
+            embed = discord.Embed(colour=accent_colour, title="Editing the friendly channel", description=f"Currently configured to: {friendly_channel_mention}\nPlease specify the new friendly channel.\nType `back` to go back to the main menu.")
+
+            await msg.edit(embed=embed)
+
+            def check_channel(m):
+                return m.author == ctx.author
+
+            try:
+                while True:
+                    rep = await professor.wait_for("message", check=check_channel)
+                    try:
+                        if rep.content.lower() == "back":
+                            if delperm(ctx):
+                                await rep.delete()
+
+                            raise asyncio.TimeoutError
+
+                        channel = await TextChannelConverter.convert(ctx, rep.content)
+                        if delperm(ctx):
+                            await rep.delete()
+
+                        break
+                    except discord.ext.commands.CommandError:
+                        pass
+
+                eventsDict[hash(ctx.guild)].setMyChannelId(channel.id, channelType)
+
+                return 1
+
+            except asyncio.TimeoutError:
+                return -1
+
+
+    async def editTz(msg):
+        await msg.clear_reactions()
+
+        tzdict = {"Other": []}
+        regions = set()
+
+        for entry in pytz.all_timezones:
+            entry = entry.split("/")
+            if len(entry) == 1:
+                tzdict["Other"].append("/".join(entry))
+            elif entry[0] in regions:
+                tzdict[entry[0]].append("/".join(entry[1:]))
+            else:
+                tzdict[entry[0]] = []
+                regions.add(entry[0])
+
+        regions = list(tzdict.keys())
+        regionsStr = ""
+
+        i = 1
+        for r in regions:
+            regionsStr += "{}. {}\n".format(i, r)
+            i += 1
+
+        embed = discord.Embed(title="Please select a region by replying with the corresponding number.", description=regionsStr, colour=accent_colour)
+        await msg.edit(embed=embed)
+
+        def checkRegion(message):
+            try:
+                return int(message.content) <= len(regions) and message.author == ctx.message.author
+            except ValueError:
+                return False
+
+        try:
+            regionMsg = await professor.wait_for("message", check=checkRegion, timeout=120)
+        except asyncio.TimeoutError:
+            return -1
+
+        regionIndex = int(regionMsg.content) - 1
+
+        if delperm(ctx):
+            await regionMsg.delete()
+
+        zones = tzdict[regions[regionIndex]]
+
+        def checkZone(message):
+            if message.content.lower() in ["back", "next"]:
+                return message.author == ctx.message.author
+            else:
+                try:
+                    return int(message.content) <= len(zones) and message.author == ctx.message.author
+                except ValueError:
+                    return False
+
+        done = False
+        page = 0
+        pages = math.ceil(len(zones) / 20)
+        while not done:
+            zonesStr = ""
+            i = 20 * (page) + 1
+            snid = zones[20 * (page):20 * (page + 1)] if page < pages else zones[20 * (page):]
+            for z in snid:
+                zonesStr += "{}. {}\n".format(i, z)
+                i += 1
+            embed = discord.Embed(title="Time zone (Page {}/{})\nPlease select a region by replying with the corresponding number. Reply with `next` for the next page.\nReply with `back` for the previous page.".format(page + 1, pages),
+                                  description=zonesStr,
+                                  colour=accent_colour)
+
+            await msg.edit(embed=embed)
+
+            try:
+                zoneMsg = await professor.wait_for("message", check=checkZone, timeout=120)
+            except asyncio.TimeoutError:
+                return -1
+
+            if zoneMsg.content == "next":
+                page = (page + 1) % pages
+            elif zoneMsg.content == "back":
+                page = (page - 1) % pages
+            else:
+                done = True
+                zoneIndex = int(zoneMsg.content) - 1
+
+            if delperm(ctx):
+                await zoneMsg.delete()
+
+        if regions[regionIndex] != "Other":
+            timezone = "{}/{}".format(regions[regionIndex], zones[zoneIndex])
+        else:
+            timezone = zones[zoneIndex]
+
+        eventsDict[hash(ctx.guild)].setTimezone(timezone)
+
+
+    async def editRoles(msg):
+        await msg.clear_reactions()
+        embed = discord.Embed(title="Configuring role permissions",
+                              description="Please mention the role you want to configure.\nType `back` to go back to the main menu.",
+                              colour=accent_colour)
+        await msg.edit(embed=embed)
+
+        try:
+            while True:
+                rep = await professor.wait_for("message", check=lambda m: m.author == ctx.author)
+                if rep.content.lower() == "back":
+                    if delperm(ctx):
+                        await rep.delete()
+                    raise asyncio.TimeoutError
+                try:
+                    role = await RoleConverter.convert(ctx, rep.content)
+                    break
+                except discord.ext.commands.CommandError:
+                    pass
+
+            if delperm(ctx):
+                await rep.delete()
+        except asyncio.TimeoutError:
+            return -1
+
+        cross = "\u274C"
+        # Permissions that can be set
+        availablePerms = permissions.availablePerms
+        rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
+
+        permEmojis = foodEmojis.foodEmojis("res/foodemojis.txt")
+        perm_emojis_avail = permEmojis.getEmojis(len(availablePerms))
+
+        done = False
+
+        initial = True
+
+        message = msg
+
+        # Continue until done
+
+        while not done:
+            # Initialize
+            embed = discord.Embed(title="Permissions for {}".format(role.name), color=accent_colour)
+            eventsPermissions = {}
+            configurePermissions = {}
+            soundboardPermissions = {}
+
+            # Categorize the permissions and check their values
+            for p in permissions.permissionResolver.values():
+                commandName = permissions.resolvePermission(p).split()[-1]
+                if p[0] == "e":
+                    eventsPermissions[commandName] = p in rolePerms
+                elif p[0] == "s":
+                    soundboardPermissions[commandName] = p in rolePerms
+                elif p[0] == "c":
+                    configurePermissions[commandName] = p in rolePerms
+
+            # Function to generate the permission list for each category
+            def genstr(d, currentemoji):
+                out = ""
+                for i in d.items():
+                    out += perm_emojis_avail[currentemoji] + " " + str(i[0]) + ": " + str(i[1]) + "\n"
+                    currentemoji += 1
+
+                return out
+
+            currentemoji = 0
+
+            # Add the fields
+            embed.add_field(name="Events", value=genstr(eventsPermissions, currentemoji), inline=False)
+            currentemoji += len(eventsPermissions)
+
+            embed.add_field(name="Soundboard", value=genstr(soundboardPermissions, currentemoji), inline=False)
+            currentemoji += len(soundboardPermissions)
+
+            embed.add_field(name="Configure", value=genstr(configurePermissions, currentemoji), inline=False)
+            currentemoji += len(configurePermissions)
+
+            await message.edit(content="", embed=embed)
+
+            # Add emojis if this is the first loop
+            if initial:
+                for k in range(currentemoji):
+                    await message.add_reaction(perm_emojis_avail[k])
+
+                await message.add_reaction(cross)
+                initial = False
+
+            # Check function for reaction
+            def check(payload):
+                i = permEmojis.getIndex(payload.emoji.name)
+                emojiok = i >= 0 or i == -2
+                memberok = payload.member == ctx.author
+                messageok = payload.message_id == message.id
+
+                if emojiok and memberok and messageok:
+                    return True
+                else:
+                    return False
+
+            try:
+                payload = await professor.wait_for("raw_reaction_add", check=check, timeout=300)
+            except asyncio.TimeoutError:
+                await message.delete()
+                return
+
+            # Break if done
+            if payload.emoji.name == cross:
+                done = True
+                break
+            else:
+                # Try to remove the reaction
+                if delperm(ctx):
+                    await message.remove_reaction(payload.emoji, ctx.author)
+
+                # Add or remove the permission selected from the permission array
+                p = availablePerms[permEmojis.getIndex(payload.emoji.name)]
+                if p in rolePerms:
+                    del rolePerms[rolePerms.index(p)]
+                else:
+                    rolePerms.append(p)
+
+        # Update the permissions
+        permissionsDict[hash(ctx.guild)].setPermissions(role.id, rolePerms)
+
+
+    embed = discord.Embed(title=f"Configuration for {ctx.guild.name}",
+                          description="React with the relevant emoji to change a setting.",
+                          colour=accent_colour)
+
+    roles = ""
+
+    for role in ctx.guild.roles:
+        # Get permissions for role
+        perms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
+        perms.sort()
+
+        # Check if there are any permissions
+        if perms == []:
+            continue
+        else:
+            out = ", ".join(map(permissions.resolvePermission, perms))
+
+        # Add field for role
+        roles += f"{role.mention}: {out}\n\n"
+
+    if roles == "":
+        roles = "None"
+
+    embed.add_field(name=f"{emojis_avail[0]} Events channel", value=events_channel_mention, inline=False)
+    embed.add_field(name=f"{emojis_avail[1]} Friendly channel", value=friendly_channel_mention, inline=False)
+    embed.add_field(name=f"{emojis_avail[2]} Guild time zone", value=str(timezone), inline=False)
+    embed.add_field(name=f"{emojis_avail[3]} Role permissions", value=roles, inline=False)
+
+    msg = await ctx.channel.send(embed=embed)
+
+    for e in emojis_avail:
+        await msg.add_reaction(e)
+
+    await msg.add_reaction(emojis.cancel)
+
+    def check(r, u):
+        if u != ctx.author:
+            return False
+
+        i = emojis.getIndex(r.emoji)
+        if i >= 0:
+            return True
+        elif i == -2:
+            raise asyncio.TimeoutError
+
+    while True:
+        try:
+            r, _ = await professor.wait_for("reaction_add", check=check, timeout=300)
+            cmd = emojis.getIndex(r.emoji)
+
+            # Events channel
+            if cmd == 0:
+                await editChannel(msg, "events")
+
+            # Friendly channel
+            elif cmd == 1:
+                await editChannel(msg, "friendly")
+
+            # Timezone
+            elif cmd == 2:
+                await editTz(msg)
+
+            elif cmd == 3:
+                await editRoles(msg)
+
+            await msg.clear_reactions()
+
+            events_channel = eventsDict[hash(ctx.guild)].channel
+            friendly_channel = ctx.guild.get_channel(eventsDict[hash(ctx.guild)].getMyChannelId("friendly"))
+            timezone = eventsDict[hash(ctx.guild)].timezone
+
+            events_channel_mention = None if events_channel is None else events_channel.mention
+            friendly_channel_mention = None if friendly_channel is None else friendly_channel.mention
+
+            roles = ""
+
+            for role in ctx.guild.roles:
+                # Get permissions for role
+                perms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
+                perms.sort()
+
+                # Check if there are any permissions
+                if perms == []:
+                    continue
+                else:
+                    out = ", ".join(map(permissions.resolvePermission, perms))
+
+                # Add field for role
+                roles += f"{role.mention}: {out}\n\n"
+
+            if roles == "":
+                roles = "None"
+
+            embed.set_field_at(0, name=f"{emojis_avail[0]} Events channel", value=events_channel_mention, inline=False)
+            embed.set_field_at(1, name=f"{emojis_avail[1]} Friendly channel", value=friendly_channel_mention, inline=False)
+            embed.set_field_at(2, name=f"{emojis_avail[2]} Guild time zone", value=timezone, inline=False)
+            embed.set_field_at(3, name=f"{emojis_avail[3]} Role permissions", value=roles, inline=False)
+
+            await msg.edit(embed=embed)
+
+            for e in emojis_avail:
+                await msg.add_reaction(e)
+
+            await msg.add_reaction(emojis.cancel)
+
+        except asyncio.TimeoutError:
+            await msg.delete()
+            return
 
 
 @configure.command(checks=[notEventChannelCheck])
@@ -770,7 +1230,7 @@ async def timezone(ctx):
         regionsStr += "{}. {}\n".format(i, r)
         i += 1
 
-    embed = discord.Embed(title="Regions", description=regionsStr)
+    embed = discord.Embed(title="Regions", description=regionsStr, colour=accent_colour)
     msg = await ctx.channel.send(content="Please select a region by replying with the corresponding number.", embed=embed)
 
     def checkRegion(message):
@@ -811,7 +1271,7 @@ async def timezone(ctx):
         for z in snid:
             zonesStr += "{}. {}\n".format(i, z)
             i += 1
-        embed = discord.Embed(title="Time zone (Page {}/{})".format(page + 1, pages), description=zonesStr)
+        embed = discord.Embed(title="Time zone (Page {}/{})".format(page + 1, pages), description=zonesStr, colour=accent_colour)
         await msg.edit(content="Please select a region by replying with the corresponding number.\nReply with `next` for the next page.\nReply with `back` for the previous page.", embed=embed)
 
         try:
