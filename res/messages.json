@@ -1,6 +1,6 @@
 {
   "helloMessage":           "Hello! I'm {0}. Nice to meet you!\nThis is my events channel. Here I will post notifications for upcoming guild events!\n Some useful commands are:\n `{1} attend #` to sign up for event #\n `{1} leave #` to leave event #\n \n For all commands and more details type `{1} help`.",
-  "schedulerMessage":       "You can give roles special permissions with the `p? configure role` command. Users with the discord administrator permission do not need additional permissions.",
+  "schedulerMessage":       "You can give roles special permissions with the `p? configure` command. Users with the discord administrator permission do not need additional permissions.",
 
   "eventCreated":           "Event `{}` at `{}` successfully booked!",
   "eventCreationFailed":    "Failed to schedule event. Maybe check `{} help` and try again.",
@@ -28,7 +28,7 @@
   "eventTime":      "Please give a date and time for your event. If a weekday is specified, the event will be set as recurring",
   "eventDesc":      "Enter a description for your event:",
   "invalidDate":    "`{}` is not a valid date!",
-  "cannotCreateEventsChannel": "I do not have permission to create my events channel. Please manually create a channel for events and set it as my channel with `{}configure channel events`. Make sure I have permission to manage messages in my events channel.",
+  "cannotCreateEventsChannel": "I do not have permission to create my events channel. Please manually create a channel for events and set it as my channel with `{}configure`. Make sure I have permission to manage messages in my events channel.",
   "cannotCreateSchedulerRole": "I do not have permission to create roles. If you want certain users (other than ones with the `administrator` permission) to be able to manage events, please manually create a role called `Scheduler` and assign it to any users who should be able to manage events.",
   "cannotManageMessages": "I must have the `manage messages` permission in this channel to be able to register it as my events channel.",
   "new_update": "A new update is here! Check it out: https://professorcalculus.io/changelog"
