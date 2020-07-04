@@ -524,6 +524,8 @@ async def on_guild_join(guild):
 
 @professor.event
 async def on_command_error(ctx, error):
+    global ongoing
+    ongoing -= 1
     print("COMMAND ERROR")
     print("Command:\t{}".format(ctx.message.content))
     print("Error:\t\t{}".format(error))
