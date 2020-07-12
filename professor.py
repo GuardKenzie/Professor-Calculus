@@ -126,9 +126,6 @@ class TopGG(commands.Cog):
         print("\nEVENT:\nServer count posted successfully")
 
 
-# Ongoing commands
-ongoing = 0
-
 # ==========================================
 # Functions
 # ==========================================
@@ -441,8 +438,6 @@ async def on_ready():
 @professor.event
 async def on_command_completion(ctx):
     # List of commands for events
-    global ongoing
-    ongoing -= 1
 
     if ctx.guild:
         eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick"]
@@ -453,11 +448,7 @@ async def on_command_completion(ctx):
         if ctx.command.name in eventCommands and guildHash in eventsDict.keys():
             asyncio.create_task(updatePinned(eventsDict[guildHash].channel, ctx.guild))
 
-
-@professor.event
-async def on_command(ctx):
-    global ongoing
-    ongoing += 1
+    await asyncio.sleep(2)
 
 
 @professor.event
@@ -524,8 +515,8 @@ async def on_guild_join(guild):
 
 @professor.event
 async def on_command_error(ctx, error):
-    global ongoing
-    ongoing -= 1
+
+
     print("COMMAND ERROR")
     print("Command:\t{}".format(ctx.message.content))
     print("Error:\t\t{}".format(error))
@@ -2569,8 +2560,13 @@ async def announce_update(ctx):
                         pass
 
 @professor.command()
+async def test_error(ctx):
+    raise ValueError
+
+@professor.command()
 async def safe(ctx):
-    await ctx.author.send("Ongoing commands: {}".format(ongoing))
+    running = sum([int(a.get_coro().__name__ == "_run_event") for a in asyncio.all_tasks()])
+    await ctx.author.send("Ongoing events: {}".format(running))
 
 
 # Start bot
