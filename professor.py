@@ -1447,6 +1447,31 @@ async def remove(ctx, fakeId):
     # Get actual event id
     eventId = eventsDict[guildHash].getEventId(fakeId)
 
+    # Confirmation check
+    reactMsg = await ctx.channel.fetch_message(eventsDict[hash(ctx.guild)].myLogMessageId)
+
+    await reactMsg.edit(content="Are you sure you want to remove the event\n> {}".format(event.name))
+
+    # Emojis
+    emojis = foodEmojis.foodEmojis("res/foodemojis.txt")
+
+    await reactMsg.add_reaction(emojis.checkmark)
+    await reactMsg.add_reaction(emojis.cancel)
+
+    def check(r):
+        emojiOk = str(r.emoji) in [emojis.checkmark, emojis.cancel]
+        userOk = r.user_id == ctx.author.id
+        messageOk = r.message_id == reactMsg.id
+        return emojiOk and userOk and messageOk
+
+    # Wait for rection
+    try:
+        payload = await professor.wait_for("raw_reaction_add", check=check)
+        if str(payload.emoji) == emojis.cancel:
+            raise asyncio.TimeoutError
+    except asyncio.TimeoutError:
+        return
+
     # Check if event id was found and if removal successful
     if eventId and eventsDict[guildHash].removeEvent(eventId):
         eventsDict[hash(ctx.guild)].insertIntoLog("{} removed event `{}`.".format(ctx.author.display_name, event.name))
