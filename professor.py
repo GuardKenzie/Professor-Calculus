@@ -516,7 +516,6 @@ async def on_guild_join(guild):
 @professor.event
 async def on_command_error(ctx, error):
 
-
     print("COMMAND ERROR")
     print("Command:\t{}".format(ctx.message.content))
     print("Error:\t\t{}".format(error))
@@ -581,7 +580,7 @@ async def setup(ctx):
 
 # --- Configuration ---
 
-@professor.group(invoke_without_command=True)#, aliases=["config", "conf"])
+@professor.group(invoke_without_command=True)
 async def configureold(ctx):
     if ctx.invoked_subcommand is None:
         # Give an overview of roles with permissions
@@ -734,7 +733,6 @@ async def configure(ctx):
             except asyncio.TimeoutError:
                 return -1
 
-
     async def editTz(msg):
         await msg.clear_reactions()
 
@@ -827,7 +825,6 @@ async def configure(ctx):
             timezone = zones[zoneIndex]
 
         eventsDict[hash(ctx.guild)].setTimezone(timezone)
-
 
     async def editRoles(msg):
         await msg.clear_reactions()
@@ -954,7 +951,6 @@ async def configure(ctx):
 
         # Update the permissions
         permissionsDict[hash(ctx.guild)].setPermissions(role.id, rolePerms)
-
 
     embed = discord.Embed(title=f"Configuration for {ctx.guild.name}",
                           description="React with the relevant emoji to change a setting.",
