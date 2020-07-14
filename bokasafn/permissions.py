@@ -1,6 +1,8 @@
 import sqlite3
 import json
 import discord
+from . import events
+import re
 
 # This is a class that handles permissions. Permission strings are as follows:
 #
@@ -119,5 +121,17 @@ class Permissions:
             perms = self.getPermissions(roleId)
             if permissionString in perms:
                 return True
+
+        if permissionString[0] == "e":
+            eventsClass = events.Events(self.guildHash, database="db/events.db")
+            numbersInTheCommand = re.findall(r"(\d+)", ctx.message.content)
+            try:
+                eventId = numbersInTheCommand[0]
+                event = eventsClass.getEvent(eventId)
+
+                if event.ownerId == ctx.author.id:
+                    return True
+            except IndexError:
+                pass
 
         return False
