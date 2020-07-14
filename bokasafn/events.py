@@ -52,7 +52,7 @@ class Hook:
 
 
 class Event:
-    def __init__(self, guildHash, eventId, date, name, description, people, roles, limit, recurring, timezone: pytz.timezone):
+    def __init__(self, guildHash, eventId, date, name, description, people, roles, limit, recurring, ownerId, timezone: pytz.timezone):
         self.hash = guildHash
         self.id = eventId
         self.date = dateutil.parser.isoparse(date)
@@ -60,6 +60,7 @@ class Event:
         self.description = description
         self.roles = json.loads(roles)
         self.timezone = timezone
+        self.ownerId = int(ownerId)
 
         self.parray = json.loads(people)
         self.parray.sort(key=lambda x: ([x for x, y, z in (self.roles)] + [""]).index(x[1]))
