@@ -440,7 +440,7 @@ async def on_command_completion(ctx):
     # List of commands for events
 
     if ctx.guild:
-        eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick"]
+        eventCommands = ["timezone", "attend", "leave", "schedule", "remove", "update", "kick", "config"]
 
         guildHash = hash(ctx.guild)
 
