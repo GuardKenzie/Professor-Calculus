@@ -1654,6 +1654,23 @@ async def when(ctx, eventId, offset):
     embed.add_field(name="Time until the event starts", value=event.timeUntil())
     await ctx.author.send(embed=embed)
 
+
+@professor.command()
+async def owner(ctx, eventId):
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if event:
+        memconv = discord.ext.commands.MemberConverter()
+        try:
+            owner = await memconv.convert(ctx, str(event.ownerId))
+            ownerMention = owner.mention
+        except discord.errors.CommandError:
+            ownerMention = "Noone"
+
+        await ctx.channel.send("The current owner of event `{}` is {}".format(eventId, ownerMention))
+    else:
+        await ctx.author.send("`{}` is not a valid event id.".format(eventId))
+
+
 @professor.group(invoke_without_command=True)
 async def hook(ctx, eventId, toProcess):
     if ctx.invoked_subcommand is None:
