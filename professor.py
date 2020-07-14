@@ -1663,7 +1663,7 @@ async def owner(ctx, eventId):
         try:
             owner = await memconv.convert(ctx, str(event.ownerId))
             ownerMention = owner.mention
-        except discord.errors.CommandError:
+        except discord.ext.commands.CommandError:
             ownerMention = "Noone"
 
         await ctx.channel.send("The current owner of event `{}` is {}".format(eventId, ownerMention))
