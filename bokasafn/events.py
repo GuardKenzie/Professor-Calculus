@@ -195,7 +195,7 @@ class Events:
         self.scheduling = 0
         print("Events:\t\t\tonline for {}".format(guildHash))
 
-    def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit):
+    def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit, ownerId):
         weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
         if eventDate.split()[0].lower() in weekdays:
             recurring = True
@@ -207,7 +207,7 @@ class Events:
         eventRoles = json.dumps(eventRoles)
 
         if eventDate:
-            e = self.c.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?, '[]', ?, ?, ?)", (self.guildHash, eventId, eventDate, eventName, eventDesc, eventRoles, eventLimit, recurring))
+            e = self.c.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?, '[]', ?, ?, ?, ?)", (self.guildHash, eventId, eventDate, eventName, eventDesc, eventRoles, eventLimit, recurring, ownerId))
             self.conn.commit()
             return e
         else:
