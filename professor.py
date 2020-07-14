@@ -1546,24 +1546,43 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     # Command syntax: update [eventId] [to update] [new info]
 
     # Check if usere is scheduler
-    if toUpdate == "description" or toUpdate == "name" or toUpdate == "date" or ctx.author.id == 197471216594976768:
+    if toUpdate in ["description", "name", "date", "owner"] or ctx.author.id == 197471216594976768:
 
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         if toUpdate == "description":
-            old = event.description
+            oldMsg = event.description
+            newInfoMsg = newInfo
+            toUpdateMsg = toUpdate
         elif toUpdate == "name":
-            old = event.name
+            oldMsg = event.name
+            newInfoMsg = newInfo
+            toUpdateMsg = toUpdate
         elif toUpdate == "date":
             if not dags.parse(newInfo):
                 await ctx.author.send("`{}` is not a valid date format".format(newInfo))
                 return
-            old = event.printableDate()
+            oldMsg = event.printableDate()
+            newInfoMsg = newInfo
+            toUpdateMsg = toUpdate
+        elif toUpdate == "owner":
+            memconv = discord.ext.commands.MemberConverter()
+            print(event.ownerId)
+            newOwner = await memconv.convert(ctx, newInfo)
+            oldOwner = await memconv.convert(ctx, str(event.ownerId))
+
+            toUpdate = "ownerId"
+            newInfo = newOwner.id
+
+            toUpdateMsg = "owner"
+            newInfoMsg = newOwner.display_name
+            oldMsg = oldOwner.display_name
         else:
-            old = ""
+            oldMsg = ""
+            toUpdateMsg = toUpdate
 
         if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
-            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event.name, toUpdate, old, newInfo))
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event.name, toUpdateMsg, oldMsg, newInfoMsg))
 
         else:
             await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)
