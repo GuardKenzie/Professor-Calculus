@@ -1588,7 +1588,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             toUpdateMsg = toUpdate
         elif toUpdate == "owner":
             memconv = discord.ext.commands.MemberConverter()
-            print(event.ownerId)
+
             newOwner = await memconv.convert(ctx, newInfo)
             oldOwner = await memconv.convert(ctx, str(event.ownerId))
 
