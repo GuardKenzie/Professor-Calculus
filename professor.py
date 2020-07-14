@@ -1419,7 +1419,7 @@ async def schedule(ctx):
         await startEvent.delete()
 
         # Schedule events
-        if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit):
+        if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit, ctx.author.id):
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
             eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
