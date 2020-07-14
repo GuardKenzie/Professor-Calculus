@@ -1654,41 +1654,6 @@ async def when(ctx, eventId, offset):
     embed.add_field(name="Time until the event starts", value=event.timeUntil())
     await ctx.author.send(embed=embed)
 
-@professor.command()
-async def hook2(ctx, *args):
-    args = list(args)
-
-    argStr = " ".join(args)
-    eventId = re.findall("-event (\d+)", argStr)
-    toProcess = re.findall("-command (\w+)", argStr)
-    message = re.findall("-message (\w.+)($| -\w+)", argStr)
-    print(argStr)
-    role = re.findall("-role (\S+)", argStr)
-    expires = re.findall("-expires (\w.+)($| -\w+)", argStr)
-
-    if not eventId:
-        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("event id"))
-        return
-
-    if not toProcess:
-        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("command to hook into"))
-        return
-
-    if not message and not role:
-        raise discord.ext.commands.errors.MissingRequiredArgument(dummyparam("action"))
-        return
-
-    print("Event: " + str(eventId))
-    print("toProcess: " + str(toProcess))
-    print("message: " + str(message))
-    print("role: " + str(role))
-    print("expires: " + str(expires))
-
-
-
-
-
-
 @professor.group(invoke_without_command=True)
 async def hook(ctx, eventId, toProcess):
     if ctx.invoked_subcommand is None:
