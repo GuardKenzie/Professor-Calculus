@@ -2365,7 +2365,7 @@ async def readycheck(ctx, *args):
     if count == len(users):
         await ctx.channel.send(content=mentionstr + " Everyone is ready")
     else:
-        await ctx.channel.send(content=mentionstr + "Ready check completed with `{}/{}` members ready.".format(count, len(users)))
+        await ctx.channel.send(content=mentionstr + " Ready check completed with `{}/{}` members ready.".format(count, len(users)), embed=outmsg())
 
 
 # --- Soundboard ---
