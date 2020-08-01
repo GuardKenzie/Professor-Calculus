@@ -1839,15 +1839,16 @@ async def delete(ctx):
             done = True
 
 
-
 @professor.command(checks=[notEventChannelCheck], aliases=["cute", "cutestuff", "helppls", "pleasehelp"])
 async def eyebleach(ctx):
-    subreddit = reddit.subreddit("eyebleach")
+    subs = ["eyebleach", "aww", "blep", "tuckedinkitties", "rarepuppers"]
+    sub = random.choice(subs)
+    subreddit = reddit.subreddit(sub)
 
     out = []
     ok_extensions = ["png", "gif", "jpg", "jpeg"]
 
-    for submission in subreddit.hot(limit=15):
+    for submission in subreddit.top(time_filter="day", limit=15):
         url = submission.url
         if "gfycat" in url:
             url += ".gif"
@@ -1861,7 +1862,7 @@ async def eyebleach(ctx):
         out.append((submission.title, url))
 
     pick = random.choice(out)
-    await ctx.channel.send(content="From /r/eyebleach:\n{}\n{}".format(pick[0], pick[1]))
+    await ctx.channel.send(content="From /r/{}:\n{}\n{}".format(sub, pick[0], pick[1]))
 
 
 @professor.command()
