@@ -11,7 +11,7 @@ import praw
 import wolframalpha
 import urllib.request
 import io
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import dbl
 import math
 import pytz
@@ -2106,6 +2106,178 @@ async def forget_me(ctx):
 
     await msg.delete()
     await ctx.author.send("You have been forgotten.")
+
+
+@professor.command()
+async def poll(ctx, *options):
+    if len(options) < 3:
+        await ctx.author.send("Too few arguments passed to the `poll` command.")
+        return
+
+    if len(options) > 21:
+        await ctx.author.send("Too many options for the poll. The maximum is 20 options.")
+
+    name = options[0]
+    options = options[1:]
+
+    emojis = ["\U0001F1E6",
+              "\U0001F1E7",
+              "\U0001F1E8",
+              "\U0001F1E9",
+              "\U0001F1EA",
+              "\U0001F1EB",
+              "\U0001F1EC",
+              "\U0001F1ED",
+              "\U0001F1EE",
+              "\U0001F1EF",
+              "\U0001F1F0",
+              "\U0001F1F1",
+              "\U0001F1F2",
+              "\U0001F1F3",
+              "\U0001F1F4",
+              "\U0001F1F5",
+              "\U0001F1F6",
+              "\U0001F1F7",
+              "\U0001F1F8",
+              "\U0001F1F9"]
+    abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    emojis_avail = emojis[0:len(options)]
+
+    votes = {a: 0 for a in options}
+
+    votemap = {}
+
+    def makePoll(votes):
+        bars = len(votes)
+
+        IMAGEMARGIN = 30
+
+        BARHEIGHT = 100
+        BARMARGIN = 100
+        BARINNERMARGIN = 20
+
+        FONTSIZE = 52
+
+        HEIGHT = 2 * IMAGEMARGIN + bars * (BARHEIGHT + BARMARGIN) - BARMARGIN
+        WIDTH = 1000
+
+        img = Image.new("RGBA", (WIDTH, HEIGHT), color="#2C2F3300")
+        draw = ImageDraw.Draw(img)
+
+        for option in votes.items():
+            msg = f"A. {option[0]} (10000) 100%"
+            font = ImageFont.truetype("res/OpenSansEmoji.ttf", FONTSIZE)
+            textSize = draw.textsize(msg, font=font)
+
+            WIDTH = max((textSize[0] + 100, WIDTH))
+
+        img = Image.new("RGBA", (WIDTH, HEIGHT), color="#2C2F3300")
+        draw = ImageDraw.Draw(img)
+
+        totalVotes = sum(votes.values())
+
+        i = 0
+        NextY = IMAGEMARGIN
+        while i < bars:
+            option = list(votes.items())[i]
+            if option[1] == 0:
+                barwidth = 1
+            else:
+                barwidth = (WIDTH - 2 * IMAGEMARGIN) * option[1] / totalVotes
+
+            if i == 0:
+                margin = 0
+            else:
+                margin = BARMARGIN
+
+            # Rectangle coordinates
+            x1 = IMAGEMARGIN
+            y1 = NextY + margin
+            x2 = barwidth + IMAGEMARGIN
+            y2 = NextY + margin + BARHEIGHT
+
+            draw.rectangle([x1, y1, x2, y2], fill="#7289DAFF")
+
+            # Texti
+            if totalVotes == 0:
+                percent = 0
+            else:
+                percent = round(100 * option[1] / totalVotes)
+            msg = f"{abc[i]}. {option[0]} ({option[1]}) {percent}%"
+
+            font = ImageFont.truetype("res/OpenSansEmoji.ttf", FONTSIZE)
+
+            textSize = draw.textsize(msg, font=font)
+
+            textPos = [IMAGEMARGIN + BARINNERMARGIN,
+                       ((y1 + y2) / 2) - textSize[1] / 2]
+
+            if textSize[0] + BARINNERMARGIN >= barwidth - BARINNERMARGIN:
+                textPos[0] += barwidth
+
+            draw.text(textPos, msg, font=font, fill="white")
+
+            NextY += margin + BARHEIGHT
+            i += 1
+        return img
+
+    img = io.BytesIO()
+    makePoll(votes).save(img, "PNG")
+
+    img.seek(0)
+
+    # Read the image to a discord file object
+    img = discord.File(img, filename="result.png")
+
+    embed = discord.Embed(title=name, description="Voted:", color=accent_colour)
+    embed.set_image(url="attachment://result.png")
+
+    pollmsg = await ctx.channel.send(embed=embed, file=img)
+
+    for emoji in emojis_avail:
+        await pollmsg.add_reaction(emoji)
+
+    while True:
+        r, u = await professor.wait_for("reaction_add", check=lambda r, u: not u.bot)
+
+        i = emojis_avail.index(r.emoji)
+        try:
+            if votemap[u] == options[i]:
+                votemap.pop(u)
+            else:
+                votemap[u] = options[i]
+        except KeyError:
+            votemap[u] = options[i]
+
+        keys = list(votes.keys())
+
+        votes = {a: 0 for a in options}
+        for voter in votemap.keys():
+            votes[votemap[voter]] += 1
+
+        img = io.BytesIO()
+        makePoll(votes).save(img, "PNG")
+
+        img.seek(0)
+
+        # Read the image to a discord file object
+        img = discord.File(img, filename="result.png")
+        await pollmsg.delete()
+
+        votedmsg = "Voted: " + ', '.join([u.mention for u in votemap.keys()])
+
+        embed = discord.Embed(title=name, description=f"{votedmsg}", colour=accent_colour)
+        embed.set_image(url="attachment://result.png")
+
+        pollmsg = await ctx.channel.send(embed=embed, file=img)
+        for emoji in emojis_avail:
+            await pollmsg.add_reaction(emoji)
+
+
+
+
+
 
 # --- Salt ---
 

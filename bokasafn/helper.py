@@ -33,6 +33,7 @@ def helpCmd(prefix, cmd):
         msg.add_field(name="soundboard rename [name] [newname]", value="Rename a sound", inline=False)
         msg.add_field(name="calculate [query]", value="Query wolfram alpha", inline=False)
         msg.add_field(name="remindme [time] to [reminder]", value="Set a reminder for [reminder] to go off at [time]", inline=False)
+        msg.add_field(name="poll [poll name] [list of options]", value="Create poll", inline=False)
     else:
         if cmd == "schedule":
             msg = discord.Embed(title="schedule")
@@ -54,6 +55,12 @@ def helpCmd(prefix, cmd):
             msg = discord.Embed(title="leave [event id]")
             msg.add_field(name="[event id]", value="The id of the event you would like to leave", inline=False)
             msg.add_field(name="Example", value=prefix+"leave 1")
+        elif cmd == "poll":
+            msg = discord.Embed(title="poll [poll name] [list of options]")
+            msg.add_field(name="[poll name]", value="The name of the poll as a single word or multiple words surrounded by double quotes", inline=False)
+            msg.add_field(name="[list of options]", value="A list of options for the poll. If options are multple words, surround them with double quotes.", inline=False)
+            msg.add_field(name="[new value]", value="The new value for the catagory", inline=False)
+            msg.add_field(name="Example", value=prefix+"update 1 date 03/02/2000 12:22")
         elif cmd == "update":
             msg = discord.Embed(title="update [event id] [update catagory] [new value]")
             msg.add_field(name="[event id]", value="The id of the event to update", inline=False)
