@@ -1862,7 +1862,7 @@ async def eyebleach(ctx):
         out.append((submission.title, url))
 
     pick = random.choice(out)
-    await ctx.channel.send(content="From /r/{}:\n{}\n{}".format(sub, pick[0], pick[1]))
+    await ctx.channel.send(content="From /r/{}:\n>>> {}\n{}".format(sub, pick[0], pick[1]))
 
 
 @professor.command()
