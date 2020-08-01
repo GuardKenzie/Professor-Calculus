@@ -2213,7 +2213,7 @@ async def poll(ctx, *options):
             textPos = [IMAGEMARGIN + BARINNERMARGIN,
                        ((y1 + y2) / 2) - textSize[1] / 2]
 
-            if textSize[0] + BARINNERMARGIN >= barwidth - BARINNERMARGIN:
+            if textSize[0] + BARINNERMARGIN >= barwidth - BARINNERMARGIN and textPos[0] + barwidth + textSize[0] <= WIDTH:
                 textPos[0] += barwidth
 
             draw.text(textPos, msg, font=font, fill="white")
