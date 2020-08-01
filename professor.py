@@ -2240,7 +2240,7 @@ async def poll(ctx, *options):
 
     while True:
         try:
-            r, u = await professor.wait_for("reaction_add", check=lambda r, u: not u.bot)
+            r, u = await professor.wait_for("reaction_add", check=lambda r, u: not u.bot and r.emoji in emojis_avail)
         except asyncio.TimeoutError:
             break
 
