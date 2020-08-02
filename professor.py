@@ -1788,6 +1788,118 @@ async def removeHook(ctx, eventId):
 
 # --- Misc ---
 
+@professor.command()
+async def julia(ctx, *, c=""):
+    # Constans
+    THRESHOLD = 10**20
+
+    if "value" in c:
+        c = re.sub("value", "", c)
+        style = "value"
+    else:
+        c = re.sub("hue", "", c)
+        style = "hue"
+
+    if style == "hue":
+        ITERATIONS = 360
+    elif style == "value":
+        ITERATIONS = 255
+
+    SIZEX_FINAL = 500
+    SIZEY_FINAL = 500
+
+    SIZEX = round(SIZEX_FINAL * 1.2)
+    SIZEY = round(SIZEY_FINAL * 1.2)
+
+    CENTERX = 0
+    CENTERY = 0
+
+    if c.strip() == "":
+        CONSTANT = complex(0, 0)
+        while abs(CONSTANT) < 0.4:
+            CONSTANT = complex(random.random() * 2.3 - 1.3, random.random() * 1.4 - 0.7)
+    else:
+        c = re.sub(" ", "", c)
+        c = re.sub("i", "j", c)
+        CONSTANT = complex(c)
+
+    ZOOM = 150
+
+    OFFSETX = CENTERX * ZOOM
+    OFFSETY = CENTERY * ZOOM
+
+    # COLOURMAP
+    HUEMAP = []
+    VALMAP = []
+
+    for a in range(0, ITERATIONS):
+        HUEMAP.append((160 + round(360 * (((ITERATIONS - a) / ITERATIONS)))) % 361)
+        VALMAP.append(round(255 * math.sqrt(a / ITERATIONS)))
+
+    if style == "hue":
+        MAP = HUEMAP
+    else:
+        MAP = VALMAP
+
+    # Check for divergence
+    def diverge(c, z=complex(0, 0), count=0):
+        while count < ITERATIONS:
+            # If length over threshhold diverges
+            if abs(z) > THRESHOLD:
+                return (True, count)
+            z = (z**2 + c)
+            count += 1
+        # If max iters is reached, does not diverge
+        return (False, count)
+
+    # Image init
+    img = Image.new("HSV", (SIZEX, SIZEY), (0, 0, 0))
+    pixels = img.load()
+
+    count = 0
+
+    # Iterate over pixels, real values on X and imaginary on Y
+    for R in range(img.size[0]):
+        xval = (R - SIZEX / 2) / ZOOM
+        for I in range(img.size[1]):
+            # Update progress bar
+
+            # Calculating actual coordinates
+            zoom_offset_x = OFFSETX / ZOOM
+            zoom_offset_y = OFFSETY / ZOOM
+
+            yval = (I - SIZEY / 2) / ZOOM
+
+            z = complex(xval + zoom_offset_x, yval + zoom_offset_y)
+
+            # Get divergence
+            out = diverge(CONSTANT, z=z)
+            if out[0]:
+                # Map degree of divergence to HSV value
+                val = MAP[out[1]]
+
+                # Edit pixel
+                if MAP == HUEMAP:
+                    pixels[R, I] = (val, 255, 255)
+                elif MAP == VALMAP:
+                    pixels[R, I] = (180, 100, val)
+            count += 1
+
+    # Save image
+    img = img.resize((SIZEX_FINAL, SIZEY_FINAL), Image.ANTIALIAS)
+    img = img.convert("RGB")
+
+    imgio = io.BytesIO()
+    img.save(imgio, "PNG")
+
+    imgio.seek(0)
+
+    # Read the image to a discord file object
+    imgfile = discord.File(imgio, filename="result.png")
+
+    await ctx.channel.send(file=imgfile, content=f"A julia set with c={str(CONSTANT)}")
+
+
 @professor.group(checks=[notEventChannelCheck], invoke_without_command=True)
 async def spoiler(ctx, *, content=None):
     outFiles = []
