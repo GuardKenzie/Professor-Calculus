@@ -1580,7 +1580,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
         elif toUpdate == "date":
-            if not dags.parse(newInfo):
+            if not dags.parse(newInfo, allow_tbd=True):
                 await ctx.author.send("`{}` is not a valid date format".format(newInfo))
                 return
             oldMsg = event.printableDate()
