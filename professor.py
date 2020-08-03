@@ -1343,7 +1343,7 @@ async def schedule(ctx):
         replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
         # Check if time is ok
-        timeOk = dags.parse(replyMsg.content)
+        timeOk = dags.parse(replyMsg.content, allow_tbd=True)
         while timeOk is False:
             await replyMsg.delete()
             await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)

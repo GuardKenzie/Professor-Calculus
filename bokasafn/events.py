@@ -81,6 +81,9 @@ class Event:
 
         self.recurring = bool(recurring)
 
+    def isTBD(self):
+        return self.date == dateutil.parser.isoparse("9999-01-01 00:00:00+00:00")
+
     def now(self):
         # Check if event is now
         now = pytz.utc.localize(datetime.datetime.utcnow())
@@ -117,6 +120,9 @@ class Event:
 
     def printableDate(self):
         # String for date
+        if self.isTBD():
+            return "TBD"
+
         if self.recurring:
             return self.date.astimezone(self.timezone).strftime("%A %H:%M")
         else:
@@ -124,12 +130,18 @@ class Event:
 
     def offsetPrintableDate(self, offset: int):
         # Get the printable date for the event offset by offset
+        if self.isTBD():
+            return "TBD"
+
         offset = datetime.timedelta(hours=offset)
         date = self.date + offset
         return date.strftime("%d %B %Y %H:%M")
 
     def timeUntil(self):
         # Get the time until the event starts
+        if self.isTBD():
+            return "TBD"
+
         now = pytz.utc.localize(datetime.datetime.utcnow())
         delta = self.date - now
 
@@ -202,7 +214,7 @@ class Events:
         else:
             recurring = False
 
-        eventDate = dags.parse(eventDate, self.timezone)
+        eventDate = dags.parse(eventDate, self.timezone, allow_tbd=True)
         eventId = random.randint(1, 1000000000)
         eventRoles = json.dumps(eventRoles)
 
