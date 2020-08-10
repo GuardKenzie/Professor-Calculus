@@ -1978,10 +1978,11 @@ async def eyebleach(ctx):
 
 
 @professor.command()
-async def help(ctx, *, cmd="none"):
-    message = helper.helpCmd(prefix, cmd)
-    if message != -1:
-        await ctx.author.send(embed=message)
+async def help(ctx, *, cmd=None):
+    embeds = helper.helpCmd(prefix, cmd, "res/docs.json")
+    if embeds is not None:
+        for message in embeds:
+            await ctx.author.send(embed=message)
     else:
         await ctx.author.send(content="Unrecognised command")
 
