@@ -2389,6 +2389,8 @@ async def poll(ctx, *options):
         for emoji in emojis_avail:
             await pollmsg.add_reaction(emoji)
 
+    await pollmsg.edit(content="**POLL CLOSED**")
+
 
 # --- Salt ---
 
