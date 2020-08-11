@@ -2354,7 +2354,7 @@ async def poll(ctx, *options):
 
     while True:
         try:
-            r, u = await professor.wait_for("reaction_add", check=lambda r, u: not u.bot and r.emoji in emojis_avail)
+            r, u = await professor.wait_for("reaction_add", check=lambda r, u: not u.bot and r.emoji in emojis_avail, timeout=86400)
         except asyncio.TimeoutError:
             break
 
@@ -2366,8 +2366,6 @@ async def poll(ctx, *options):
                 votemap[u] = options[i]
         except KeyError:
             votemap[u] = options[i]
-
-        keys = list(votes.keys())
 
         votes = {a: 0 for a in options}
         for voter in votemap.keys():
@@ -2392,17 +2390,14 @@ async def poll(ctx, *options):
             await pollmsg.add_reaction(emoji)
 
 
-
-
-
-
 # --- Salt ---
 
 
 @professor.command(checks=[notEventChannelCheck])
 async def salt(ctx):
     # Ordinal from Stack Overflow
-    ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
+    def ordinal(n):
+        return "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
 
     # Get a random nugg and increment count
     username = ctx.author.display_name
