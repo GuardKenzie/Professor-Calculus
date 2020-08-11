@@ -153,7 +153,11 @@ def delperm(ctx):
 async def notEventChannelCheck(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         if hash(ctx.guild) in eventsDict.keys():
-            return ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events")
+            if ctx.channel.id != eventsDict[hash(ctx.guild)].getMyChannelId("events"):
+                return True
+            else:
+                await ctx.author.send(content="You cannot use this command in the events channel.")
+                return False
         else:
             await ctx.author.send(content="You cannot use this command here.")
             return False
