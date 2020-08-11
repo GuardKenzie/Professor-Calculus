@@ -9,6 +9,11 @@ def helpCmd(prefix, cmd, docfile):
     embeds = []
 
     if cmd is None:
+        # Docs link
+        colour = discord.Color(int("688F56", 16))
+        embed = discord.Embed(title="More info", description="Use `p? help [command]` for details on a command.\n\n Even more info can be found in the documentation at https://professorcalculus.io/docs", colour=colour)
+        embeds.append(embed)
+
         # Generate a list for every category and add to embeds when no command specified
         for category in doc.items():
             colour = discord.Colour(int(category[1]["colour"], 16))
@@ -27,6 +32,7 @@ def helpCmd(prefix, cmd, docfile):
                 embed.add_field(name=commandstring, value=shortDescription, inline=False)
 
             embeds.append(embed)
+
     else:
         commandDict = None
         # Find the command

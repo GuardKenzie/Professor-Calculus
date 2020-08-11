@@ -2,6 +2,16 @@
     "configuration": {
         "colour": "bf616a",
         "commands": {
+            "setup": {
+                "args": {},
+                "description_short": "The first command you should run after adding the bot to your server.",
+                "description": {
+                    "general": "This command will attempt to create the channel `#events` under a new category, events. This channel will automatically be registered as the events channel.\n\nIf the bot fails to create the `#events` channel, it will let you know and you will have to create one manually. Once a suitable channel has been created, you can set it as the events channel with the `configure channel` command.\n\nThis command can be run however many times, for instance if you accidentally remove the events channel, however, it will always create a new category, channel and role so you need to delete the old stuff manually.\n\nYou can always manually set the event channel with the `configure channel` command."
+                },
+                "examples": [],
+                "gif": "",
+                "notes": "This command can only be executed by the server owner."
+            },
             "configure": {
                 "args": {},
                 "description_short": "Launch an interactive settings menu.",
