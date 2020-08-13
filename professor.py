@@ -2029,9 +2029,11 @@ async def clean(ctx):
     checkmsg = await ctx.channel.send(content="Are you sure you want to clear this channel?")
     rep = await professor.wait_for("message", check=check)
     if rep.content.lower() == "yes":
-        await ctx.channel.purge()
+        await ctx.channel.purge(bulk=True)
+        await ctx.channel.send("Finished deleting all I can! :sparkles:\nIf anything remains, run this command again.", delete_after=60)
     else:
-        await rep.delete()
+        if delperm(ctx):
+            await rep.delete()
         await checkmsg.delete()
 
 
