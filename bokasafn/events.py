@@ -209,10 +209,12 @@ class Events:
 
     def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit, ownerId):
         weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        if eventDate.split()[0].lower() in weekdays:
-            recurring = True
-        else:
-            recurring = False
+
+        recurring = False
+        for day in weekdays:
+            if day in eventDate.lower():
+                recurring = True
+                break
 
         eventDate = dags.parse(eventDate, self.timezone, allow_tbd=True)
         eventId = random.randint(1, 1000000000)
