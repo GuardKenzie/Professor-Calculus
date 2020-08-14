@@ -2358,13 +2358,17 @@ async def poll(ctx, *options):
     for emoji in emojis_avail:
         await pollmsg.add_reaction(emoji)
 
+    def check(payload):
+        return not payload.member.bot and payload.emoji.name in emojis_avail
+
     while True:
         try:
-            r, u = await professor.wait_for("reaction_add", check=lambda r, u: not u.bot and r.emoji in emojis_avail, timeout=86400)
+            payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
         except asyncio.TimeoutError:
             break
 
-        i = emojis_avail.index(r.emoji)
+        i = emojis_avail.index(payload.emoji.name)
+        u = payload.member
         try:
             if votemap[u] == options[i]:
                 votemap.pop(u)
