@@ -124,7 +124,7 @@ class Event:
             return "TBD"
 
         if self.recurring:
-            return self.date.astimezone(self.timezone).strftime("%A %H:%M")
+            return self.date.astimezone(self.timezone).strftime("%As %H:%M")
         else:
             return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
 
