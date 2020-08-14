@@ -8,6 +8,11 @@ def parse(datestr, tz=pytz.utc, ignore_past=False, allow_tbd=False):
     if allow_tbd and datestr.lower() == "tbd":
         return dateparser.parse("9999/01/01 00:00").astimezone(pytz.utc)
 
+    weekdaysPlural = ["mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays"]
+    for day in weekdaysPlural:
+        if day in datestr.lower():
+            datestr = re.sub(day, day[:-1], datestr.lower())
+
     # Athuga hvort timezone sé gefið
     tzbit = r"(UTC+\d{1,2}|UTC-\d{1,2}|GMT+\d{1,2}|GMT-\d{1,2}|[A-Za-z]{3,5})"
     nottzbit = r"(\d{1,2}:\d{2}.*)"
