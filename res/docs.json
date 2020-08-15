@@ -1,467 +1,483 @@
 {
-    "configuration": {
-        "colour": "bf616a",
-        "commands": {
-            "setup": {
-                "args": {},
-                "description_short": "The first command you should run after adding the bot to your server.",
-                "description": {
-                    "general": "This command will attempt to create the channel `#events` under a new category, events. This channel will automatically be registered as the events channel.\n\nIf the bot fails to create the `#events` channel, it will let you know and you will have to create one manually. Once a suitable channel has been created, you can set it as the events channel with the `configure channel` command.\n\nThis command can be run however many times, for instance if you accidentally remove the events channel, however, it will always create a new category, channel and role so you need to delete the old stuff manually.\n\nYou can always manually set the event channel with the `configure channel` command."
+    "moreInfo": "Use `p? help [command]` for details on a command.\n\n Even more info can be found in the documentation at https://professorcalculus.io/docs\n\n**Syntax**\n> `[...]` denotes a required argument\n> `(...)` denotes an optional argument\n> `(... [...])` denotes an optional argument with a required parameter",
+    "documentation": {
+        "configuration": {
+            "colour": "bf616a",
+            "commands": {
+                "setup": {
+                    "args": {},
+                    "description_short": "The first command you should run after adding the bot to your server.",
+                    "description": {
+                        "general": "This command will attempt to create the channel `#events` under a new category, events. This channel will automatically be registered as the events channel.\n\nIf the bot fails to create the `#events` channel, it will let you know and you will have to create one manually. Once a suitable channel has been created, you can set it as the events channel with the `configure channel` command.\n\nThis command can be run however many times, for instance if you accidentally remove the events channel, however, it will always create a new category, channel and role so you need to delete the old stuff manually.\n\nYou can always manually set the event channel with the `configure channel` command."
+                    },
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command can only be executed by the server owner."
                 },
-                "examples": [],
-                "gif": "",
-                "notes": "This command can only be executed by the server owner."
-            },
-            "configure": {
-                "args": {},
-                "description_short": "Launch an interactive settings menu.",
-                "description": {
-                    "general": "When this command is called without a subcommand, it will open up an interactive settings menu."
+                "configure": {
+                    "args": {},
+                    "description_short": "Launch an interactive settings menu.",
+                    "description": {
+                        "general": "When this command is called without a subcommand, it will open up an interactive settings menu."
+                    },
+                    "examples": [],
+                    "gif": "",
+                    "notes": " This command is only available to members with permission to configure roles."
                 },
-                "examples": [],
-                "gif": "",
-                "notes": " This command is only available to members with permission to configure roles."
-            },
-            "configure channel": {
-                "args": {
-                    "[channel type]": "Available channel types are `events` and `friendly`.\n> The `events` channel is the channel with the event list. **WARNING!** Setting a channel as the events channel will delete all messages therein.\n\n> The `friendly` channel is the channel where reminders are sent for recurring events."
+                "configure channel": {
+                    "args": {
+                        "[channel type]": "Available channel types are `events` and `friendly`.\n> The `events` channel is the channel with the event list. **WARNING!** Setting a channel as the events channel will delete all messages therein.\n\n> The `friendly` channel is the channel where reminders are sent for recurring events."
+                    },
+                    "description_short": "",
+                    "description": {
+                        "general": "This command sets the channel it is executed in to `[channel type]`."
+                    },
+                    "examples": ["p? configure channel friendly"],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission (see configure role for details)."
                 },
-                "description_short": "",
-                "description": {
-                    "general": "This command sets the channel it is executed in to `[channel type]`."
-                },
-                "examples": ["p? configure channel friendly"],
-                "gif": "",
-                "notes": "This command is only available to members with permission (see configure role for details)."
-            },
 
-            "configure role": {
-                "args": {
-                    "[@role]": "The role to configure"
+                "configure role": {
+                    "args": {
+                        "[@role]": "The role to configure"
+                    },
+                    "description_short": "This command allows you to change the permissions for a certain `[@role]`.",
+                    "description": {
+                        "general": "This command allows you to change the permissions for a certain [@role]. Roles that have the administrator permission already have all permissions for this bot.\n\nCommands that require special permission to use are: \n> schedule\n> remove\n> update\n> kick\n> hook\n> hook remove\n> soundboard add\n> soundboard remove\n> configure channel\n> configure role\n> configure timezone\n\nIf you are the owner of an event, you do not require any special permissions for commands related to that particular event."
+                    },
+                    "examples": ["p? configure role @Mod"],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission (see configure role for details)."
                 },
-                "description_short": "This command allows you to change the permissions for a certain `[@role]`.",
-                "description": {
-                    "general": "This command allows you to change the permissions for a certain [@role]. Roles that have the administrator permission already have all permissions for this bot.\n\nCommands that require special permission to use are: \n> schedule\n> remove\n> update\n> kick\n> hook\n> hook remove\n> soundboard add\n> soundboard remove\n> configure channel\n> configure role\n> configure timezone\n\nIf you are the owner of an event, you do not require any special permissions for commands related to that particular event."
-                },
-                "examples": ["p? configure role @Mod"],
-                "gif": "",
-                "notes": "This command is only available to members with permission (see configure role for details)."
-            },
-            "configure timezone": {
-                "args": {},
-                "description_short": "",
-                "description": {
-                    "general": "This command will give you a dialogue to change your guild's time zone."
-                },
-                "examples": [],
-                "gif": "",
-                "notes": "This command is only available to members with permission (see configure role for details)."
+                "configure timezone": {
+                    "args": {},
+                    "description_short": "",
+                    "description": {
+                        "general": "This command will give you a dialogue to change your guild's time zone."
+                    },
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission (see configure role for details)."
+                }
             }
-        }
-    },
-    "events": {
-        "colour": "8fbcbb",
-        "commands": {
-            "schedule": {
-                "args": {},
-                "description_short": "Schedule an event.",
-                "description": {
-                    "general": "Starts the scheduling process for a new event. The bot will ask you to give a title, date, time, description, optional roles and people limit for your new event. If at any time you want to cancel the scheduling process, type cancel.",
-                    "Date": "Almost all date formats are supported. See date for details. If the date specified includes a weekday, the event will be set as recurring at the same time every week. You can also specify that an event is yet to be dated by entering TBD as the date.\nIf an event is recurring then instead of removing the event once it starts, the attendant list will simply be cleared.\nAt 10:00 A.M. on a day with a recurring event the bot will post a little message in the designated friendly channel (see configure channel for details).",
-                    "Roles": "After asking you for a description, the bot will ask you to react to a message with emojis to represent any event specific roles. Once you have added all your reactions, type done in the text channel. You will then have to give a name and a limit of people for each role.\nIf you are not in need of any event specific roles, type done without reacting to the message with any emojis.\nThese roles are purely visual and no actual server roles are added. "
+        },
+        "events": {
+            "colour": "8fbcbb",
+            "commands": {
+                "schedule": {
+                    "args": {},
+                    "description_short": "Schedule an event.",
+                    "description": {
+                        "general": "Starts the scheduling process for a new event. The bot will ask you to give a title, date, time, description, optional roles and people limit for your new event. If at any time you want to cancel the scheduling process, type cancel.",
+                        "Date": "Almost all date formats are supported. See date for details. If the date specified includes a weekday, the event will be set as recurring at the same time every week. You can also specify that an event is yet to be dated by entering TBD as the date.\nIf an event is recurring then instead of removing the event once it starts, the attendant list will simply be cleared.\nAt 10:00 A.M. on a day with a recurring event the bot will post a little message in the designated friendly channel (see configure channel for details).",
+                        "Roles": "After asking you for a description, the bot will ask you to react to a message with emojis to represent any event specific roles. Once you have added all your reactions, type done in the text channel. You will then have to give a name and a limit of people for each role.\nIf you are not in need of any event specific roles, type done without reacting to the message with any emojis.\nThese roles are purely visual and no actual server roles are added. "
+                    },
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
                 },
-                "examples": [],
-                "gif": "",
-                "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
-            },
-            "remove": {
-                "args": {"[event id]": "The id of the event to be removed."},
-                "description": {
-                    "general": "Removes the event number `[event id]`."
+                "remove": {
+                    "args": {"[event id]": "The id of the event to be removed."},
+                    "description": {
+                        "general": "Removes the event number `[event id]`."
+                    },
+                    "examples": ["p? remove 1"],
+                    "description_short": "",
+                    "gif": "",
+                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
                 },
-                "examples": ["p? remove 1"],
-                "description_short": "",
-                "gif": "",
-                "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
-            },
-            "attend": {
-                "args": {"[event id]": "The id of the event to attend."},
-                "description": {
-                    "general": "Signs you up for event number `[event id]` and adds your name to the list of people showing up."
+                "attend": {
+                    "args": {"[event id]": "The id of the event to attend."},
+                    "description": {
+                        "general": "Signs you up for event number `[event id]` and adds your name to the list of people showing up."
+                    },
+                    "examples": ["p? attend 2"],
+                    "description_short": "Signs you up for event number `[event id]`.",
+                    "gif": "",
+                    "notes": ""
                 },
-                "examples": ["p? attend 2"],
-                "description_short": "Signs you up for event number `[event id]`.",
-                "gif": "",
-                "notes": ""
-            },
-            "leave": {
-                "args": {"[event id]": "The id of the event to leave."},
-                "description": {
-                    "general": "Use this command to leave event number `[event id]` and remove your name from the list of people showing up."
+                "leave": {
+                    "args": {"[event id]": "The id of the event to leave."},
+                    "description": {
+                        "general": "Use this command to leave event number `[event id]` and remove your name from the list of people showing up."
+                    },
+                    "examples": ["p? leave 2"],
+                    "description_short": "Leave event number `[event id]`.",
+                    "gif": "",
+                    "notes": ""
                 },
-                "examples": ["p? leave 2"],
-                "description_short": "Leave event number `[event id]`.",
-                "gif": "",
-                "notes": ""
-            },
-            "update": {
-                "args": {
-                    "[event id]": "The id of the event to update",
-                    "[what to update]": "The field to update.\n\nAvailable fields are\n> `date`:\tThe date and time of the event. The same formats as in schedule.\n> `name`:\tThe name of the event.\n> `description`:\tThe description of the event\n> `owner`:\tThe owner of the event. When updating this field, use the `@Mention` for the new owner as `[new value]`",
-                    "[new value]": "The thing to change `[what to update] to."
+                "update": {
+                    "args": {
+                        "[event id]": "The id of the event to update",
+                        "[what to update]": "The field to update.\n\nAvailable fields are\n> `date`:\tThe date and time of the event. The same formats as in schedule.\n> `name`:\tThe name of the event.\n> `description`:\tThe description of the event\n> `owner`:\tThe owner of the event. When updating this field, use the `@Mention` for the new owner as `[new value]`",
+                        "[new value]": "The thing to change `[what to update] to."
 
+                    },
+                    "description": {
+                        "general": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`."
+                    },
+                    "examples": ["p? update 2 description Free oj for everyone who shows up."],
+                    "description_short": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`.",
+                    "gif": "",
+                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
                 },
-                "description": {
-                    "general": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`."
+                "kick": {
+                    "args": {"[@member]": "The mention for the member to kick", "[event id].": "The id of the event to kick `[@member]` from."},
+                    "description": {
+                        "general": "This command kicks member `[@member]` from event number `[event id]`."
+                    },
+                    "examples": ["p? kick @exampleMember#1234 1"],
+                    "description_short": "",
+                    "gif": "",
+                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
                 },
-                "examples": ["p? update 2 description Free oj for everyone who shows up."],
-                "description_short": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`.",
-                "gif": "",
-                "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
-            },
-            "kick": {
-                "args": {"[@member]": "The mention for the member to kick", "[event id].": "The id of the event to kick `[@member]` from."},
-                "description": {
-                    "general": "This command kicks member `[@member]` from event number `[event id]`."
+                "when": {
+                    "args": {"[event id]": "The id of the event to check the time for.", "[UTC offset]": "The UTC offset you want to get the time for the event in."},
+                    "description": {
+                        "general": "This command returns the start time with regards to the given `UTC offset`. It also returns the time until the event starts."
+                    },
+                    "examples": ["p? when 1 -2"],
+                    "description_short": "Get the start time of an event with regards to `[UTC offset]`.",
+                    "gif": "",
+                    "notes": ""
                 },
-                "examples": ["p? kick @exampleMember#1234 1"],
-                "description_short": "",
-                "gif": "",
-                "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
-            },
-            "when": {
-                "args": {"[event id]": "The id of the event to check the time for.", "[UTC offset]": "The UTC offset you want to get the time for the event in."},
-                "description": {
-                    "general": "This command returns the start time with regards to the given `UTC offset`. It also returns the time until the event starts."
-                },
-                "examples": ["p? when 1 -2"],
-                "description_short": "Get the start time of an event with regards to `[UTC offset]`.",
-                "gif": "",
-                "notes": ""
-            },
-            "owner": {
-                "args": {"[event id]": "The id of the event to check the owner of."},
-                "description": {
-                    "general": "This command will make the bot reply with the current owner of event with id `[event id]`."
-                },
-                "description_short": "Get the owner of event `[event id]`.",
-                "gif": "",
-                "notes": "",
-                "examples": []
+                "owner": {
+                    "args": {"[event id]": "The id of the event to check the owner of."},
+                    "description": {
+                        "general": "This command will make the bot reply with the current owner of event with id `[event id]`."
+                    },
+                    "description_short": "Get the owner of event `[event id]`.",
+                    "gif": "",
+                    "notes": "",
+                    "examples": []
+                }
             }
-        }
-    },
-    "fun": {
-        "colour": "ebcb8b",
-        "commands": {
-            "eyebleach": {
-                "args": {},
-                "description": {
-                    "general": "This command give you a cute image of something or other from /r/eyebleach."
+        },
+        "fun": {
+            "colour": "ebcb8b",
+            "commands": {
+                "eyebleach": {
+                    "args": {},
+                    "description": {
+                        "general": "This command give you a cute image of something or other from /r/eyebleach."
+                    },
+                    "description_short": "Posts an eyebleach quality pick.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Posts an eyebleach quality pick.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "clowntime": {
-                "args": {},
-                "description": {
-                    "general": "It's clowntime!"
+                "clowntime": {
+                    "args": {},
+                    "description": {
+                        "general": "It's clowntime!"
+                    },
+                    "description_short": ":o)",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": ":o)",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "orangejuice": {
-                "args": {},
-                "description": {
-                    "general": "This command posts a picture of high quality orange juice! The best in all the land!"
+                "orangejuice": {
+                    "args": {},
+                    "description": {
+                        "general": "This command posts a picture of high quality orange juice! The best in all the land!"
+                    },
+                    "description_short": "Posts a pick of OJ.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Posts a pick of OJ.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "sorry": {
-                "args": {},
-                "description": {
-                    "general": "Use this command to apologise to the bot if you have been mean to it. *why would you do that though? :'(*"
+                "sorry": {
+                    "args": {},
+                    "description": {
+                        "general": "Use this command to apologise to the bot if you have been mean to it. *why would you do that though? :'(*"
+                    },
+                    "description_short": "Let the bot know you are sorry :'(",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Let the bot know you are sorry :'(",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "roll": {
-                "args": {
-                    "[list of names]": "A list of things, seperated with a ',' that the bot will pick randomly from."
+                "roll": {
+                    "args": {
+                        "[list of names]": "A list of things, seperated with a ',' that the bot will pick randomly from."
+                    },
+                    "description": {
+                        "general": "The bot selects a random thing from the `[list of names]` provided."
+                    },
+                    "description_short": "Select a random item from `[list of names]`.",
+                    "examples": ["p? roll Lahabread, Emet, Ardbert, Driur"],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description": {
-                    "general": "The bot selects a random thing from the `[list of names]` provided."
+                "julia": {
+                    "args": {
+                        "(colour scheme)": "The colour scheme to use for the image. Available colour schemes are `hue` and `value`. Unless specified, `hue` will be used.",
+                        "(complex number)": "The complex number to use as the constant for every series. The format is `a+bi`."
+                    },
+                    "description": {
+                        "general": " This command generates a random julia set unless a `(complex number)` is specified, then it will generate the set with the given constant. You can choose the colour scheme by specifiyng `(colour scheme)`.\n\nIf neither parameter is specified, you will receive a random Julia set."
+                    },
+                    "description_short": "Get a random Julia set.",
+                    "examples": ["p? julia value -0.77568377+0.13646737i"],
+                    "gif": "https://professorcalculus.io/docs/res/julia-m232.png",
+                    "notes": ""
                 },
-                "description_short": "Select a random item from `[list of names]`.",
-                "examples": ["p? roll Lahabread, Emet, Ardbert, Driur"],
-                "gif": "",
-                "notes": ""
-            },
-            "salt": {
-                "args": {},
-                "description": {
-                    "general": "This command gives you a little demotivational quote and ups the count of salty nugs you have had."
+                "salt": {
+                    "args": {},
+                    "description": {
+                        "general": "This command gives you a little demotivational quote and ups the count of salty nugs you have had."
+                    },
+                    "description_short": "Get some salt.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Get some salt.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "saltboard": {
-                "args": {},
-                "description": {
-                    "general": "This command prints a salty leaderboard so you can ascertain who is the saltiest of all your friends. "
-                },
-                "description_short": "Print the salt leaderboard.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
+                "saltboard": {
+                    "args": {},
+                    "description": {
+                        "general": "This command prints a salty leaderboard so you can ascertain who is the saltiest of all your friends. "
+                    },
+                    "description_short": "Print the salt leaderboard.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
+                }
             }
-        }
-    },
-    "lo-fi": {
-        "colour": "a3be8c",
-        "commands": {
-            "chill": {
-                "args": {},
-                "description": {
-                    "general": "This command makes the bot join your voice channel and starts playing some chill tunes."
+        },
+        "lo-fi": {
+            "colour": "a3be8c",
+            "commands": {
+                "chill": {
+                    "args": {},
+                    "description": {
+                        "general": "This command makes the bot join your voice channel and starts playing some chill tunes."
+                    },
+                    "description_short": "Play some chill beats.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command will only work when you are connected to a voice channel."
                 },
-                "description_short": "Play some chill beats.",
-                "examples": [],
-                "gif": "",
-                "notes": "This command will only work when you are connected to a voice channel."
-            },
-            "chill stop": {
-                "args": {},
-                "description": {
-                    "general": " This command makes the bot stop playing chill tunes and leave your voice channel."
+                "chill stop": {
+                    "args": {},
+                    "description": {
+                        "general": " This command makes the bot stop playing chill tunes and leave your voice channel."
+                    },
+                    "description_short": "Stop the chill beats.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command will only work when you are connected to a voice channel."
                 },
-                "description_short": "Stop the chill beats.",
-                "examples": [],
-                "gif": "",
-                "notes": "This command will only work when you are connected to a voice channel."
-            },
-            "chill volume": {
-                "args": {"[volume]": "A number from 0 to 100"},
-                "description": {
-                    "general": "This command sets the chill tunes volume to `[volume]%`"
+                "chill volume": {
+                    "args": {"[volume]": "A number from 0 to 100"},
+                    "description": {
+                        "general": "This command sets the chill tunes volume to `[volume]%`"
+                    },
+                    "description_short": "Set the chill volume to `[volume]`.",
+                    "examples": ["p? chill volume 20"],
+                    "gif": "",
+                    "notes": "This command will only work when you are connected to a voice channel."
                 },
-                "description_short": "Set the chill volume to `[volume]`.",
-                "examples": ["p? chill volume 20"],
-                "gif": "",
-                "notes": "This command will only work when you are connected to a voice channel."
-            },
-            "chill nowplaying": {
-                "args": {},
-                "description": {
-                    "general": "This command displays the currently playing song."
-                },
-                "description_short": "Get the current song.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
+                "chill nowplaying": {
+                    "args": {},
+                    "description": {
+                        "general": "This command displays the currently playing song."
+                    },
+                    "description_short": "Get the current song.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
+                }
             }
-        }
-    },
-    "misc": {
-        "colour": "b48ead",
-        "commands": {
-            "log": {
-                "args": {},
-                "description": {
-                    "general": "The bot messages you with a log of recent activity in the events channel. The log only consists of commands found under Event related commands. "
+        },
+        "misc": {
+            "colour": "b48ead",
+            "commands": {
+                "log": {
+                    "args": {},
+                    "description": {
+                        "general": "The bot messages you with a log of recent activity in the events channel. The log only consists of commands found under Event related commands. "
+                    },
+                    "description_short": "Get a log of recent activity in the events channel.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Get a log of recent activity in the events channel.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "clean": {
-                "args": {},
-                "description": {
-                    "general": " This command clears the channel it is executed in. You will be asked to confirm this action."
+                "clean": {
+                    "args": {},
+                    "description": {
+                        "general": " This command clears the channel it is executed in. You will be asked to confirm this action."
+                    },
+                    "description_short": "Purge the current channel.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command is only available to members with the administrator permission."
                 },
-                "description_short": "Purge the current channel.",
-                "examples": [],
-                "gif": "",
-                "notes": "This command is only available to members with the administrator permission."
-            },
-            "readycheck": {
-                "args": {
-                    "[list of mentions]": "A list of `@mentions` for the members and roles to be included in the readycheck.",
-                    "(-expires [date])": "Use this optional parameter to set an expiration date for the readycheck instead of the default 24h."
+                "readycheck": {
+                    "args": {
+                        "[list of mentions]": "A list of `@mentions` for the members and roles to be included in the readycheck.",
+                        "(-expires [date])": "Use this optional parameter to set an expiration date for the readycheck instead of the default 24h."
+                    },
+                    "description": {
+                        "general": "This command invokes a ready check for all members listed. The `[list of mentions]` is a list of `@mentions` for members or roles you want to include in the ready check."
+                    },
+                    "description_short": "Start a readycheck for `[list of mentions]`.",
+                    "examples": ["p? readycheck @member1#1234 @member2#5678 @role -expires in 1 hour"],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description": {
-                    "general": "This command invokes a ready check for all members listed. The `[list of mentions]` is a list of `@mentions` for members or roles you want to include in the ready check."
+                "calculate": {
+                    "args": {"[query]": "The query to send to WolframAlpha"},
+                    "description": {
+                        "general": " This command queries wolfram alpha for your `[query]` and returns the result. "
+                    },
+                    "description_short": "Ask WolframAlpha `[query]`.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Start a readycheck for `[list of mentions]`.",
-                "examples": ["p? readycheck @member1#1234 @member2#5678 @role -expires in 1 hour"],
-                "gif": "",
-                "notes": ""
-            },
-            "calculate": {
-                "args": {"[query]": "The query to send to WolframAlpha"},
-                "description": {
-                    "general": " This command queries wolfram alpha for your `[query]` and returns the result. "
+                "spoiler": {
+                    "args": {"[message]": "A message to include with your image"},
+                    "description": {
+                        "general": "This command reuploads all attachments as spoilers with the message `[message]` attached."
+                    },
+                    "description_short": "Send a spoiler attachment on mobile with a `[message]` attached.",
+                    "examples": [],
+                    "gif": "https://professorcalculus.io/docs/res/spoiler-example.gif",
+                    "notes": ""
                 },
-                "description_short": "Ask WolframAlpha `[query]`.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "spoiler": {
-                "args": {"[message]": "A message to include with your image"},
-                "description": {
-                    "general": "This command reuploads all attachments as spoilers with the message `[message]` attached."
+                "spoiler delete": {
+                    "args": {},
+                    "description": {
+                        "general": " This command deletes the last message the user posted with the `spoiler` command. "
+                    },
+                    "description_short": "Delete your last spoiler sent with this bot.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Send a spoiler attachment on mobile with a `[message]` attached.",
-                "examples": [],
-                "gif": "https://professorcalculus.io/docs/res/spoiler-example.gif",
-                "notes": ""
-            },
-            "spoiler delete": {
-                "args": {},
-                "description": {
-                    "general": " This command deletes the last message the user posted with the `spoiler` command. "
+                "poll": {
+                    "args": {
+                        "[name]": "The name of the poll as a string of characters, surrounded by double quotes if it is more than one word.",
+                        "[options]": "A list of options for the poll, seperated by a space. If an option contains multiple words, surround it with double quotes."
+                    },
+                    "description": {
+                        "general": "This command will create a poll with the name `[name]` and the options `[options]`"
+                    },
+                    "description_short": "Make a poll called `[name]` with options `[options]`.",
+                    "examples": ["p? poll \"What is your favourite colour?\" red blue green \"another colour\""],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Delete your last spoiler sent with this bot.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "poll": {
-                "args": {
-                    "[name]": "The name of the poll as a string of characters, surrounded by double quotes if it is more than one word.",
-                    "[options]": "A list of options for the poll, seperated by a space. If an option contains multiple words, surround it with double quotes."
-                },
-                "description": {
-                    "general": "This command will create a poll with the name `[name]` and the options `[options]`"
-                },
-                "description_short": "Make a poll called `[name]` with options `[options]`.",
-                "examples": ["p? poll \"What is your favourite colour?\" red blue green \"another colour\""],
-                "gif": "",
-                "notes": ""
-            },
-            "forget_me": {
-                "args": {},
-                "description": {
-                    "general": "This command will purge all stored information this bot has stored on you which is:\n> Salt count\n> All reminders you have set and have not yet deleted\n> All spoiler messages you have sent with the spoiler command and have not yet been deleted\n> You will be removed from all scheduled events"
-                },
-                "description_short": "Makes the bot forget you.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
+                "forget_me": {
+                    "args": {},
+                    "description": {
+                        "general": "This command will purge all stored information this bot has stored on you which is:\n> Salt count\n> All reminders you have set and have not yet deleted\n> All spoiler messages you have sent with the spoiler command and have not yet been deleted\n> You will be removed from all scheduled events"
+                    },
+                    "description_short": "Makes the bot forget you.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
+                }
             }
-        }
-    },
-    "soundboard": {
-        "colour": "d08770",
-        "commands": {
-            "soundboard": {
-                "args": {},
-                "description": {
-                    "general": "When this command is invoked without a subcommand it will list all the available sounds and you will be able to pick one to play. "
+        },
+        "soundboard": {
+            "colour": "d08770",
+            "commands": {
+                "soundboard": {
+                    "args": {},
+                    "description": {
+                        "general": "When this command is invoked without a subcommand it will list all the available sounds and you will be able to pick one to play. "
+                    },
+                    "description_short": "Opens the soundboard.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Opens the soundboard.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "soundboard add": {
-                "args": {"[name]": "The name of the new sound to be added."},
-                "description": {
-                    "general": "To add a new sound, upload a mp3 or wav file to any channel the bot has access to and put this command in the comment when uploading. The new sound will be called `[name]`."
+                "soundboard add": {
+                    "args": {"[name]": "The name of the new sound to be added."},
+                    "description": {
+                        "general": "To add a new sound, upload a mp3 or wav file to any channel the bot has access to and put this command in the comment when uploading. The new sound will be called `[name]`."
+                    },
+                    "description_short": "Add a new sound and call it `[name]`.",
+                    "examples": [],
+                    "gif": "https://professorcalculus.io/docs/res/addsound.gif",
+                    "notes": "1. Sound names cannot include spaces.\n\n2. If you delete the message with the file upload, then that sound will no longer work.\n\n3. This command is only available to members with permission (see configure role for details).\n\n4. The maximum amount of sounds for a server is 19."
                 },
-                "description_short": "Add a new sound and call it `[name]`.",
-                "examples": [],
-                "gif": "https://professorcalculus.io/docs/res/addsound.gif",
-                "notes": "1. Sound names cannot include spaces.\n\n2. If you delete the message with the file upload, then that sound will no longer work.\n\n3. This command is only available to members with permission (see configure role for details).\n\n4. The maximum amount of sounds for a server is 19."
-            },
-            "soundboard remove": {
-                "args": {"[name]": "The name of the sound to remove."},
-                "description": {
-                    "general": "This command will remove the sound called `[name]`."
+                "soundboard remove": {
+                    "args": {"[name]": "The name of the sound to remove."},
+                    "description": {
+                        "general": "This command will remove the sound called `[name]`."
+                    },
+                    "description_short": "Remove the sound called `[name]`.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission (see configure role for details). "
                 },
-                "description_short": "Remove the sound called `[name]`.",
-                "examples": [],
-                "gif": "",
-                "notes": "This command is only available to members with permission (see configure role for details). "
-            },
-            "soundboard play": {
-                "args": {"[name]": "The name of the sound to play."},
-                "description": {
-                    "general": "This command will play the sound called `[name]`. To see all available sounds, use the Soundboard command."
+                "soundboard play": {
+                    "args": {"[name]": "The name of the sound to play."},
+                    "description": {
+                        "general": "This command will play the sound called `[name]`. To see all available sounds, use the Soundboard command."
+                    },
+                    "description_short": "Play the sound called `[name]`.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": ""
                 },
-                "description_short": "Play the sound called `[name]`.",
-                "examples": [],
-                "gif": "",
-                "notes": ""
-            },
-            "soundboard rename": {
-                "args": {
-                    "[old name]": "The name of the sound to rename.",
-                    "[new name]": "The new name for the sound."
-                },
-                "description": {
-                    "general": "This command will rename the sound `[old name]` to `[new name]`."
-                },
-                "description_short": "Rename the sound `[old name]` to `[new name]`",
-                "examples": ["p? soundboard rename wow amazing"],
-                "gif": "",
-                "notes": "This command is only available to members with permission (see configure role for details). "
+                "soundboard rename": {
+                    "args": {
+                        "[old name]": "The name of the sound to rename.",
+                        "[new name]": "The new name for the sound."
+                    },
+                    "description": {
+                        "general": "This command will rename the sound `[old name]` to `[new name]`."
+                    },
+                    "description_short": "Rename the sound `[old name]` to `[new name]`",
+                    "examples": ["p? soundboard rename wow amazing"],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission (see configure role for details). "
+                }
             }
-        }
-    },
-    "reminders": {
-        "colour": "5e81ac",
-        "commands": {
-            "remindme": {
-                "args": {
-                    "[time]": "The time you want to set the reminder for.",
-                    "to": "",
-                    "[reminder]": "What you want to be reminded of"
+        },
+        "reminders": {
+            "colour": "5e81ac",
+            "commands": {
+                "remindme": {
+                    "args": {
+                        "[time]": "The time you want to set the reminder for.",
+                        "to": "",
+                        "[reminder]": "What you want to be reminded of"
+                    },
+                    "description": {
+                        "general": "This command will set a reminder for `[reminder]` which will go off at `[time]`."
+                    },
+                    "description_short": "Set a `[reminder]` for `[time]`.",
+                    "examples": ["p? remindme in 2 days to water my cactus", " p? remindme tomorrow at 14:30 UTC-3 to put cookies in the oven"],
+                    "gif": "",
+                    "notes": "All times are in UTC if not otherwise specified."
                 },
-                "description": {
-                    "general": "This command will set a reminder for `[reminder]` which will go off at `[time]`."
+                "remindme list": {
+                    "args": {
+                        "(page)": "The page you want to check. This parameter is optional."
+                    },
+                    "description": {
+                        "general": "This command will give you a list of reminders you have set for yourself as well as their ids."
+                    },
+                    "description_short": "Check all your reminders.",
+                    "examples": ["p? remindme list 2"],
+                    "gif": "",
+                    "notes": "All times are in UTC."
                 },
-                "description_short": "Set a `[reminder]` for `[time]`.",
-                "examples": ["p? remindme in 2 days to water my cactus", " p? remindme tomorrow at 14:30 UTC-3 to put cookies in the oven"],
-                "gif": "",
-                "notes": "All times are in UTC if not otherwise specified."
-            },
-            "remindme list": {
-                "args": {
-                    "(page)": "The page you want to check. This parameter is optional."
-                },
-                "description": {
-                    "general": "This command will give you a list of reminders you have set for yourself as well as their ids."
-                },
-                "description_short": "Check all your reminders.",
-                "examples": ["p? remindme list 2"],
-                "gif": "",
-                "notes": "All times are in UTC."
-            },
-            "remindme remove": {
-                "args": {
-                    "[reminder id]": "The id of the reminder you want to delete."
-                },
-                "description": {
-                    "general": "This command will remove the reminder with the given `[reminder id]`. You can check all your reminders and their ids with the `remindme list` command."
-                },
-                "description_short": "Remove reminder `[reminder id]`",
-                "examples": ["p? remindme remove 5"],
-                "gif": "",
-                "notes": ""
+                "remindme remove": {
+                    "args": {
+                        "[reminder id]": "The id of the reminder you want to delete."
+                    },
+                    "description": {
+                        "general": "This command will remove the reminder with the given `[reminder id]`. You can check all your reminders and their ids with the `remindme list` command."
+                    },
+                    "description_short": "Remove reminder `[reminder id]`",
+                    "examples": ["p? remindme remove 5"],
+                    "gif": "",
+                    "notes": ""
+                }
             }
         }
     }
