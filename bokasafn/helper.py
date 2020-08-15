@@ -5,13 +5,15 @@ import json
 def helpCmd(prefix, cmd, docfile):
     with open(docfile, "r") as f:
         doc = json.loads(f.read())
+        moreinfo = doc["moreInfo"]
+        doc = doc["documentation"]
 
     embeds = []
 
     if cmd is None:
         # Docs link
         colour = discord.Color(int("688F56", 16))
-        embed = discord.Embed(title="More info", description="Use `p? help [command]` for details on a command.\n\n Even more info can be found in the documentation at https://professorcalculus.io/docs", colour=colour)
+        embed = discord.Embed(title="More info", description=moreinfo, colour=colour)
         embeds.append(embed)
 
         # Generate a list for every category and add to embeds when no command specified
