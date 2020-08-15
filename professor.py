@@ -616,6 +616,10 @@ async def configure(ctx):
     # Todo:
     # Comments
 
+    if not delperm(ctx):
+        await ctx.channel.send("I do not have permission to manage messages in this channel so the interactive configuration will not work properly. Please use the other configuration commands found under \"Configuration\" in `p? help`.")
+        return
+
     events_channel = eventsDict[hash(ctx.guild)].channel
     friendly_channel = ctx.guild.get_channel(eventsDict[hash(ctx.guild)].getMyChannelId("friendly"))
 
