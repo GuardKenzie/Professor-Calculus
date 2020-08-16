@@ -1491,9 +1491,6 @@ async def attend(ctx, eventId):
 
     emojis = []
 
-    def check(payload):
-        return payload.member == ctx.author and str(payload.emoji) in emojis
-
     # Fetch event
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
@@ -1520,11 +1517,17 @@ async def attend(ctx, eventId):
                 rolelist = "\n".join(rolelist)
 
                 reactMsg = await ctx.channel.fetch_message(eventsDict[hash(ctx.guild)].myLogMessageId)
+
+                def check(payload):
+                    return payload.member == ctx.author and str(payload.emoji) in emojis and payload.message_id == reactMsg.id
+
                 await reactMsg.edit(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
+
                 for emoji in emojis:
                     await reactMsg.add_reaction(emoji)
+
                 payload = await professor.wait_for("raw_reaction_add", check=check, timeout=60)
-                # await reactMsg.delete()
+
                 role = str(payload.emoji)
         except asyncio.TimeoutError:
             def pcheck(m):
@@ -2706,9 +2709,6 @@ async def soundboard(ctx):
     x = "\U0000274C"
     emoji_dict = {}
 
-    def check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in (list(emoji_dict.keys()) + [x])
-
     if ctx.invoked_subcommand is None:
         # Ef engin subcommand þá gera lista
         sounds = soundBoardDict[hash(ctx.guild)].getSounds()
@@ -2735,6 +2735,9 @@ async def soundboard(ctx):
 
         # Bíða eftir vali
         try:
+            def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) in (list(emoji_dict.keys()) + [x]) and msg.id == reaction.message.id
+
             reaction, user = await professor.wait_for("reaction_add", check=check, timeout=60)
             if delperm(ctx):
                 await msg.delete()
