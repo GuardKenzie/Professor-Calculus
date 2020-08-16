@@ -2365,11 +2365,16 @@ async def poll(ctx, *options):
     def check(payload):
         return not payload.member.bot and payload.emoji.name in emojis_avail
 
+    memberconverter = discord.ext.commands.MemberConverter()
+
     while True:
         try:
             payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
+            await memberconverter.convert(ctx, str(payload.member.id))
         except asyncio.TimeoutError:
             break
+        except discord.ext.commands.BadArgument:
+            continue
 
         i = emojis_avail.index(payload.emoji.name)
         u = payload.member
@@ -2882,8 +2887,12 @@ async def announce_update(ctx):
                         pass
 
 @professor.command()
-async def test_error(ctx):
-    raise ValueError
+async def test_error(ctx, arg):
+    memc = discord.ext.commands.MemberConverter()
+    try:
+        a = await memc.convert(ctx, arg)
+    except discord.ext.commands.BadArgument:
+        print("nei")
 
 @professor.command()
 async def safe(ctx):
