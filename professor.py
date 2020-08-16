@@ -2363,18 +2363,13 @@ async def poll(ctx, *options):
         await pollmsg.add_reaction(emoji)
 
     def check(payload):
-        return not payload.member.bot and payload.emoji.name in emojis_avail
-
-    memberconverter = discord.ext.commands.MemberConverter()
+        return not payload.member.bot and payload.emoji.name in emojis_avail and payload.message_id == pollmsg.id
 
     while True:
         try:
             payload = await professor.wait_for("raw_reaction_add", check=check, timeout=86400)
-            await memberconverter.convert(ctx, str(payload.member.id))
         except asyncio.TimeoutError:
             break
-        except discord.ext.commands.BadArgument:
-            continue
 
         i = emojis_avail.index(payload.emoji.name)
         u = payload.member
