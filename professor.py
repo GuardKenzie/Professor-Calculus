@@ -1329,7 +1329,7 @@ async def schedule(ctx):
         return
     try:
         # Announce that we are scheduling
-        eventsDict[hash(ctx.guild)].scheduling += 1
+        eventsDict[hash(ctx.guild)].scheduling = 1
 
         emb = discord.Embed(title="Title ", description="Time: \n Description:")
 
@@ -1384,7 +1384,6 @@ async def schedule(ctx):
         replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
         await replyMsg.delete()
         emojis = []
-        reactionNameMsg = await ctx.channel.send(content="-")
 
         msg = await ctx.channel.fetch_message(msg.id)
 
@@ -1396,21 +1395,22 @@ async def schedule(ctx):
             except ValueError:
                 return False
 
-        for reaction in msg.reactions:
-            await reactionNameMsg.edit(content="Please enter a name for {}".format(str(reaction)))
+        reactionsOnMsg = msg.reactions
+        await msg.clear_reactions()
+
+        for reaction in reactionsOnMsg:
+            await msg.edit(content="Please enter a name for {}".format(str(reaction)))
             nameRep = await professor.wait_for("message", check=check, timeout=120)
             name = nameRep.content
             await nameRep.delete()
 
-            await reactionNameMsg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
+            await msg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
             limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
             limit = int(limitRep.content)
             await limitRep.delete()
 
             emojis.append((str(reaction), name, limit))
 
-        await reactionNameMsg.delete()
-        await msg.clear_reactions()
 
         # Total limit
         await msg.edit(content="Please enter the total limit of people who can join the event (0 for no limit).")
@@ -1431,12 +1431,12 @@ async def schedule(ctx):
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
             await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
-        eventsDict[hash(ctx.guild)].scheduling -= 1
+        eventsDict[hash(ctx.guild)].scheduling = 0
     except asyncio.TimeoutError:
         if ctx.channel == eventsDict[hash(ctx.guild)].channel:
             await ctx.channel.purge(check=pcheck)
-
-        eventsDict[hash(ctx.guild)].scheduling -= 1
+    finally:
+        eventsDict[hash(ctx.guild)].scheduling = 0
 
 
 @professor.command(aliases=["r"], checks=[eventChannelCheck])
