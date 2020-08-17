@@ -205,6 +205,8 @@ class Events:
         self.page = 1
 
         self.scheduling = 0
+        self.attending = 0
+
         print("Events:\t\t\tonline for {}".format(guildHash))
 
     def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit, ownerId):

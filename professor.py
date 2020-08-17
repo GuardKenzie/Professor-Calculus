@@ -1501,6 +1501,11 @@ async def attend(ctx, eventId):
 
     # Get event roles
     if event.roles != []:
+        if eventsDict[hash(ctx.guild)].attending > 0:
+            await ctx.author.send("Someone else is attending an event. Wait until they are finished and try again.")
+            return
+        else:
+            eventsDict[hash(ctx.guild)].attending = 1
         try:
             for role in event.roles:
                 if event.fullRole(role[0]):
@@ -1521,7 +1526,7 @@ async def attend(ctx, eventId):
                 def check(payload):
                     return payload.member == ctx.author and str(payload.emoji) in emojis and payload.message_id == reactMsg.id
 
-                await reactMsg.edit(content="Please pick a role by reacting to this message:\n{}".format(rolelist))
+                await reactMsg.edit(content="{} Please pick a role by reacting to this message:\n{}".format(ctx.author.mention, rolelist))
 
                 for emoji in emojis:
                     await reactMsg.add_reaction(emoji)
@@ -1529,12 +1534,18 @@ async def attend(ctx, eventId):
                 payload = await professor.wait_for("raw_reaction_add", check=check, timeout=60)
 
                 role = str(payload.emoji)
+
+                eventsDict[hash(ctx.guild)].attending = 0
+
+
         except asyncio.TimeoutError:
             def pcheck(m):
                 return not m.pinned
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
                 return
+        finally:
+            eventsDict[hash(ctx.guild)].attending = 0
 
     # Attend event and check for success
     if eventsDict[hash(ctx.guild)].attendEvent(eventId, ctx.author.id, True, role=role):
