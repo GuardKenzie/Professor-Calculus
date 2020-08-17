@@ -303,6 +303,10 @@ class Events:
         # Check if leaving and user in list
         elif not attend and userId in dict(attendantList).keys():
             attendantList.remove([userId, role])
+        elif attend and userId in dict(attendantList).keys():
+            aux = dict(attendantList)
+            aux[userId] = role
+            attendantList = list(aux.items())
         else:
             return False
 
