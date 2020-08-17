@@ -89,10 +89,10 @@
                 "attend": {
                     "args": {"[event id]": "The id of the event to attend."},
                     "description": {
-                        "general": "Signs you up for event number `[event id]` and adds your name to the list of people showing up."
+                        "general": "Signs you up for event number `[event id]` and adds your name to the list of people showing up.\n\nYou can also use this command to change your role in an event. To do so, simply attend the event again."
                     },
                     "examples": ["p? attend 2"],
-                    "description_short": "Signs you up for event number `[event id]`.",
+                    "description_short": "Signs you up for event number `[event id]` or lets you pick a different role for that event.",
                     "gif": "",
                     "notes": ""
                 },
