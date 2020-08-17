@@ -449,7 +449,7 @@ async def on_command_completion(ctx):
         guildHash = hash(ctx.guild)
 
         # Update pinned list if command is for event
-        if ctx.command.name in eventCommands and guildHash in eventsDict.keys():
+        if ctx.command.name in eventCommands and guildHash in eventsDict.keys() and eventsDict[guildHash].attending == 0:
             asyncio.create_task(updatePinned(eventsDict[guildHash].channel, ctx.guild))
 
     await asyncio.sleep(2)
