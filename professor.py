@@ -1588,7 +1588,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     # Command syntax: update [eventId] [to update] [new info]
 
     # Check if usere is scheduler
-    if toUpdate in ["description", "name", "date", "owner"] or ctx.author.id == 197471216594976768:
+    if toUpdate in ["description", "name", "date", "owner", "limit", "role"]:
 
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
@@ -1619,12 +1619,114 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             toUpdateMsg = "owner"
             newInfoMsg = newOwner.display_name
             oldMsg = oldOwner.display_name
+
+        elif toUpdate == "limit":
+            try:
+                newInfo = int(newInfo)
+                if newInfo < 0:
+                    raise ValueError
+            except ValueError:
+                await ctx.author.send(f"`{newInfo}` is not a valid number!")
+                return
+            toUpdate = "eventLimit"
+            toUpdateMsg = "limit"
+            newInfoMsg = newInfo
+            oldMsg = event.limit
+
+        elif toUpdate == "role":
+            # Split our arguments
+            args = newInfo.split()
+
+            # Check if we have enough args
+            if len(args) < 2:
+                await ctx.author.send("Not enough arguments were supplied to update the role. Please check `p? help update`")
+                return
+
+            # Only allow 2 args if we are updating emoji
+            if args[1].lower() != "emoji" and len(args) == 2:
+                await ctx.author.send("Not enough arguments were supplied to update the role. Please check `p? help update`")
+                return
+
+            # Unpack args
+            roleEmoji = args[0]
+
+            roleField = args[1]
+            roleField = roleField.lower()
+
+            if len(args) == 2:
+                roleNewInfo = ""
+            else:
+                roleNewInfo = args[2]
+
+
+            # Check if we can update the event's roles
+            if event.roles == []:
+                await ctx.author.send(f"Event `{eventId}` has no roles!")
+                return
+
+            # Fetch the role and check if our emoji is valid
+            role = event.getRole(roleEmoji)
+            if role is False:
+                await ctx.author.send(f"{roleEmoji} is not a valid role for event `{eventId}`!")
+                return
+            elif role[0] != roleEmoji:
+                await ctx.author.send(f"{roleEmoji} is not a valid role emoji for event `{eventId}`!")
+                return
+
+            # Check if our role field is valid
+            if roleField not in ["emoji", "name", "limit"]:
+                await ctx.author.send(f"The field `{roleField}` is invalid. Please check `p? help update`.")
+                return
+
+            # If we are updating the limit, we need to validate the number
+            if roleField == "limit":
+                try:
+                    roleNewInfo = int(roleNewInfo)
+                    if roleNewInfo < 0:
+                        raise ValueError
+                except ValueError:
+                    await ctx.author.send(f"`{roleNewInfo}` is not a valid number!")
+                    return
+
+
+            # If we are updating emoji we need a special prompt
+            if roleField == "emoji":
+                # Ask for reaction
+                reactMsg = await ctx.channel.fetch_message(eventsDict[hash(ctx.guild)].myLogMessageId)
+
+                await reactMsg.edit(content=f"{ctx.author.mention} Please react to this message with the new emoji for role {role[1]}.")
+
+                def check(p):
+                    a = (p.user_id == ctx.author.id and p.message_id == reactMsg.id)
+                    return a
+
+                try:
+                    # Wait for new emoji
+                    r = await professor.wait_for("raw_reaction_add", check=check, timeout=120)
+                    roleNewInfo = str(r.emoji)
+                except asyncio.TimeoutError:
+                    return
+                finally:
+                    await reactMsg.clear_reactions()
+
+                # Check for dupes
+                if event.getRole(roleNewInfo):
+                    await ctx.author.send("You cannot set the new emoji to on that is already assigned to a role for this event!")
+                    return
+
+            toUpdate = "role"
+            toUpdateMsg = f"{role[1]} role's {roleField}"
+            newInfoMsg = roleNewInfo
+            oldMsg = ""
+            newInfo = [roleEmoji, roleField, roleNewInfo]
         else:
             oldMsg = ""
             toUpdateMsg = toUpdate
 
         if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
-            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` from `{}` to `{}`.".format(ctx.author.display_name, event.name, toUpdateMsg, oldMsg, newInfoMsg))
+            if oldMsg:
+                oldMsg = f"from `{oldMsg}` "
+            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` {}to `{}`.".format(ctx.author.display_name, event.name, toUpdateMsg, oldMsg, newInfoMsg))
 
         else:
             await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)

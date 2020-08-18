@@ -342,6 +342,48 @@ class Events:
             if not newInfo:
                 return False
 
+        # Check if we are updating roles
+        if toUpdate == "role":
+            fieldTranslator = {"emoji": 0, "name": 1, "limit": 2}
+            roleEmoji, roleField, roleNewInfo = newInfo
+            roleField = roleField.lower()
+
+            event = self.getEvent(eventId, actualId=True)
+
+            roles = event.roles
+            i = 0
+            while i < len(roles):
+                if roles[i][0] == roleEmoji:
+                    break
+                i += 1
+
+            oldRole = list(roles[i])
+            fieldIndex = fieldTranslator[roleField]
+            roles[i][fieldIndex] = roleNewInfo
+
+            b = True
+
+            if roleField == "emoji":
+                people = event.parray
+                i = 0
+                while i < len(people):
+                    person = people[i]
+                    if person[1] == oldRole[0]:
+                        people[i][1] = roleNewInfo
+                    i += 1
+
+                people = json.dumps(people)
+                b = self.c.execute("UPDATE events SET people=? WHERE server_hash=? AND id=?;", (people, self.guildHash, eventId))
+
+            roles = json.dumps(roles)
+            a = self.c.execute("UPDATE events SET roles=? WHERE server_hash=? AND id=?;", (roles, self.guildHash, eventId))
+            if a and b:
+                self.conn.commit()
+                return True
+            else:
+                return False
+
+
         # Update entry and check for success
         e = self.c.execute("UPDATE events SET {}=?  WHERE server_hash=? AND id=?".format(toUpdate), (newInfo, self.guildHash, eventId))
         if e:
