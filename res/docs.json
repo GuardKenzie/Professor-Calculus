@@ -109,14 +109,15 @@
                 "update": {
                     "args": {
                         "[event id]": "The id of the event to update",
-                        "[what to update]": "The field to update.\n\nAvailable fields are\n> `date`:\tThe date and time of the event. The same formats as in schedule.\n> `name`:\tThe name of the event.\n> `description`:\tThe description of the event\n> `owner`:\tThe owner of the event. When updating this field, use the `@Mention` for the new owner as `[new value]`",
+                        "[what to update]": "The field to update.\n\nAvailable fields are\n> `date`:\tThe date and time of the event. The same formats as in schedule.\n> `name`:\tThe name of the event.\n> `description`:\tThe description of the event\n> `owner`:\tThe owner of the event. When updating this field, use the `@Mention` for the new owner as `[new value]`\n> `limit`:\tThe limit of people that can join this event.\n> `role`: Edit a role",
                         "[new value]": "The thing to change `[what to update] to."
 
                     },
                     "description": {
-                        "general": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`."
+                        "general": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`.",
+                        "Editing roles": "When editing a role, the command syntax becomes as follows: \n```\np? update [event id] role [the role's emoji] [attribute] [new value]\n```\nAvailable values for `[attribute]` are:\n> `name`:\tThe name of the role\n> `limit`:\tThe limit of people who can join a role\n> `emoji`:\tThe role's emoji. When updating this attribute, `[new info]` can be left blank."
                     },
-                    "examples": ["p? update 2 description Free oj for everyone who shows up."],
+                    "examples": ["p? update 2 description Free oj for everyone who shows up.", "p? update 1 role :thumbsup: limit 5", "p? update 4 role :fire: emoji"],
                     "description_short": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`.",
                     "gif": "",
                     "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
