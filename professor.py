@@ -654,7 +654,6 @@ async def configure(ctx):
             return -1
 
         if r.emoji == ghost:
-            print("unset")
             eventsDict[hash(ctx.guild)].unsetMyChannelId(channelType)
             return 1
 

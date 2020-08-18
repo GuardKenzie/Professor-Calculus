@@ -446,7 +446,6 @@ class Events:
                     self.removeEvent(event.id)
                 else:
                     self.updateEvent(event.id, "people", "[]", actualId=True)
-                    print(event.nextDay())
                     self.c.execute("UPDATE events SET date=? WHERE server_hash=? AND id=?", (event.nextDay(), self.guildHash, event.id))
                     self.conn.commit()
                 eventOut.append({"event": event,
