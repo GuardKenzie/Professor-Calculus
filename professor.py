@@ -1494,7 +1494,7 @@ async def attend(ctx, eventId):
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
     # Check if event is full
-    if event.full():
+    if event.full() and ctx.author.id not in event.people:
         await ctx.channel.send(content="That event is already full!", delete_after=15)
         return
 
