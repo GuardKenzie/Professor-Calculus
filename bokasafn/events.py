@@ -241,8 +241,9 @@ class Events:
         self.timezone = pytz.timezone(timezone)
         self.conn.commit()
 
-    def getEvent(self, eventId):
-        eventId = self.getEventId(eventId)
+    def getEvent(self, eventId, actualId=False):
+        if not actualId:
+            eventId = self.getEventId(eventId)
 
         self.c.execute("SELECT * FROM events where id=? AND server_hash=?", (eventId, self.guildHash))
         res = self.c.fetchone()
