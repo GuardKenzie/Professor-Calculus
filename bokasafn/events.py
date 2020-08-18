@@ -110,6 +110,13 @@ class Event:
         # Check if role is full
         return self.peopleInRole[role] >= self.rolelimits[role] and self.rolelimits[role] != 0
 
+    def getRole(self, query):
+        for role in self.roles:
+            if role[0] == query or role[1].lower() == query.lower():
+                return role
+        else:
+            return False
+
     def nextDay(self):
         # Get the next day a recurring event is gonna happen
         return str(self.date + datetime.timedelta(days=7))
