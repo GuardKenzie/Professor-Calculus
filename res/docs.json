@@ -68,13 +68,16 @@
                     "args": {},
                     "description_short": "Schedule an event.",
                     "description": {
-                        "general": "Starts the scheduling process for a new event. The bot will ask you to give a title, date, time, description, optional roles and people limit for your new event. If at any time you want to cancel the scheduling process, type cancel.",
-                        "Date": "Almost all date formats are supported. See date for details. If the date specified includes a weekday, the event will be set as recurring at the same time every week. You can also specify that an event is yet to be dated by entering TBD as the date.\nIf an event is recurring then instead of removing the event once it starts, the attendant list will simply be cleared.\nAt 10:00 A.M. on a day with a recurring event the bot will post a little message in the designated friendly channel (see configure channel for details).",
-                        "Roles": "After asking you for a description, the bot will ask you to react to a message with emojis to represent any event specific roles. Once you have added all your reactions, type done in the text channel. You will then have to give a name and a limit of people for each role.\nIf you are not in need of any event specific roles, type done without reacting to the message with any emojis.\nThese roles are purely visual and no actual server roles are added. "
+                        "general": "Starts the scheduling process for a new event. The bot will ask you to give a title, date and time, description, optional roles and people limit for your new event. If at any time you want to cancel the scheduling process, type cancel. The process is as follows:",
+                        "1. Name": "First you will be asked to provide a name for the event.",
+                        "2. Date & Time": "Next you will be asked to give a date and a time for the event. It is important to note that you must specify the date **AND** time at the same time, e.g. `June 15th 2020 at 14:00`. \n\nAlmost all date formats are supported, however, the order `day/month/year` is the default when the name of the month is not specified.\n\n If the date specified includes a weekday (e.g. `Thursdays at 12:00`), the event will be set as recurring at the same time every week.\nIf an event is recurring then instead of removing the event once it starts, the attendant list will simply be cleared.\nAt 10:00 A.M. on a day with a recurring event the bot will post a little message in the designated friendly channel (see configure channel for details).\n You can also specify that an event is yet to be dated by entering TBD as the date.",
+                        "3. Description": "Third, you will be asked to provide a description for your event.",
+                        "4. Roles": "After asking you for a description, the bot will ask you to react to a message with emojis to represent any event specific roles. Once you have added all your reactions, type done in the text channel. You will then have to give a name and a limit of people for each role.\nIf you are not in need of any event specific roles, type done without reacting to the message with any emojis.\nThese roles are purely visual and no actual server roles are added.",
+                        "5. Limit": "Lastly, you will be asked to specify how many people in total can join your event. If a limit of `0` is specified, an unlimited number of people will be able to join."
                     },
                     "examples": [],
-                    "gif": "",
-                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
+                    "gif": "https://professorcalculus.io/features/res/schedule.gif",
+                    "notes": "This command is only available to members with permission (see configure role for details)."
                 },
                 "remove": {
                     "args": {"[event id]": "The id of the event to be removed."},
