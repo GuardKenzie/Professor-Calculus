@@ -1312,9 +1312,51 @@ async def timezone(ctx):
 
 
 @professor.command(aliases=["s"], checks=[eventChannelCheck])
-async def schedule(ctx):
+async def schedule(ctx, *args):
     channel = ctx.channel
     author = ctx.author
+
+    def gt0(x):
+        try:
+            x = int(x)
+            if x < 0:
+                raise ValueError
+            return True
+        except ValueError:
+            return False
+
+    # Pad args
+    args = list(args)
+    args = args + [None]*(5 - len(args))
+    print(args)
+
+    title = args[0]
+
+    time = args[1]
+    # Check time ok
+    if time is not None:
+        if not dags.parse(time, allow_tbd=True):
+            await ctx.author.send(f"The date `{time}` is invalid. You will be asked to provide a new date and time.")
+            time = None
+
+    desc = args[2]
+
+    limit = args[3]
+    # Check if limit ok
+    if limit is not None:
+        if not gt0(limit):
+            await ctx.author.send(f"A limit of `{limit}` people is not a valid integer >= 0. You will be asked to specify a new limit.")
+            limit = None
+
+    roles = args[4]
+    roles = roles.lower() if roles is not None else roles
+
+    if roles == "-roles" or title is None:
+        roles = True
+    else:
+        roles = False
+
+    print(args)
 
     def check(m):
         if m.content.lower() == "cancel":
@@ -1326,6 +1368,15 @@ async def schedule(ctx):
     if eventsDict[hash(ctx.guild)].scheduling > 0:
         await ctx.author.send(content="Someone else is scheduling an event. Please wait until they are done.")
         return
+
+    def checklimit(m):
+        try:
+            int(m.content)
+            out = check(m)
+            return out
+        except ValueError:
+            return False
+
     try:
         # Announce that we are scheduling
         eventsDict[hash(ctx.guild)].scheduling = 1
@@ -1334,91 +1385,115 @@ async def schedule(ctx):
 
         startEvent = await channel.send(content="Scheduling started. Type `cancel` to cancel", embed=emb)
 
+        msg = None
+
         # Title
-        msg = await channel.send(content=infoMessages["eventTitle"])
-        replyMsg = await professor.wait_for("message", check=check, timeout=120)
+        if title is None:
+            msg = await channel.send(content=infoMessages["eventTitle"])
+            replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
-        title = replyMsg.content
+            title = replyMsg.content
 
-        await replyMsg.delete()
+            await replyMsg.delete()
 
         emb.title = title
         await startEvent.edit(embed=emb)
 
         # Time
-        await msg.edit(content=infoMessages["eventTime"].format(str(eventsDict[hash(ctx.guild)].timezone)))
-        replyMsg = await professor.wait_for("message", check=check, timeout=120)
-
-        # Check if time is ok
-        timeOk = dags.parse(replyMsg.content, allow_tbd=True)
-        while timeOk is False:
-            await replyMsg.delete()
-            await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
+        if time is None:
+            if msg is not None:
+                await msg.edit(content=infoMessages["eventTime"].format(str(eventsDict[hash(ctx.guild)].timezone)))
+            else:
+                msg = await ctx.channel.send(content=infoMessages["eventTime"].format(str(eventsDict[hash(ctx.guild)].timezone)))
             replyMsg = await professor.wait_for("message", check=check, timeout=120)
-            timeOk = dags.parse(replyMsg.content)
 
-        time = replyMsg.content
-        await replyMsg.delete()
+            # Check if time is ok
+            timeOk = dags.parse(replyMsg.content, allow_tbd=True)
+            while timeOk is False:
+                await replyMsg.delete()
+                await channel.send(content=infoMessages["invalidDate"].format(replyMsg.content), delete_after=5)
+                replyMsg = await professor.wait_for("message", check=check, timeout=120)
+                timeOk = dags.parse(replyMsg.content)
+
+            time = replyMsg.content
+            await replyMsg.delete()
 
         emb.description = "Time: {} \n Description:".format(time)
         await startEvent.edit(embed=emb)
 
         # Desc
-        await msg.edit(content=infoMessages["eventDesc"])
-        replyMsg = await professor.wait_for("message", check=check, timeout=120)
+        if desc is None:
+            if msg is not None:
+                await msg.edit(content=infoMessages["eventDesc"])
+            else:
+                msg = await ctx.channel.send(content=infoMessages["eventDesc"])
 
-        desc = replyMsg.content
+            replyMsg = await professor.wait_for("message", check=check, timeout=120)
 
-        await replyMsg.delete()
+            desc = replyMsg.content
+
+            await replyMsg.delete()
 
         emb.description = "Time: {} \n Description: {}".format(time, desc)
         await startEvent.edit(embed=emb)
 
         # Roles
-        await msg.edit(content="React to this message with any event specific roles. Type `done` when done.")
-
-        def donecheck(m):
-            return check(m) and m.content.lower() == "done"
-
-        replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
-        await replyMsg.delete()
         emojis = []
+        if roles:
+            roleInfoMsg = "React to this message with any event specific roles. Type `done` when done."
+            if msg is not None:
+                await msg.edit(content=roleInfoMsg)
+            else:
+                msg = await ctx.channel.send(content=roleInfoMsg)
 
-        msg = await ctx.channel.fetch_message(msg.id)
+            def donecheck(m):
+                return check(m) and m.content.lower() == "done"
 
-        def checklimit(m):
-            try:
-                int(m.content)
-                out = check(m)
-                return out
-            except ValueError:
-                return False
+            replyMsg = await professor.wait_for("message", check=donecheck, timeout=120)
+            await replyMsg.delete()
 
-        reactionsOnMsg = msg.reactions
-        await msg.clear_reactions()
+            msg = await ctx.channel.fetch_message(msg.id)
 
-        for reaction in reactionsOnMsg:
-            await msg.edit(content="Please enter a name for {}".format(str(reaction)))
-            nameRep = await professor.wait_for("message", check=check, timeout=120)
-            name = nameRep.content
-            await nameRep.delete()
+            reactionsOnMsg = msg.reactions
+            await msg.clear_reactions()
 
-            await msg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
-            limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
-            limit = int(limitRep.content)
-            await limitRep.delete()
+            for reaction in reactionsOnMsg:
+                await msg.edit(content="Please enter a name for {}".format(str(reaction)))
+                nameRep = await professor.wait_for("message", check=check, timeout=120)
+                name = nameRep.content
+                await nameRep.delete()
 
-            emojis.append((str(reaction), name, limit))
+                await msg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
+                limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+                limit = int(limitRep.content)
+                await limitRep.delete()
 
+                emojis.append((str(reaction), name, limit))
 
         # Total limit
-        await msg.edit(content="Please enter the total limit of people who can join the event (0 for no limit).")
-        limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
-        limit = int(limitRep.content)
-        await limitRep.delete()
+        if limit is None:
+            limitInfoMsg = "Please enter the total limit of people who can join the event (0 for no limit)."
+            if msg is not None:
+                await msg.edit(content=limitInfoMsg)
+            else:
+                msg = await ctx.channel.send(content=limitInfoMsg)
+
+            limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+            limitOk = gt0(limitRep.content)
+            limit = limitRep.content
+
+            # Check >= 0
+            while not limitOk:
+                await msg.edit(content=f"`{limit}` is not an integer >= 0. \nPlease enter a limit for the event (0 for no limit).")
+                limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+                limitOk = gt0(limitRep.content)
+                limit = limitRep.content
+
+            await limitRep.delete()
 
         # Delete temp messages
-        await msg.delete()
+        if msg is not None:
+            await msg.delete()
         await startEvent.delete()
 
         # Schedule events
