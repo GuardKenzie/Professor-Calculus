@@ -1348,10 +1348,7 @@ async def schedule(ctx, *args):
             await ctx.author.send(f"A limit of `{limit}` people is not a valid integer >= 0. You will be asked to specify a new limit.")
             limit = None
 
-    roles = args[4]
-    roles = roles.lower() if roles is not None else roles
-
-    if roles == "-noroles":
+    if "-noroles" in args:
         roles = False
     else:
         roles = True
