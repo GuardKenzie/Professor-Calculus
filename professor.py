@@ -1351,10 +1351,10 @@ async def schedule(ctx, *args):
     roles = args[4]
     roles = roles.lower() if roles is not None else roles
 
-    if roles == "-roles" or title is None:
-        roles = True
-    else:
+    if roles == "-noroles":
         roles = False
+    else:
+        roles = True
 
     print(args)
 
