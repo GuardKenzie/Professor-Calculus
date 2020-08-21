@@ -84,7 +84,7 @@
                     },
                     "examples": ["p? schedule", "p? schedule \"Example event\" tomorrow \"Come join us for some fun!\" 2 -noroles", "p? schedule \"Example event\" tomorrow"],
                     "gif": "https://professorcalculus.io/features/res/schedule.gif",
-                    "notes": "1. This command is only available to members with permission (see `p? help configure role` for details).\n\n2. You cannot change the order of the optional arguments. Your first argument will always be interpreted as `(name)`, the second as `(date & time)` and so on. The exception is that you can specify `-noroles` anywhere."
+                    "notes": "1. This command is only available to members with permission (see `p? help configure role` for details).\n\n2. You cannot change the order of the optional arguments (except for that `-noroles` can be placed anywhere in the command). Your first argument will always be interpreted as `(name)`, the second as `(date & time)` and so on."
                 },
                 "remove": {
                     "args": {"[event id]": "The id of the event to be removed."},
