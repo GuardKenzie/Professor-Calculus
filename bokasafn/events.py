@@ -133,7 +133,10 @@ class Event:
         if self.recurring:
             return self.date.astimezone(self.timezone).strftime("%As %H:%M")
         else:
-            return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
+            if self.date.astimezone(self.timezone).year == datetime.datetime.now().astimezone(self.timezone).year:
+                return self.date.astimezone(self.timezone).strftime("%d %B %H:%M")
+            else:
+                return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
 
     def offsetPrintableDate(self, offset: int):
         # Get the printable date for the event offset by offset
