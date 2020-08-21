@@ -1326,9 +1326,17 @@ async def schedule(ctx, *args):
             return False
 
     # Pad args
-    args = list(args)
+    aux = []
+    roles = True
+
+    for arg in args:
+        if arg == "-noroles":
+            roles = False
+        else:
+            aux.append(arg)
+
+    args = aux
     args = args + [None]*(5 - len(args))
-    print(args)
 
     title = args[0]
 
@@ -1347,13 +1355,6 @@ async def schedule(ctx, *args):
         if not gt0(limit):
             await ctx.author.send(f"A limit of `{limit}` people is not a valid integer >= 0. You will be asked to specify a new limit.")
             limit = None
-
-    if "-noroles" in args:
-        roles = False
-    else:
-        roles = True
-
-    print(args)
 
     def check(m):
         if m.content.lower() == "cancel":
@@ -1461,11 +1462,11 @@ async def schedule(ctx, *args):
                 await nameRep.delete()
 
                 await msg.edit(content="Please enter the limit of people for {} (0 for no limit).".format(str(reaction)))
-                limitRep = await professor.wait_for("message", check=checklimit, timeout=120)
-                limit = int(limitRep.content)
-                await limitRep.delete()
+                rlimitRep = await professor.wait_for("message", check=checklimit, timeout=120)
+                rlimit = int(rlimitRep.content)
+                await rlimitRep.delete()
 
-                emojis.append((str(reaction), name, limit))
+                emojis.append((str(reaction), name, rlimit))
 
         # Total limit
         if limit is None:
