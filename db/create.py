@@ -71,6 +71,8 @@ salt = ["CREATE TABLE salt (count int, userId int);"]
 # Spoilers
 spoilers = ["CREATE TABLE spoilers ( userid int, messageid int, channelid int, guildhash int);"]
 
+# Notice
+notice = ["CREATE TABLE notice (messageid int, guildhash int);"]
 
 skapa("hooks.db", hooks)
 skapa("events.db", events)
@@ -79,3 +81,4 @@ skapa("permissions.db", perms)
 skapa("reminders.db", reminders)
 skapa("sounds.db", soundboard)
 skapa("salt.db", salt)
+skapa("notice.db", notice)

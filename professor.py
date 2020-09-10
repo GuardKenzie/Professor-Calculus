@@ -29,6 +29,7 @@ import bokasafn.soundb as soundb
 import bokasafn.reminders as reminders
 import bokasafn.dags as dags
 import bokasafn.emojis as foodEmojis
+import bokasafn.notice as noticelib
 
 # Bot key
 with open(sys.argv[1], "r") as keyFile:
@@ -1910,6 +1911,31 @@ async def removeHook(ctx, eventId):
 
 
 # --- Misc ---
+
+@professor.group()
+async def notice(ctx):
+    return
+
+@notice.command()
+async def new(ctx):
+    noticeCheck = noticelib.Notice(hash(ctx.guild), "db/notice.db")
+    msg = await ctx.channel.send("This is your brand new notice message!")
+    await msg.edit(content=f"This is your brand new notice message!\n\nThis message's id is `{msg.id}`\nYou can edit this message with `p? notice edit {msg.id} [new message]`\n\nHave fun!")
+    noticeCheck.create(msg.id)
+
+@notice.command()
+async def edit(ctx, msgid: int, *, newmessage):
+    noticeCheck = noticelib.Notice(hash(ctx.guild), "db/notice.db")
+    if noticeCheck.isNotice(msgid):
+        try:
+            msg = await ctx.channel.fetch_message(msgid)
+            await msg.edit(content=newmessage)
+        except discord.NotFound:
+            await ctx.author.send("You need to be in the same channel as the notice message.")
+    else:
+        await ctx.author.send("That is not a notice message!")
+
+
 
 @professor.command()
 async def julia(ctx, *, c=""):
