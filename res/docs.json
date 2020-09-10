@@ -378,6 +378,26 @@
                     "gif": "",
                     "notes": ""
                 },
+                "notice new": {
+                    "args": {},
+                    "description": {
+                        "general": "The bot will create a new notice message which is editable by everyone with permission, by the `p? notice edit` command."
+                    },
+                    "description_short": "Create a new notice message.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": "This command is only available to members with permission (see `p? help configure role` for details)."
+                },
+                "notice edit": {
+                    "args": {"[message id]": "The message id of the notice message to edit", "[new message]": "The new message you want to set the notice to. This does not have to be surrounded by quotes."},
+                    "description": {
+                        "general": "This command allows everyone with permission to edit an existing notice message."
+                    },
+                    "description_short": "Edit a notice message.",
+                    "examples": [],
+                    "gif": "",
+                    "notes": "1. You will need to be in the same channel as the message you want to edit.\n\n2. This command is only available to members with permission (see `p? help configure role` for details)."
+                },
                 "forget_me": {
                     "args": {},
                     "description": {
