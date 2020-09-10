@@ -25,7 +25,7 @@
 
   "startSchedule": "Creating new event",
   "eventTitle":     "Please enter a title for your event:",
-  "eventTime":      "Please give a date and time for your event. If a weekday is specified, the event will be set as recurring",
+  "eventTime":      "Please give a date **and** time for your event (`e.g. June 15th at 13:00`). If a weekday is specified, the event will be set as recurring (e.g. `Fridays at 10:00`)",
   "eventDesc":      "Enter a description for your event:",
   "invalidDate":    "`{}` is not a valid date!",
   "cannotCreateEventsChannel": "I do not have permission to create my events channel. Please manually create a channel for events and set it as my channel with `{}configure`. Make sure I have permission to manage messages in my events channel.",

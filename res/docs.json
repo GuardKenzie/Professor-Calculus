@@ -1,5 +1,5 @@
 {
-    "moreInfo": "Use `p? help [command]` for details on a command.\n\n Even more info can be found in the documentation at https://professorcalculus.io/docs\n\n**Syntax**\n> `[...]` denotes a required argument\n> `(...)` denotes an optional argument\n> `(... [...])` denotes an optional argument with a required parameter",
+    "moreInfo": "Use `p? help [command]` for details on a command.\n\n Even more info can be found in the documentation at https://professorcalculus.io/docs\n\n**Syntax**\n> `[...]` denotes a required argument\n> `(...)` denotes an optional argument\n> `(-...)` denotes an optional flag. For example, if a command has the syntax `p? example (-x)` you can call it with `p? example` or `p? example -x` for different results\n> `(-... [...])` denotes an optional flag with a required parameter",
     "documentation": {
         "configuration": {
             "colour": "bf616a",
@@ -34,7 +34,7 @@
                     },
                     "examples": ["p? configure channel friendly"],
                     "gif": "",
-                    "notes": "This command is only available to members with permission (see configure role for details)."
+                    "notes": "This command is only available to members with permission (see `p? help configure role` for details)."
                 },
 
                 "configure role": {
@@ -47,7 +47,7 @@
                     },
                     "examples": ["p? configure role @Mod"],
                     "gif": "",
-                    "notes": "This command is only available to members with permission (see configure role for details)."
+                    "notes": "This command is only available to members with permission (see `p? help configure role` for details)."
                 },
                 "configure timezone": {
                     "args": {},
@@ -57,7 +57,7 @@
                     },
                     "examples": [],
                     "gif": "",
-                    "notes": "This command is only available to members with permission (see configure role for details)."
+                    "notes": "This command is only available to members with permission (see `p? help configure role` for details)."
                 }
             }
         },
@@ -65,16 +65,26 @@
             "colour": "8fbcbb",
             "commands": {
                 "schedule": {
-                    "args": {},
+                    "args": {
+                        "(name)": "",
+                        "(date & time)": "",
+                        "(description)": "",
+                        "(limit)": "",
+                        "(-noroles)": ""
+                    },
                     "description_short": "Schedule an event.",
                     "description": {
-                        "general": "Starts the scheduling process for a new event. The bot will ask you to give a title, date, time, description, optional roles and people limit for your new event. If at any time you want to cancel the scheduling process, type cancel.",
-                        "Date": "Almost all date formats are supported. See date for details. If the date specified includes a weekday, the event will be set as recurring at the same time every week. You can also specify that an event is yet to be dated by entering TBD as the date.\nIf an event is recurring then instead of removing the event once it starts, the attendant list will simply be cleared.\nAt 10:00 A.M. on a day with a recurring event the bot will post a little message in the designated friendly channel (see configure channel for details).",
-                        "Roles": "After asking you for a description, the bot will ask you to react to a message with emojis to represent any event specific roles. Once you have added all your reactions, type done in the text channel. You will then have to give a name and a limit of people for each role.\nIf you are not in need of any event specific roles, type done without reacting to the message with any emojis.\nThese roles are purely visual and no actual server roles are added. "
+                        "general": "Starts the scheduling process for a new event.\nNote that if any of the optional arguments above are provided, the corresponding step below will be skipped.\n The bot will ask you to give a title, date and time, description, optional roles and people limit for your new event. If at any time you want to cancel the scheduling process, type cancel. The process is as follows:",
+                        "1. Name": "First you will be asked to provide a name for the event.\n\nIf the `(name)` optional argument is provided, this step will be skipped.",
+                        "2. Date & Time": "Next you will be asked to give a date and a time for the event. It is important to note that you must specify the date **AND** time, e.g. `June 15th 2020 at 14:00`. \n\nAlmost all date formats are supported, however, the order `day/month/year` is the default when the name of the month is not specified.\n\n If the date specified includes a weekday (e.g. `Thursdays at 12:00`), the event will be set as recurring at the same time every week.\nIf an event is recurring then instead of removing the event once it starts, the attendant list will simply be cleared.\nAt 10:00 A.M. on a day with a recurring event the bot will post a little message in the designated friendly channel (see configure channel for details).\n You can also specify that an event is yet to be dated by entering `TBD` as the date.\n\nIf the `(date & time)` optional argument is provided, this step will be skipped.",
+                        "3. Description": "Third, you will be asked to provide a description for your event.\n\nIf the `(description)` optional argument is provided, this step will be skipped.",
+                        "4. Roles": "After asking you for a description, the bot will ask you to react to a message with emojis to represent any event specific roles. Once you have added all your reactions, type `done` in the text channel. You will then have to give a name and a limit of people for each role.\n\nIf you are not in need of any event specific roles, type done without reacting to the message with any emojis.\nThese roles are purely visual and no actual server roles are added.\n\nIf the `(-noroles)` optional flag is provided, this step will be skipped.",
+                        "5. Limit": "Lastly, you will be asked to specify how many people in total can join your event. If a limit of `0` is specified, an unlimited number of people will be able to join.\n\nIf the `(limit)` optional argument is provided, this step will be skipped.",
+                        "Owner": "When scheduling an event, you will be registered as the event owner and thus do not require any other event related permissions when executing commands related to this event."
                     },
-                    "examples": [],
-                    "gif": "",
-                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
+                    "examples": ["p? schedule", "p? schedule \"Example event\" tomorrow \"Come join us for some fun!\" 2 -noroles", "p? schedule \"Example event\" tomorrow"],
+                    "gif": "https://professorcalculus.io/features/res/schedule.gif",
+                    "notes": "1. This command is only available to members with permission (see `p? help configure role` for details).\n\n2. You cannot change the order of the optional arguments (except for that `-noroles` can be placed anywhere in the command). Your first argument will always be interpreted as `(name)`, the second as `(date & time)` and so on."
                 },
                 "remove": {
                     "args": {"[event id]": "The id of the event to be removed."},
@@ -84,7 +94,7 @@
                     "examples": ["p? remove 1"],
                     "description_short": "",
                     "gif": "",
-                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
+                    "notes": "This command is only available to members with permission and the owner of the event (see `p? help configure role` for details)."
                 },
                 "attend": {
                     "args": {"[event id]": "The id of the event to attend."},
@@ -120,7 +130,7 @@
                     "examples": ["p? update 2 description Free oj for everyone who shows up.", "p? update 1 role :thumbsup: limit 5", "p? update 4 role :fire: emoji"],
                     "description_short": "This command sets the field `[what to update]` to `[new value]` for event number `[event id]`.",
                     "gif": "",
-                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
+                    "notes": "This command is only available to members with permission and the owner of the event (see `p? help configure role` for details)."
                 },
                 "kick": {
                     "args": {"[@member]": "The mention for the member to kick", "[event id].": "The id of the event to kick `[@member]` from."},
@@ -130,7 +140,7 @@
                     "examples": ["p? kick @exampleMember#1234 1"],
                     "description_short": "",
                     "gif": "",
-                    "notes": "This command is only available to members with permission and the owner of the event (see configure role for details)."
+                    "notes": "This command is only available to members with permission and the owner of the event (see `p? help configure role` for details)."
                 },
                 "when": {
                     "args": {"[event id]": "The id of the event to check the time for.", "[UTC offset]": "The UTC offset you want to get the time for the event in."},
@@ -401,7 +411,7 @@
                     "description_short": "Add a new sound and call it `[name]`.",
                     "examples": [],
                     "gif": "https://professorcalculus.io/docs/res/addsound.gif",
-                    "notes": "1. Sound names cannot include spaces.\n\n2. If you delete the message with the file upload, then that sound will no longer work.\n\n3. This command is only available to members with permission (see configure role for details).\n\n4. The maximum amount of sounds for a server is 19."
+                    "notes": "1. Sound names cannot include spaces.\n\n2. If you delete the message with the file upload, then that sound will no longer work.\n\n3. This command is only available to members with permission (see `p? help configure role` for details).\n\n4. The maximum amount of sounds for a server is 19."
                 },
                 "soundboard remove": {
                     "args": {"[name]": "The name of the sound to remove."},
@@ -411,7 +421,7 @@
                     "description_short": "Remove the sound called `[name]`.",
                     "examples": [],
                     "gif": "",
-                    "notes": "This command is only available to members with permission (see configure role for details). "
+                    "notes": "This command is only available to members with permission (see `p? help configure role` for details). "
                 },
                 "soundboard play": {
                     "args": {"[name]": "The name of the sound to play."},
@@ -434,7 +444,7 @@
                     "description_short": "Rename the sound `[old name]` to `[new name]`",
                     "examples": ["p? soundboard rename wow amazing"],
                     "gif": "",
-                    "notes": "This command is only available to members with permission (see configure role for details). "
+                    "notes": "This command is only available to members with permission (see `p? help configure role` for details). "
                 }
             }
         },
