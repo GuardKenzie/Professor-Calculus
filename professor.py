@@ -137,7 +137,7 @@ async def permissioncheck(ctx):
     if isinstance(ctx.channel, discord.abc.GuildChannel):
         check = permissionsDict[hash(ctx.guild)].hasPermission(ctx)
         if not check:
-            await ctx.author.send(content="You do not have permission to do execute the command `{}`.".format(ctx.message.content))
+            await ctx.author.send(content="You do not have permission to execute the command `{}`.".format(ctx.message.content))
     else:
         return True
 
@@ -1113,7 +1113,7 @@ async def channel(ctx, channelType):
 async def role(ctx, role: discord.Role):
     cross = "\u274C"
     # Permissions that can be set
-    availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct"]
+    availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct", "no"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
     with open("res/foodemojis.txt", "r") as f:
@@ -1134,6 +1134,7 @@ async def role(ctx, role: discord.Role):
         eventsPermissions = {}
         configurePermissions = {}
         soundboardPermissions = {}
+        miscPermissions = {}
 
         # Categorize the permissions and check their values
         for p in permissions.permissionResolver.values():
@@ -1144,6 +1145,8 @@ async def role(ctx, role: discord.Role):
                 soundboardPermissions[commandName] = p in rolePerms
             elif p[0] == "c":
                 configurePermissions[commandName] = p in rolePerms
+            elif p[0] == "n":
+                miscPermissions[commandName] = p in rolePerms
 
         # Function to generate the permission list for each category
         def genstr(d, currentemoji):
@@ -1165,6 +1168,9 @@ async def role(ctx, role: discord.Role):
 
         embed.add_field(name="Configure", value=genstr(configurePermissions, currentemoji), inline=False)
         currentemoji += len(configurePermissions)
+
+        embed.add_field(name="Misc", value=genstr(miscPermissions, currentemoji), inline=False)
+        currentemoji += len(miscPermissions)
 
         await message.edit(content="", embed=embed)
 

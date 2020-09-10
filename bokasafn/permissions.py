@@ -43,9 +43,7 @@ permissionResolver = {"schedule": "es",
                       "setup": "ms",
                       "clean": "mc",
                       "hook": "eh",
-                      "notice": "no",
-                      "notice create": "no",
-                      "notice edit": "no"
+                      "notice": "no"
                       }
 
 
@@ -112,6 +110,9 @@ class Permissions:
 
         if command == "hook remove":
             permissionString = "eh"
+
+        if command.split()[0] == "notice":
+            permissionString = "no"
 
         if permissionString is None:
             return True
