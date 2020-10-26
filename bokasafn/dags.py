@@ -6,7 +6,7 @@ import re
 
 def parse(datestr, tz=pytz.utc, ignore_past=False, allow_tbd=False):
     if allow_tbd and datestr.lower() == "tbd":
-        return dateparser.parse("9999/01/01 00:00").astimezone(pytz.utc)
+        return dateparser.parse("9999/01/01 00:00")
 
     weekdaysPlural = ["mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays"]
     for day in weekdaysPlural:
@@ -43,7 +43,8 @@ def parse(datestr, tz=pytz.utc, ignore_past=False, allow_tbd=False):
         return False
 
     # Skilum samsvarandi tíma í UTC
-    return date.astimezone(pytz.utc)
+    date = date.replace(tzinfo=None)
+    return date
 
 
 if __name__ == "__main__":
