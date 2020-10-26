@@ -2902,7 +2902,7 @@ async def playFromSoundboard(ctx, name):
             source = discord.FFmpegPCMAudio(url)
             connection.play(source)
             while connection.is_playing():
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(1)
             await connection.disconnect()
         except AttributeError:
             await ctx.author.send(content="You need to be connected to voice chat to do that!")
