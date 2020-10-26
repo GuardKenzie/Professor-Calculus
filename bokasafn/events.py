@@ -228,7 +228,7 @@ class Events:
                 recurring = True
                 break
 
-        eventDate = dags.parse(eventDate, self.timezone, allow_tbd=True)
+        eventDate = dags.parse(eventDate, self.timezone, allow_tbd=True, naive=True)
         eventId = random.randint(1, 1000000000)
         eventRoles = json.dumps(eventRoles)
 
@@ -341,7 +341,7 @@ class Events:
         # Check for date and set correct padding
         if toUpdate == "date":
             toRecurring = bool(newInfo.split()[0].lower() in weekdays)
-            newInfo = dags.parse(newInfo, self.timezone)
+            newInfo = dags.parse(newInfo, self.timezone, naive=True)
             if not newInfo:
                 return False
 
