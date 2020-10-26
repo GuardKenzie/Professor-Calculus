@@ -119,7 +119,7 @@ class Event:
 
     def nextDay(self):
         # Get the next day a recurring event is gonna happen
-        return str((self.date + datetime.timedelta(days=7)).replace(tzinfo=None))
+        return str(self.date + datetime.timedelta(days=7))
 
     def getAdjustedDate(self):
         # Get the date as timezone
