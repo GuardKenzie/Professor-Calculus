@@ -55,11 +55,11 @@ class Event:
     def __init__(self, guildHash, eventId, date, name, description, people, roles, limit, recurring, ownerId, timezone: pytz.timezone):
         self.hash = guildHash
         self.id = eventId
+        self.date = dateutil.parser.isoparse(date)
         self.name = name
         self.description = description
         self.roles = json.loads(roles)
         self.timezone = timezone
-        self.date = self.timezone.localize(dateutil.parser.isoparse(date)).astimezone(pytz.utc)
         self.ownerId = int(ownerId)
 
         self.parray = json.loads(people)
