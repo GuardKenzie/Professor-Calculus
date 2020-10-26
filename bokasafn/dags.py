@@ -4,7 +4,7 @@ import datetime
 import re
 
 
-def parse(datestr, tz=pytz.utc, ignore_past=False, allow_tbd=False, naive=False):
+def parse(datestr, tz=pytz.utc, ignore_past=False, allow_tbd=False):
     if allow_tbd and datestr.lower() == "tbd":
         return dateparser.parse("9999/01/01 00:00")
 
@@ -43,10 +43,7 @@ def parse(datestr, tz=pytz.utc, ignore_past=False, allow_tbd=False, naive=False)
         return False
 
     # Skilum samsvarandi tíma í UTC
-    if naive:
-        date = date.replace(tzinfo=None)
-    else:
-        date = date.astimezone(pytz.utc)
+    date = date.replace(tzinfo=None)
     return date
 
 
