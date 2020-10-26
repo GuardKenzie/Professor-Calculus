@@ -43,7 +43,7 @@
                     },
                     "description_short": "This command allows you to change the permissions for a certain `[@role]`.",
                     "description": {
-                        "general": "This command allows you to change the permissions for a certain [@role]. Roles that have the administrator permission already have all permissions for this bot.\n\nCommands that require special permission to use are: \n> schedule\n> remove\n> update\n> kick\n> hook\n> hook remove\n> soundboard add\n> soundboard remove\n> configure channel\n> configure role\n> configure timezone\n> notice new\n> notice edit\n\nIf you are the owner of an event, you do not require any special permissions for commands related to that particular event."
+                        "general": "This command allows you to change the permissions for a certain [@role]. Roles that have the administrator permission already have all permissions for this bot.\n\nCommands that require special permission to use are: \n> schedule\n> remove\n> update\n> kick\n> soundboard add\n> soundboard remove\n> configure channel\n> configure role\n> configure timezone\n> notice new\n> notice edit\n\nIf you are the owner of an event, you do not require any special permissions for commands related to that particular event."
                     },
                     "examples": ["p? configure role @Mod"],
                     "gif": "",
@@ -96,12 +96,12 @@
                     "gif": "",
                     "notes": "This command is only available to members with permission and the owner of the event (see `p? help configure role` for details)."
                 },
-                "attend": {
-                    "args": {"[event id]": "The id of the event to attend."},
+                "join": {
+                    "args": {"[event id]": "The id of the event to join."},
                     "description": {
-                        "general": "Signs you up for event number `[event id]` and adds your name to the list of people showing up.\n\nYou can also use this command to change your role in an event. To do so, simply attend the event again."
+                        "general": "Signs you up for event number `[event id]` and adds your name to the list of people showing up.\n\nYou can also use this command to change your role in an event. To do so, simply join the event again."
                     },
-                    "examples": ["p? attend 2"],
+                    "examples": ["p? join 2"],
                     "description_short": "Signs you up for event number `[event id]` or lets you pick a different role for that event.",
                     "gif": "",
                     "notes": ""

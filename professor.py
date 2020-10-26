@@ -885,11 +885,11 @@ async def configure(ctx):
             # Categorize the permissions and check their values
             for p in permissions.permissionResolver.values():
                 commandName = permissions.resolvePermission(p).split()[-1]
-                if p[0] == "e":
+                if p[0] == "e" and p in availablePerms:
                     eventsPermissions[commandName] = p in rolePerms
-                elif p[0] == "s":
+                elif p[0] == "s" and p in availablePerms:
                     soundboardPermissions[commandName] = p in rolePerms
-                elif p[0] == "c":
+                elif p[0] == "c" and p in availablePerms:
                     configurePermissions[commandName] = p in rolePerms
 
             # Function to generate the permission list for each category
@@ -1113,7 +1113,7 @@ async def channel(ctx, channelType):
 async def role(ctx, role: discord.Role):
     cross = "\u274C"
     # Permissions that can be set
-    availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct", "no"]
+    availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr", "ct", "no"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
     with open("res/foodemojis.txt", "r") as f:
@@ -1562,7 +1562,7 @@ async def remove(ctx, fakeId):
         await ctx.author.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
 
 
-@professor.command(aliases=["a"], checks=[eventChannelCheck])
+@professor.command(aliases=["a", "join", "j"], checks=[eventChannelCheck])
 async def attend(ctx, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
@@ -1581,7 +1581,7 @@ async def attend(ctx, eventId):
     # Get event roles
     if event.roles != []:
         if eventsDict[hash(ctx.guild)].attending > 0:
-            await ctx.author.send("Someone else is attending an event. Wait until they are finished and try again.")
+            await ctx.author.send("Someone else is joining an event. Wait until they are finished and try again.")
             return
         else:
             eventsDict[hash(ctx.guild)].attending = 1

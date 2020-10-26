@@ -1,5 +1,5 @@
 {
-  "helloMessage":           "Hello! I'm {0}. Nice to meet you!\nThis is my events channel. Here I will post notifications for upcoming guild events!\n Some useful commands are:\n `{1} attend #` to sign up for event #\n `{1} leave #` to leave event #\n \n For all commands and more details type `{1} help`.",
+  "helloMessage":           "Hello! I'm {0}. Nice to meet you!\nThis is my events channel. Here I will post notifications for upcoming guild events!\n Some useful commands are:\n `{1} join #` to sign up for event #\n `{1} leave #` to leave event #\n \n For all commands and more details type `{1} help`.",
   "schedulerMessage":       "You can give roles special permissions with the `p? configure` command. Users with the discord administrator permission do not need additional permissions.",
 
   "eventCreated":           "Event `{}` at `{}` successfully booked!",
@@ -8,8 +8,8 @@
   "eventRemoved":           "`{}` successfully removed.",
   "eventRemovalFailed":     "Could not remove event. Maybe check `{} help` and try again.",
 
-  "attendSuccess":          "{} is now attending `{}`.",
-  "attendFailed":           "Could not attend event. Are you already attending? Maybe check `{} help` and try again.",
+  "attendSuccess":          "{} has joined`{}`.",
+  "attendFailed":           "Could not join event. Are you already attending? Maybe check `{} help` and try again.",
 
   "leaveSuccess":           "{} has left `{}`",
   "leaveFailed":            "Could not leave event. Have you already left? Maybee check `{} help` and try again",
