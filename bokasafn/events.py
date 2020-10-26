@@ -86,7 +86,7 @@ class Event:
 
     def now(self):
         # Check if event is now
-        now = datetime.datetime.utcnow().astimezone(self.timezone)
+        now = pytz.utc.localize(datetime.datetime.utcnow())
         return abs(now - self.date) < datetime.timedelta(minutes=1) and self.date < now
 
     def inHour(self):
@@ -131,12 +131,12 @@ class Event:
             return "TBD"
 
         if self.recurring:
-            return self.date.strftime("%As %H:%M")
+            return self.date.astimezone(self.timezone).strftime("%As %H:%M")
         else:
-            if self.date.year == datetime.datetime.now().astimezone(self.timezone).year:
-                return self.date.strftime("%d %B %H:%M")
+            if self.date.astimezone(self.timezone).year == datetime.datetime.now().astimezone(self.timezone).year:
+                return self.date.astimezone(self.timezone).strftime("%d %B %H:%M")
             else:
-                return self.date.strftime("%d %B %Y %H:%M")
+                return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
 
     def offsetPrintableDate(self, offset: int):
         # Get the printable date for the event offset by offset
