@@ -206,6 +206,7 @@ async def updatePinned(myChannel, guild):
     # Updates the pinned event list
     guildHash = hash(guild)
     guildMembers = dictFromMembersName(guild.members)
+    print(guildMembers)
     update = eventsDict[guildHash].generateEventsMessage(guildMembers)
 
     mylog = eventsDict[guildHash].getLog(dateform="%a. %H:%M")
@@ -421,7 +422,8 @@ async def on_ready():
         if myChannel:
             eventsDict[guildHash].channel = myChannel
             asyncio.create_task(myChannel.purge(check=purgecheck))
-            asyncio.create_task(updatePinned(myChannel, guild))
+            await updatePinned(myChannel, guild)
+            # asyncio.create_task(updatePinned(myChannel, guild))
 
         # Initiate permissions
         permissionsDict[hash(guild)] = permissions.Permissions(hash(guild), database="db/permissions.db")
