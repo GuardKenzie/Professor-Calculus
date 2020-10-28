@@ -56,7 +56,8 @@ with open("res/messages.json", "r") as f:
 activity = discord.Game(infoMessages["activity"])
 
 # Intent
-intent = discord.Intents.all()
+intent = discord.Intents.default()
+intent.members = True
 
 # initiate bot
 professor = commands.Bot(case_insensitive=True,
