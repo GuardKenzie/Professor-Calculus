@@ -55,10 +55,14 @@ with open("res/messages.json", "r") as f:
 # Activity
 activity = discord.Game(infoMessages["activity"])
 
+# Intent
+intent = discord.Intents.all()
+
 # initiate bot
 professor = commands.Bot(case_insensitive=True,
                          command_prefix=prefixes,
-                         activity=activity)
+                         activity=activity,
+                         intents=intent)
 
 professor.remove_command("help")
 
