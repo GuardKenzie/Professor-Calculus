@@ -1362,7 +1362,8 @@ async def schedule(ctx, *args):
     desc = args[2]
     if desc is not None:
         if len(desc) > 1024:
-            await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.\n>>> {desc}")
+            await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
+            await ctx.author.send(f"{desc}")
             desc = None
 
     limit = args[3]
@@ -1449,7 +1450,8 @@ async def schedule(ctx, *args):
                 await replyMsg.delete()
 
                 if len(desc) > 1024:
-                    await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.\n>>> {desc}")
+                    await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
+                    await ctx.author.send(f"desc}")
                 else:
                     descOk = True
 
@@ -1688,7 +1690,8 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
 
         if toUpdate == "description":
             if len(newInfo) > 1024:
-                await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.\n>>> {desc}")
+                await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
+                await ctx.author.send(f"{desc}")
                 return
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
