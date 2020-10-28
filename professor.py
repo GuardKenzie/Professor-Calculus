@@ -205,6 +205,7 @@ async def updatePinned(myChannel, guild):
 
     # Updates the pinned event list
     guildHash = hash(guild)
+    print(guild.members)
     guildMembers = dictFromMembersName(guild.members)
     print(guildMembers)
     update = eventsDict[guildHash].generateEventsMessage(guildMembers)
