@@ -403,6 +403,7 @@ async def on_ready():
 
     # Initiate Events class for each guild
     for guild in professor.guilds:
+        print(guild.members)
         guildHash = hash(guild)
         print("Guild:\t\t\t{}".format(guild.name))
 
