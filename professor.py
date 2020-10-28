@@ -1360,6 +1360,10 @@ async def schedule(ctx, *args):
             time = None
 
     desc = args[2]
+    if desc is not None:
+        if len(desc) > 1024:
+            await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.\n>>> {desc}")
+            desc = None
 
     limit = args[3]
     # Check if limit ok
@@ -1438,11 +1442,16 @@ async def schedule(ctx, *args):
             else:
                 msg = await ctx.channel.send(content=infoMessages["eventDesc"])
 
-            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+            descOk = False
+            while not descOk:
+                replyMsg = await professor.wait_for("message", check=check, timeout=120)
+                desc = replyMsg.content
+                await replyMsg.delete()
 
-            desc = replyMsg.content
-
-            await replyMsg.delete()
+                if len(desc) > 1024:
+                    await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.\n>>> {desc}")
+                else:
+                    descOk = True
 
         emb.description = "Time: {} \n Description: {}".format(time, desc)
         await startEvent.edit(embed=emb)
@@ -1678,7 +1687,9 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         if toUpdate == "description":
-            oldMsg = event.description
+            if len(newInfo) > 1024:
+                await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.\n>>> {desc}")
+                return
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
         elif toUpdate == "name":
