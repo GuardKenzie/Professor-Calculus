@@ -1451,7 +1451,7 @@ async def schedule(ctx, *args):
 
                 if len(desc) > 1024:
                     await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
-                    await ctx.author.send(f"desc}")
+                    await ctx.author.send(f"{desc}")
                 else:
                     descOk = True
 
