@@ -14,6 +14,8 @@ from . import dags
 
 accent_colour = discord.Colour(int("688F56", 16))
 
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays"]
+
 
 class Hook:
     def __init__(self, ctx, event):
@@ -220,10 +222,9 @@ class Events:
         print("Events:\t\t\tonline for {}".format(guildHash))
 
     def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit, ownerId):
-        weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
         recurring = False
-        for day in weekdays:
+        for day in WEEKDAYS:
             if day in eventDate.lower():
                 recurring = True
                 break
@@ -336,11 +337,9 @@ class Events:
             if not eventId:
                 return False
 
-        weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-
         # Check for date and set correct padding
         if toUpdate == "date":
-            toRecurring = bool(newInfo.split()[0].lower() in weekdays)
+            toRecurring = bool(newInfo.split()[0].lower() in WEEKDAYS)
             newInfo = dags.parse(newInfo, self.timezone)
             if not newInfo:
                 return False
