@@ -1693,6 +1693,7 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
                 await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
                 await ctx.author.send(f"{desc}")
                 return
+            oldMsg = (event.description[:150] + "...") if len(event.description) > 150 else event.description
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
         elif toUpdate == "name":
