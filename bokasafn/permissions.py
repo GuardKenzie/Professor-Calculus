@@ -29,7 +29,7 @@ import re
 #
 # --- Misc ---
 # Notice:   no
-availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct", "no"]
+availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr", "ct", "no"]
 
 permissionResolver = {"schedule": "es",
                       "remove": "er",
@@ -40,9 +40,9 @@ permissionResolver = {"schedule": "es",
                       "configure channel": "cc",
                       "configure role": "cr",
                       "configure timezone": "ct",
+                      "hook": "eh",
                       "setup": "ms",
                       "clean": "mc",
-                      "hook": "eh",
                       "notice": "no"
                       }
 

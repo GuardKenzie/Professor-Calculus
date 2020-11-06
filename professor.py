@@ -55,10 +55,15 @@ with open("res/messages.json", "r") as f:
 # Activity
 activity = discord.Game(infoMessages["activity"])
 
+# Intent
+intent = discord.Intents.default()
+intent.members = True
+
 # initiate bot
 professor = commands.Bot(case_insensitive=True,
                          command_prefix=prefixes,
-                         activity=activity)
+                         activity=activity,
+                         intents=intent)
 
 professor.remove_command("help")
 
@@ -885,11 +890,11 @@ async def configure(ctx):
             # Categorize the permissions and check their values
             for p in permissions.permissionResolver.values():
                 commandName = permissions.resolvePermission(p).split()[-1]
-                if p[0] == "e":
+                if p[0] == "e" and p in availablePerms:
                     eventsPermissions[commandName] = p in rolePerms
-                elif p[0] == "s":
+                elif p[0] == "s" and p in availablePerms:
                     soundboardPermissions[commandName] = p in rolePerms
-                elif p[0] == "c":
+                elif p[0] == "c" and p in availablePerms:
                     configurePermissions[commandName] = p in rolePerms
 
             # Function to generate the permission list for each category
@@ -1113,7 +1118,7 @@ async def channel(ctx, channelType):
 async def role(ctx, role: discord.Role):
     cross = "\u274C"
     # Permissions that can be set
-    availablePerms = ["es", "er", "eu", "ek", "eh", "sa", "sr", "cc", "cr", "ct", "no"]
+    availablePerms = ["es", "er", "eu", "ek", "sa", "sr", "cc", "cr", "ct", "no"]
     rolePerms = permissionsDict[hash(ctx.guild)].getPermissions(role.id)
 
     with open("res/foodemojis.txt", "r") as f:
@@ -1355,6 +1360,11 @@ async def schedule(ctx, *args):
             time = None
 
     desc = args[2]
+    if desc is not None:
+        if len(desc) > 1024:
+            await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
+            await ctx.author.send(f"{desc}")
+            desc = None
 
     limit = args[3]
     # Check if limit ok
@@ -1433,11 +1443,17 @@ async def schedule(ctx, *args):
             else:
                 msg = await ctx.channel.send(content=infoMessages["eventDesc"])
 
-            replyMsg = await professor.wait_for("message", check=check, timeout=120)
+            descOk = False
+            while not descOk:
+                replyMsg = await professor.wait_for("message", check=check, timeout=120)
+                desc = replyMsg.content
+                await replyMsg.delete()
 
-            desc = replyMsg.content
-
-            await replyMsg.delete()
+                if len(desc) > 1024:
+                    await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
+                    await ctx.author.send(f"{desc}")
+                else:
+                    descOk = True
 
         emb.description = "Time: {} \n Description: {}".format(time, desc)
         await startEvent.edit(embed=emb)
@@ -1562,7 +1578,7 @@ async def remove(ctx, fakeId):
         await ctx.author.send(content=infoMessages["eventRemovalFailed"].format(prefix), delete_after=15)
 
 
-@professor.command(aliases=["a"], checks=[eventChannelCheck])
+@professor.command(aliases=["a", "join", "j"], checks=[eventChannelCheck])
 async def attend(ctx, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
@@ -1581,7 +1597,7 @@ async def attend(ctx, eventId):
     # Get event roles
     if event.roles != []:
         if eventsDict[hash(ctx.guild)].attending > 0:
-            await ctx.author.send("Someone else is attending an event. Wait until they are finished and try again.")
+            await ctx.author.send("Someone else is joining an event. Wait until they are finished and try again.")
             return
         else:
             eventsDict[hash(ctx.guild)].attending = 1
@@ -1673,7 +1689,11 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
 
         if toUpdate == "description":
-            oldMsg = event.description
+            if len(newInfo) > 1024:
+                await ctx.author.send(f"The description you provided is too long. The maximum is 1024 characters.")
+                await ctx.author.send(f"{desc}")
+                return
+            oldMsg = (event.description[:150] + "...") if len(event.description) > 150 else event.description
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
         elif toUpdate == "name":
