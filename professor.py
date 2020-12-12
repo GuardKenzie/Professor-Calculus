@@ -2472,6 +2472,18 @@ async def forget_me(ctx):
     await ctx.author.send("You have been forgotten.")
 
 
+
+@professor.command()
+async def secret_santa(ctx, eventId: int):
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if event:
+        people = event.people
+        random.shuffle(people)
+        await ctx.author.send(people)
+    else:
+        await ctx.author.send("Invalid event id")
+
+
 @professor.command()
 async def poll(ctx, *options):
     if len(options) < 3:
