@@ -2483,8 +2483,8 @@ async def secret_santa(ctx, eventId: int):
 
         memConv = discord.ext.commands.MemberConverter()
         while i < len(people):
-            gifter = await memConv.convert(ctx, people[i])
-            rec = await memConv.convert(ctx, people[(i+1)%len(people)])
+            gifter = await memConv.convert(ctx, str(people[i]))
+            rec = await memConv.convert(ctx, str(people[(i+1)%len(people)]))
             await ctx.author.send(f"{gifter} -> {rec}")
     else:
         await ctx.author.send("Invalid event id")
