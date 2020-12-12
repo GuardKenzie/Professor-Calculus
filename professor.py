@@ -2485,7 +2485,8 @@ async def secret_santa(ctx, eventId: int):
         while i < len(people):
             gifter = await memConv.convert(ctx, str(people[i]))
             rec = await memConv.convert(ctx, str(people[(i+1)%len(people)]))
-            await ctx.author.send(f"{gifter} -> {rec}")
+
+            await ctx.author.send(f"For the {ctx.guild.name} secret santa event, you will be giving {rec.display_name} a little something.")
             i += 1
     else:
         await ctx.author.send("Invalid event id")
