@@ -243,6 +243,11 @@ async def updatePinned(myChannel, guild):
         await myLogMessage.edit(content="\n".join(mylog))
         await myLogMessage.clear_reactions()
 
+    except discord.errors.Forbidden:
+        await guild.owner.send("Something went wrong with my event channel in f{guild.name}. Please configure a new one to be able to use event features again.")
+        eventsDict[guildHash].setMyChannelId(0, "events")
+        return
+
     except (discord.errors.HTTPException, discord.errors.NotFound):
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
