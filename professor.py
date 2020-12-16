@@ -243,6 +243,11 @@ async def updatePinned(myChannel, guild):
         await myLogMessage.edit(content="\n".join(mylog))
         await myLogMessage.clear_reactions()
 
+    except discord.errors.Forbidden:
+        await guild.owner.send("Something went wrong with my event channel in f{guild.name}. Please configure a new one to be able to use event features again.")
+        eventsDict[guildHash].setMyChannelId(0, "events")
+        return
+
     except (discord.errors.HTTPException, discord.errors.NotFound):
         await myChannel.purge()
         helloMessage = await myChannel.send(content=infoMessages["helloMessage"].format(nick, prefix))
@@ -2470,6 +2475,26 @@ async def forget_me(ctx):
 
     await msg.delete()
     await ctx.author.send("You have been forgotten.")
+
+
+
+@professor.command()
+async def secret_santa(ctx, eventId: int):
+    event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+    if event:
+        people = event.people
+        random.shuffle(people)
+        i = 0
+
+        memConv = discord.ext.commands.MemberConverter()
+        while i < len(people):
+            gifter = await memConv.convert(ctx, str(people[i]))
+            rec = await memConv.convert(ctx, str(people[(i+1)%len(people)]))
+
+            await gifter.send(f"For the {ctx.guild.name} secret santa event, you will be giving {rec.display_name} a little something.")
+            i += 1
+    else:
+        await ctx.author.send("Invalid event id")
 
 
 @professor.command()
