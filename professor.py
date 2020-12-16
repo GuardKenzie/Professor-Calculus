@@ -1927,7 +1927,7 @@ async def hook(ctx, eventId, toProcess):
 
             elif action == "message":
                 # Update my message and get message content
-                await ctx.author.send(content="What is the message you would like me to send users when they {}?".format(toProcess))
+                mymsg = await ctx.author.send(content="What is the message you would like me to send users when they {}?".format(toProcess))
 
                 def check(m):
                     return m.author == ctx.author
