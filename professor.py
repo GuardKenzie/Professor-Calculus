@@ -1587,6 +1587,12 @@ async def remove(ctx, fakeId):
 async def attend(ctx, eventId):
     # Attend an event
     # Command syntax: attend [eventId]
+    try:
+        int(eventId)
+    except TypeError:
+        await ctx.author.send(f"Event id must be an integer. You entered `{eventId}`.")
+        return
+
     role = ""
 
     emojis = []
