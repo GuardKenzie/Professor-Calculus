@@ -16,6 +16,8 @@ accent_colour = discord.Colour(int("688F56", 16))
 
 WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays"]
 
+def ordinal(n: int):
+    return "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
 
 class Hook:
     def __init__(self, ctx, event):
