@@ -270,21 +270,25 @@ async def friendly_notification(e, number):
     # Friendly reminder for recurring events
     eventName = e["event"].name
     eventDesc = e["event"].description
-    weekday = e["date"]
+    printDate = e["date"]
 
     # Find my friendly channel
     channelId = e["channelId"]
     guild = e["guild"]
 
-    # everyone = guild.me.roles[0].mention
-
     friendlyChannel = guild.get_channel(channelId)
 
-    msgContent = "Today is "
-    if number > 0:
-        msgContent += " also "
+    # Weekly
+    if e["recurring"] == "week":
+        msgContent = "Today is "
+        if number > 0:
+            msgContent += " also "
 
-    msgContent += "**{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, weekday, eventDesc)
+        msgContent += "**{} {}**. \n> {} \n Remember to sign up in the events channel!".format(eventName, printDate, eventDesc)
+
+    # Monthly
+    elif e["recurring"] == "month":
+        msgContent = f"Today is the {printDate} of the month so that means it's time for **{eventName}**. \n> {eventDesc} \n Remember to sign up in the events channel!"
 
     await friendlyChannel.send(content=msgContent)
 
@@ -1441,6 +1445,35 @@ async def schedule(ctx, *args):
         emb.description = "Time: {} \n Description:".format(time)
         await startEvent.edit(embed=emb)
 
+        # Recurring
+        if msg is not None:
+            await msg.edit(content=infoMessages["eventRecurring"])
+        else:
+            msg = await ctx.channel.send(content=infoMessages["eventRecurring"])
+
+        recurringOk = False
+        while not recurringOk:
+            # Ask for recurring
+            replyMsg = await professor.wait_for("message", check = check, timeout=120)
+            if replyMsg.content.lower() == "no":
+                recurring = ""
+                recurringOk = True
+
+            elif replyMsg.content.lower() == "weekly":
+                recurring = "weekly"
+                recurringOk = True
+
+            elif replyMsg.content.lower() == "monthly":
+                if timeOk.day > 27:
+                    await ctx.author.send("Please pick a date for your event before the 28th of a month to set it as monthly. You will need to cancel your scheduling or reply with `no/weekly` and update the event later.")
+                    recurring = False
+                else:
+                    recurring = "monthly"
+                    recurringOk = True
+
+            await replyMsg.delete()
+
+
         # Desc
         if desc is None:
             if msg is not None:
@@ -1523,18 +1556,23 @@ async def schedule(ctx, *args):
         await startEvent.delete()
 
         # Schedule events
-        if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit, ctx.author.id):
+        if eventsDict[hash(ctx.guild)].createEvent(time, title, desc, emojis, limit, ctx.author.id, recurring):
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
+
             eventsDict[hash(ctx.guild)].insertIntoLog("{} scheduled event `{}` for `{}`.".format(ctx.author.display_name, title, time))
+
         else:
             if ctx.channel == eventsDict[hash(ctx.guild)].channel:
                 await ctx.channel.purge(check=pcheck)
+
             await ctx.channel.send(content=infoMessages["eventCreationFailed"].format(prefix), delete_after=15)
         eventsDict[hash(ctx.guild)].scheduling = 0
+
     except asyncio.TimeoutError:
         if ctx.channel == eventsDict[hash(ctx.guild)].channel:
             await ctx.channel.purge(check=pcheck)
+
     finally:
         eventsDict[hash(ctx.guild)].scheduling = 0
 
@@ -1695,9 +1733,10 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
     # Command syntax: update [eventId] [to update] [new info]
 
     # Check if usere is scheduler
-    if toUpdate in ["description", "name", "date", "owner", "limit", "role"]:
+    if toUpdate in ["description", "name", "date", "owner", "limit", "role", "recurring"]:
 
         event = eventsDict[hash(ctx.guild)].getEvent(eventId)
+        completeMsg = None
 
         if toUpdate == "description":
             if len(newInfo) > 1024:
@@ -1707,17 +1746,26 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             oldMsg = (event.description[:150] + "...") if len(event.description) > 150 else event.description
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
+
         elif toUpdate == "name":
             oldMsg = event.name
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
+
         elif toUpdate == "date":
-            if not dags.parse(newInfo, allow_tbd=True):
+            parsed = dags.parse(newInfo, allow_tbd=True)
+            if not parsed:
                 await ctx.author.send("`{}` is not a valid date format".format(newInfo))
                 return
+
+            if parsed.day > 27 and event.recurring == "month":
+                await ctx.author.send("You cannot change the date to be later than the 27th of a month on a monthly event.")
+                return
+
             oldMsg = event.printableDate()
             newInfoMsg = newInfo
             toUpdateMsg = toUpdate
+
         elif toUpdate == "owner":
             memconv = discord.ext.commands.MemberConverter()
 
@@ -1830,6 +1878,32 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
             newInfoMsg = roleNewInfo
             oldMsg = ""
             newInfo = [roleEmoji, roleField, roleNewInfo]
+
+        elif toUpdate == "recurring":
+            newInfo = newInfo.lower()
+            oldMsg = ""
+
+            if newInfo == "no":
+                newInfo = ""
+                temp = "not recurring"
+
+            elif newInfo == "weekly":
+                newInfo = "week"
+                temp = "recurring weekly"
+
+            elif newInfo == "monthly":
+                if event.date.day > 27:
+                        await ctx.author.send("Please update your event to take place before the 28th of a month to set it as monthly.")
+                        return
+                newInfo = "month"
+                temp = "recurring monthly"
+
+            else:
+                await ctx.author.send("Available recurring states are `no`, `weekly` and `monthly`. You gave `{}`".format(newInfo))
+                return
+
+            completeMsg = f"{ctx.author.display_name} set event `{event.name}` to {temp}."
+
         else:
             oldMsg = ""
             toUpdateMsg = toUpdate
@@ -1837,7 +1911,10 @@ async def update(ctx, eventId, toUpdate, *, newInfo):
         if eventsDict[hash(ctx.guild)].updateEvent(eventId, toUpdate, newInfo):
             if oldMsg:
                 oldMsg = f"from `{oldMsg}` "
-            eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` {}to `{}`.".format(ctx.author.display_name, event.name, toUpdateMsg, oldMsg, newInfoMsg))
+            if completeMsg is not None:
+                eventsDict[hash(ctx.guild)].insertIntoLog(completeMsg)
+            else:
+                eventsDict[hash(ctx.guild)].insertIntoLog("{} updated event `{}`'s `{}` {}to `{}`.".format(ctx.author.display_name, event.name, toUpdateMsg, oldMsg, newInfoMsg))
 
         else:
             await ctx.author.send(content=infoMessages["updateFailed"].format(prefix), delete_after=15)

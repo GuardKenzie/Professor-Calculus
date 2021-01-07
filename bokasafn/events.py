@@ -83,7 +83,7 @@ class Event:
             if r:
                 self.peopleInRole[r] += 1
 
-        self.recurring = bool(recurring)
+        self.recurring = recurring
 
     def isTBD(self):
         return self.date == dateutil.parser.isoparse("9999-01-01 00:00:00+00:00")
@@ -123,7 +123,12 @@ class Event:
 
     def nextDay(self):
         # Get the next day a recurring event is gonna happen
-        return str(self.date + datetime.timedelta(days=7))
+        if self.recurring == "week":
+            return str(self.date + datetime.timedelta(days=7))
+        elif self.recurring == "month":
+            return str(self.date + relativedelta.relativedelta(months=+1))
+        else:
+            return False
 
     def getAdjustedDate(self):
         # Get the date as timezone
@@ -134,13 +139,18 @@ class Event:
         if self.isTBD():
             return "TBD"
 
-        if self.recurring:
-            return self.date.astimezone(self.timezone).strftime("%As %H:%M")
-        else:
+        if self.recurring == "":
             if self.date.astimezone(self.timezone).year == datetime.datetime.now().astimezone(self.timezone).year:
                 return self.date.astimezone(self.timezone).strftime("%d %B %H:%M")
             else:
                 return self.date.astimezone(self.timezone).strftime("%d %B %Y %H:%M")
+
+        elif self.recurring == "week":
+            return self.date.astimezone(self.timezone).strftime("%As %H:%M")
+
+        elif self.recurring == "month":
+            dags = self.date.day
+            return self.date.astimezone(self.timezone).strftime(f"The {ordinal(dags)} of every month at %H:%M")
 
     def offsetPrintableDate(self, offset: int):
         # Get the printable date for the event offset by offset
@@ -223,13 +233,7 @@ class Events:
 
         print("Events:\t\t\tonline for {}".format(guildHash))
 
-    def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit, ownerId):
-
-        recurring = False
-        for day in WEEKDAYS:
-            if day in eventDate.lower():
-                recurring = True
-                break
+    def createEvent(self, eventDate, eventName, eventDesc, eventRoles, eventLimit, ownerId, recurring):
 
         eventDate = dags.parse(eventDate, self.timezone, allow_tbd=True)
         eventId = random.randint(1, 1000000000)
@@ -330,9 +334,6 @@ class Events:
         return e
 
     def updateEvent(self, eventId, toUpdate, newInfo, actualId=False, doNotSwitch=False):
-        # updates field toUpdate to newInfo in database
-        toRecurring = False
-
         # Get actual Id
         if not actualId:
             eventId = self.getEventId(eventId)
@@ -341,7 +342,6 @@ class Events:
 
         # Check for date and set correct padding
         if toUpdate == "date":
-            toRecurring = bool(newInfo.split()[0].lower() in WEEKDAYS)
             newInfo = dags.parse(newInfo, self.timezone)
             if not newInfo:
                 return False
@@ -391,11 +391,6 @@ class Events:
         # Update entry and check for success
         e = self.c.execute("UPDATE events SET {}=?  WHERE server_hash=? AND id=?".format(toUpdate), (newInfo, self.guildHash, eventId))
         if e:
-            if toRecurring and toUpdate == "date":
-                self.c.execute("UPDATE events SET recurring=1 WHERE server_hash=? AND id=?", (self.guildHash, eventId))
-            elif toUpdate == "date":
-                self.c.execute("UPDATE events SET recurring=0 WHERE server_hash=? AND id=?", (self.guildHash, eventId))
-            self.conn.commit()
             return e
         else:
             return False
@@ -478,17 +473,23 @@ class Events:
         for event in eventsList:
             event = Event(*event, self.timezone)
 
-            if event.friendlyNotification() and event.recurring:
+            if (event.friendlyNotification() or force) and event.recurring != "":
+                if event.recurring == "week":
+                    printDate = weekday
+                elif event.recurring == "month":
+                    printDate = ordinal(event.date.day)
+
                 eventOut.append({"event": event,
-                                 "date": weekday,
+                                 "date": printDate,
                                  "friendly": True,
+                                 "recurring": event.recurring,
                                  "channelId": self.getMyChannelId("friendly"),
                                  "guild": self.channel.guild
                                  })
 
             # If now then remove
             if event.now():
-                if not event.recurring:
+                if event.recurring == "":
                     self.removeEvent(event.id)
                 else:
                     self.updateEvent(event.id, "people", "[]", actualId=True)
