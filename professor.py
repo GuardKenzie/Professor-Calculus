@@ -1383,6 +1383,7 @@ async def schedule(ctx, *args):
             await ctx.author.send(f"{desc}")
             desc = None
 
+    # Do limit
     limit = args[3]
     # Check if limit ok
     if limit is not None:
