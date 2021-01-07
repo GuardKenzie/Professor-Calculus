@@ -18,6 +18,7 @@ import pytz
 import dateutil.parser
 import pickle
 from imgurpython import ImgurClient
+import logging
 
 # Mine
 import bokasafn.breytugreinir as breytugreinir
@@ -34,6 +35,13 @@ import bokasafn.notice as noticelib
 # Bot key
 with open(sys.argv[1], "r") as keyFile:
     key = keyFile.read().strip()
+
+# Logging
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 # Events dict. Index = guild hash
 eventsDict = {}
