@@ -1469,7 +1469,7 @@ async def schedule(ctx, *args):
                 recurringOk = True
 
             elif replyMsg.content.lower() == "weekly":
-                recurring = "weekly"
+                recurring = "week"
                 recurringOk = True
 
             elif replyMsg.content.lower() == "monthly":
@@ -1477,7 +1477,7 @@ async def schedule(ctx, *args):
                     await ctx.author.send("Please pick a date for your event before the 28th of a month to set it as monthly. You will need to cancel your scheduling or reply with `no/weekly` and update the event later.")
                     recurring = False
                 else:
-                    recurring = "monthly"
+                    recurring = "month"
                     recurringOk = True
 
             await replyMsg.delete()
