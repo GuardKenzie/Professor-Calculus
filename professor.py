@@ -2569,7 +2569,6 @@ async def forget_me(ctx):
     await ctx.author.send("You have been forgotten.")
 
 
-
 @professor.command()
 async def secret_santa(ctx, eventId: int):
     event = eventsDict[hash(ctx.guild)].getEvent(eventId)
@@ -2762,6 +2761,13 @@ async def poll(ctx, *options):
 
     await pollmsg.edit(content="**POLL CLOSED**")
 
+
+@professor.command
+async def avatar(ctx, user: discord.User):
+    embed = discord.Embed(title=f"{user.display_name}'s avatar")
+    embed.set_image(user.avatar_url)
+
+    ctx.channel.send(embed=embed)
 
 # --- Salt ---
 
