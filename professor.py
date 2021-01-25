@@ -2764,10 +2764,10 @@ async def poll(ctx, *options):
 
 @professor.command()
 async def avatar(ctx, user: discord.User):
-    embed = discord.Embed(title=f"{user.display_name}'s avatar")
+    embed = discord.Embed(title=f"{user.display_name}'s avatar", color=accent_colour)
     embed.set_image(url=user.avatar_url)
 
-    await ctx.channel.send(embed=embed, color=accent_colour)
+    await ctx.channel.send(embed=embed)
 
 # --- Salt ---
 
