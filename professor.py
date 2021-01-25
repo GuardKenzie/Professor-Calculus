@@ -2767,7 +2767,7 @@ async def avatar(ctx, user: discord.User):
     embed = discord.Embed(title=f"{user.display_name}'s avatar")
     embed.set_image(url=user.avatar_url)
 
-    await ctx.channel.send(embed=embed, color=accent_color)
+    await ctx.channel.send(embed=embed, color=accent_colour)
 
 # --- Salt ---
 
