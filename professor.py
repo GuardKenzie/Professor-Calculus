@@ -2762,12 +2762,12 @@ async def poll(ctx, *options):
     await pollmsg.edit(content="**POLL CLOSED**")
 
 
-@professor.command
+@professor.command()
 async def avatar(ctx, user: discord.User):
     embed = discord.Embed(title=f"{user.display_name}'s avatar")
-    embed.set_image(user.avatar_url)
+    embed.set_image(url=user.avatar_url)
 
-    ctx.channel.send(embed=embed)
+    await ctx.channel.send(embed=embed, color=accent_color)
 
 # --- Salt ---
 
